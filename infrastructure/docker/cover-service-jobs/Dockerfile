@@ -1,8 +1,12 @@
+ARG APP_VERSION="latest"
+FROM docker.pkg.github.com/danskernesdigitalebibliotek/ddb-cover-service/cover-service:${APP_VERSION} as APPLICATION
+
 FROM php:7.3-alpine
 LABEL maintainer="ITK Dev <itkdev@mkb.aarhus.dk>"
 
-ARG APP_VERSION="latest"
-ENV APP_PATH=/var/www/html
+ARG APP_VERSION
+ENV APP_PATH=/var/www/html \
+    FILEPATH=infrastructure/docker/cover-service-jobs
 
 ENV PHP_OPCACHE_VALIDATE_TIMESTAMPS="0" \
     PHP_OPCACHE_MAX_ACCELERATED_FILES="20000" \
@@ -37,24 +41,24 @@ RUN apk --update add --no-cache --virtual .build-deps autoconf g++ make \
     && apk del .build-deps
 
 # Copy configuration.
-COPY etc/supervisor.d /etc/supervisor.d
-COPY etc/confd /etc/confd
+COPY ${FILEPATH}/etc/supervisor.d /etc/supervisor.d
+COPY ${FILEPATH}/etc/confd /etc/confd
 
 # Use default PHP production configuration.
 RUN mv ${PHP_INI_DIR}/php.ini-production ${PHP_INI_DIR}/php.ini
 
 # Copy custom PHP configuration.
-COPY etc/php/conf.d/opcache.ini /usr/local/etc/php/conf.d/20-opcache.ini
-COPY etc/php/conf.d/php.ini /usr/local/etc/php/conf.d/20-php.ini
+COPY ${FILEPATH}/etc/php/conf.d/opcache.ini /usr/local/etc/php/conf.d/20-opcache.ini
+COPY ${FILEPATH}/etc/php/conf.d/php.ini /usr/local/etc/php/conf.d/20-php.ini
 
 # Copy application.
-COPY --from=docker.pkg.github.com/danskernesdigitalebibliotek/ddb-cover-service/cover-service ${APP_PATH}/ ${APP_PATH}/
+COPY --from=APPLICATION ${APP_PATH}/ ${APP_PATH}/
 
 # Install configuration template handler
 ADD https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64 /usr/local/bin/confd
 RUN chmod +x /usr/local/bin/confd
 
-COPY docker-entrypoint.sh /usr/local/bin/
+COPY ${FILEPATH}/docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 CMD [ "docker-entrypoint.sh" ]
