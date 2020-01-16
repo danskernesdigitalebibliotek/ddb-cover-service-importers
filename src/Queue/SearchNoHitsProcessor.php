@@ -10,6 +10,7 @@ use App\Entity\Search;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Utils\Message\ProcessMessage;
 use App\Utils\Types\IdentifierType;
+use Doctrine\DBAL\ConnectionException;
 use Doctrine\ORM\EntityManagerInterface;
 use Enqueue\Client\ProducerInterface;
 use Enqueue\Client\TopicSubscriberInterface;

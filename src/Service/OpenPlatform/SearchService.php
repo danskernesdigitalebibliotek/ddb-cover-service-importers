@@ -234,7 +234,7 @@ class SearchService
      * if more results exists this calls it self to get all results.
      *
      * @param string $token
-     *   Access token.
+     *   Access token
      * @param string $identifier
      *   The identifier to search for
      * @param string $type

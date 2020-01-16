@@ -1,46 +1,4 @@
 {
-    "api-platform/api-pack": {
-        "version": "1.1.0"
-    },
-    "api-platform/core": {
-        "version": "2.1",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "2.1",
-            "ref": "18727d8f229306860b46955f438e1897421da689"
-        }
-    },
-    "behat/behat": {
-        "version": "v3.5.0"
-    },
-    "behat/gherkin": {
-        "version": "v4.5.1"
-    },
-    "behat/mink": {
-        "version": "1.7.x-dev"
-    },
-    "behat/mink-browserkit-driver": {
-        "version": "1.3.3"
-    },
-    "behat/mink-extension": {
-        "version": "2.3.1"
-    },
-    "behat/symfony2-extension": {
-        "version": "2.1",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "2.1",
-            "ref": "ff944fc5f8dc1d1c9602968c2c12646c557adbbc"
-        }
-    },
-    "behat/transliterator": {
-        "version": "v1.2.0"
-    },
-    "behatch/contexts": {
-        "version": "3.2.0"
-    },
     "box/spout": {
         "version": "v2.7.3"
     },
@@ -206,9 +164,6 @@
     "felixfbecker/advanced-json-rpc": {
         "version": "v3.0.4"
     },
-    "fig/link-util": {
-        "version": "1.0.0"
-    },
     "friendsofphp/php-cs-fixer": {
         "version": "2.2",
         "recipe": {
@@ -226,9 +181,6 @@
             "version": "5.0",
             "ref": "3f73f240ee0c3719e89f1c994ce66904e2ef84f6"
         }
-    },
-    "friendsoftwig/twigcs": {
-        "version": "v3.2.2"
     },
     "fzaninotto/faker": {
         "version": "v1.8.0"
@@ -271,15 +223,6 @@
     },
     "myclabs/deep-copy": {
         "version": "1.8.1"
-    },
-    "nelmio/cors-bundle": {
-        "version": "1.5",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "1.5",
-            "ref": "f0436fc35fca88eada758311f8de43bfb61f1980"
-        }
     },
     "netresearch/jsonmapper": {
         "version": "v1.6.0"
@@ -368,9 +311,6 @@
             "ref": "89239f0cf2759efccc76b9944083bfcc4d180f9d"
         }
     },
-    "pimple/pimple": {
-        "version": "v3.2.3"
-    },
     "psr/cache": {
         "version": "1.0.1"
     },
@@ -379,9 +319,6 @@
     },
     "psr/http-message": {
         "version": "1.0.1"
-    },
-    "psr/link": {
-        "version": "1.0.0"
     },
     "psr/log": {
         "version": "1.1.0"
@@ -451,9 +388,6 @@
         "files": [
             "phpcs.xml.dist"
         ]
-    },
-    "symfony/asset": {
-        "version": "v4.1.7"
     },
     "symfony/browser-kit": {
         "version": "v4.1.7"
@@ -614,9 +548,6 @@
     "symfony/property-access": {
         "version": "v4.1.7"
     },
-    "symfony/property-info": {
-        "version": "v4.1.7"
-    },
     "symfony/routing": {
         "version": "4.0",
         "recipe": {
@@ -626,29 +557,8 @@
             "ref": "5f514d9d3b8a8aac3d62ae6a86b18b90ed0c7826"
         }
     },
-    "symfony/security-bundle": {
-        "version": "3.3",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "3.3",
-            "ref": "f8a63faa0d9521526499c0a8f403c9964ecb0527"
-        }
-    },
-    "symfony/security-core": {
-        "version": "v4.4.1"
-    },
-    "symfony/security-csrf": {
-        "version": "v4.4.1"
-    },
-    "symfony/security-guard": {
-        "version": "v4.4.1"
-    },
-    "symfony/security-http": {
-        "version": "v4.4.1"
-    },
     "symfony/serializer": {
-        "version": "v4.1.7"
+        "version": "v4.4.2"
     },
     "symfony/service-contracts": {
         "version": "v2.0.1"
@@ -680,22 +590,10 @@
             "ref": "369b5b29dc52b2c190002825ae7ec24ab6f962dd"
         }
     },
-    "symfony/validator": {
-        "version": "4.1",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "4.1",
-            "ref": "0cdc982334f45d554957a6167e030482795bf9d7"
-        }
-    },
     "symfony/var-dumper": {
         "version": "v4.4.1"
     },
     "symfony/var-exporter": {
-        "version": "v4.4.1"
-    },
-    "symfony/web-link": {
         "version": "v4.4.1"
     },
     "symfony/web-profiler-bundle": {
@@ -723,9 +621,6 @@
     },
     "webmozart/assert": {
         "version": "1.3.0"
-    },
-    "willdurand/negotiation": {
-        "version": "v2.3.1"
     },
     "zendframework/zend-code": {
         "version": "3.3.1"
