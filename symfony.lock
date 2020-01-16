@@ -182,9 +182,6 @@
             "ref": "3f73f240ee0c3719e89f1c994ce66904e2ef84f6"
         }
     },
-    "friendsoftwig/twigcs": {
-        "version": "v3.2.2"
-    },
     "fzaninotto/faker": {
         "version": "v1.8.0"
     },
@@ -313,9 +310,6 @@
             "version": "4.7",
             "ref": "89239f0cf2759efccc76b9944083bfcc4d180f9d"
         }
-    },
-    "pimple/pimple": {
-        "version": "v3.2.3"
     },
     "psr/cache": {
         "version": "1.0.1"
