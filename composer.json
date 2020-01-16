@@ -1,10 +1,10 @@
 {
-    "name": "danskernesdigitalebibliotek/ddb-cover-service",
-    "description": "Interactive cover service for danish libraries",
+    "name": "danskernesdigitalebibliotek/ddb-cover-service-imports",
+    "description": "Cover service imports for the danish libraries",
     "type": "project",
-    "license": "proprietary",
+    "license": "GNU AFFERO V3",
     "require": {
-        "php": "^7.1.3",
+        "php": "^7.3.0",
         "ext-ctype": "*",
         "ext-curl": "*",
         "ext-ftp": "*",
@@ -44,11 +44,6 @@
         "symfony/yaml": "^4.0"
     },
     "require-dev": {
-        "behat/mink": "1.7.x-dev",
-        "behat/mink-browserkit-driver": "^1.3",
-        "behat/mink-extension": "^2.3",
-        "behat/symfony2-extension": "^2.1",
-        "behatch/contexts": "^3.2",
         "doctrine/doctrine-fixtures-bundle": "^3.0",
         "escapestudios/symfony2-coding-standard": "^3.10",
         "friendsofphp/php-cs-fixer": "^2.13",
