@@ -1,15 +1,32 @@
 ---
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: cover-service-importers
+  name: cover-service-imports-config
+data:
+  APP_DB_SERVER: 'cover-service-prod-database.mariadb.database.azure.com'
+  APP_DB_PORT: '3306'
+  APP_DB_DATABASE: 'cover-service'
+  APP_REDIS_SERVER: 'redis'
+  APP_REDIS_PORT: '6379'
+  APP_REDIS_CACHE_SERVER: 'redis'
+  APP_REDIS_CACHE_PORT: '6379'
+  APP_REDIS_CACHE_DB: '11'
+  APP_ELASTIC_URL: 'http://elasticsearch-es-http:9200/'
+
+---
+apiVersion: v1
 kind: Pod
 metadata:
   name: cover-service-import
-  namespace: cover-service
+  namespace: cover-service-importers
 spec:
   imagePullSecrets:
     - name: github-registry
   containers:
-  - name: coverservice
-    image: docker.pkg.github.com/danskernesdigitalebibliotek/ddb-cover-service/cover-service
+  - name: cover-service-import
+    image: docker.pkg.github.com/danskernesdigitalebibliotek/ddb-cover-service/cover-service-importers
     imagePullPolicy: IfNotPresent
     resources:
       requests:
@@ -83,4 +100,4 @@ spec:
         value: "512M"
     envFrom:
       - configMapRef:
-          name: cover-service-config
+          name: cover-service-imports-config

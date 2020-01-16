@@ -5,7 +5,7 @@ ARG APP_VERSION=develop
 ENV APP_PATH=/var/www/html
 
 # Move site into the container.
-ADD https://github.com/danskernesdigitalebibliotek/ddb-cover-service/archive/${APP_VERSION}.tar.gz /tmp/app.tar
+ADD https://github.com/danskernesdigitalebibliotek/ddb-cover-service-importers/archive/${APP_VERSION}.tar.gz /tmp/app.tar
 RUN tar -zxf /tmp/app.tar --strip-components=1 -C ${APP_PATH} \
     && rm /tmp/app.tar
 
