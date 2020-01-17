@@ -45,6 +45,7 @@ class SearchService
     private $searchCacheTTL;
     private $searchURL;
     private $searchIndex;
+    private $searchProfile;
 
     /**
      * SearchService constructor.
@@ -73,6 +74,7 @@ class SearchService
         $this->searchURL = $this->params->get('openPlatform.search.url');
         $this->searchIndex = $this->params->get('openPlatform.search.index');
         $this->searchCacheTTL = (int) $this->params->get('openPlatform.search.ttl');
+        $this->searchProfile = (string) $this->params->get('openPlatform.search.profile');
     }
 
     /**
@@ -267,6 +269,7 @@ class SearchService
                 'q' => $query,
                 'offset' => $offset,
                 'limit' => $this::SEARCH_LIMIT,
+                'profile' => $this->searchProfile,
             ],
         ]);
 
