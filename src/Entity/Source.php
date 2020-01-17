@@ -163,19 +163,19 @@ class Source
         return $this->originalLastModified;
     }
 
-    public function setOriginalLastModified(\DateTime $originalLastModified): self
+    public function setOriginalLastModified(?\DateTime $originalLastModified): self
     {
         $this->originalLastModified = $originalLastModified;
 
         return $this;
     }
 
-    public function getOriginalContentLength(): int
+    public function getOriginalContentLength(): ?int
     {
         return $this->originalContentLength;
     }
 
-    public function setOriginalContentLength(int $originalContentLength): self
+    public function setOriginalContentLength(?int $originalContentLength): self
     {
         $this->originalContentLength = $originalContentLength;
 
