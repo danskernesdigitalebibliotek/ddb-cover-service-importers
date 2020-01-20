@@ -14,21 +14,6 @@ COPY --from=composer:1.9.1 /usr/bin/composer /usr/bin/composer
 
 WORKDIR ${APP_PATH}
 
-## Install assets, which requires a HACK as redis is not available (should be removed later on).
-RUN APP_ENV=prod composer install --no-dev -o --no-scripts --classmap-authoritative \
-    && cp config/packages/framework.yaml /tmp \
-    && awk '!/system: cache.adapter.redis/' config/packages/framework.yaml > temp && mv temp config/packages/framework.yaml \
-    && APP_ENV=prod REDIS_CACHE_SYSTEM_BACKEND=cache.adapter.system composer docker-build \
-    && cp -f /tmp/framework.yaml config/packages/framework.yaml
-
-####
-## Build main application image.
-####
-FROM docker.pkg.github.com/danskernesdigitalebibliotek/ddb-base-images-k8s/php7.3-fpm-base
-LABEL maintainer="ITK Dev <itkdev@mkb.aarhus.dk>"
-
-ENV APP_PATH=/var/www/html
-
 # Install imagemagick.
 RUN apk --update add --no-cache \
         imagemagick \
@@ -39,6 +24,22 @@ RUN apk --update add --no-cache --virtual .build-deps autoconf g++ make \
     && pecl install imagick \
     && docker-php-ext-enable imagick \
     && apk del .build-deps
+
+## Install assets, which requires a HACK as redis is not available (should be removed later on).
+RUN APP_ENV=prod composer install --no-dev -o --no-scripts --classmap-authoritative \
+    && cp config/packages/framework.yaml /tmp \
+    && awk '!/system: cache.adapter.redis/' config/packages/framework.yaml > temp && mv temp config/packages/framework.yaml \
+    && APP_ENV=prod REDIS_CACHE_SYSTEM_BACKEND=cache.adapter.system composer docker-build \
+    && cp -f /tmp/framework.yaml config/packages/framework.yaml \
+    && composer clear-cache
+
+####
+## Build main application image.
+####
+FROM docker.pkg.github.com/danskernesdigitalebibliotek/ddb-base-images-k8s/php7.3-fpm-base
+LABEL maintainer="ITK Dev <itkdev@mkb.aarhus.dk>"
+
+ENV APP_PATH=/var/www/html
 
 # Install the application.
 COPY --from=APP_BUILDER ${APP_PATH} ${APP_PATH}
