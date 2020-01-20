@@ -1,4 +1,4 @@
-FROM docker.pkg.github.com/danskernesdigitalebibliotek/ddb-cover-service/php7.3-fpm AS APP_BUILDER
+FROM docker.pkg.github.com/danskernesdigitalebibliotek/ddb-base-images-k8s/php7.3-fpm-base AS APP_BUILDER
 LABEL maintainer="ITK Dev <itkdev@mkb.aarhus.dk>"
 
 ARG APP_VERSION=develop
@@ -24,10 +24,21 @@ RUN APP_ENV=prod composer install --no-dev -o --no-scripts --classmap-authoritat
 ####
 ## Build main application image.
 ####
-FROM docker.pkg.github.com/danskernesdigitalebibliotek/ddb-cover-service/php7.3-fpm
+FROM docker.pkg.github.com/danskernesdigitalebibliotek/ddb-base-images-k8s/php7.3-fpm-base
 LABEL maintainer="ITK Dev <itkdev@mkb.aarhus.dk>"
 
 ENV APP_PATH=/var/www/html
+
+# Install imagemagick.
+RUN apk --update add --no-cache \
+        imagemagick \
+        imagemagick-libs \
+        imagemagick-dev
+
+RUN apk --update add --no-cache --virtual .build-deps autoconf g++ make \
+    && pecl install imagick \
+    && docker-php-ext-enable imagick \
+    && apk del .build-deps
 
 # Install the application.
 COPY --from=APP_BUILDER ${APP_PATH} ${APP_PATH}
