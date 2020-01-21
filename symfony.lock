@@ -125,14 +125,8 @@
     "endclothing/prometheus_client_php": {
         "version": "1.0.1"
     },
-    "enqueue/async-event-dispatcher": {
-        "version": "0.7",
-        "recipe": {
-            "repo": "github.com/symfony/recipes-contrib",
-            "branch": "master",
-            "version": "0.7",
-            "ref": "9e937ccb79e08b978f91fb816d4e6d645813113a"
-        }
+    "enqueue/dsn": {
+        "version": "0.10.0"
     },
     "enqueue/enqueue": {
         "version": "0.8.42"
@@ -322,6 +316,9 @@
     },
     "psr/log": {
         "version": "1.1.0"
+    },
+    "queue-interop/amqp-interop": {
+        "version": "0.8.1"
     },
     "queue-interop/queue-interop": {
         "version": "0.6.2"
