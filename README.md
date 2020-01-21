@@ -1,10 +1,6 @@
-# DDB Cover Service
+# DDB Cover Service Importers
 
-This is the codebase for the [DDB Cover
-Service](https://cover.dandigbib.org/api). The service provides an API to search
-for cover images for library materials. Search input must be a known identifier
-type such as 'isbn', 'pid', 'faust', etc. and one or more actual ids. Response
-is a list of cover image URLs by id, format and size.
+This is the indexer and cover importer for DDB Cover Service.
 
 # License
 
@@ -25,13 +21,10 @@ along with this program. If not, see [https://www.gnu.org/licenses/](https://www
 
 ## Tech Stack
 
-This is a Symfony 4 (flex) project based on the [Api-platform
-framework](https://github.com/api-platform/api-platform).  Please see the
-[Api-platform documentation](https://api-platform.com/docs/) for a basic
-understanding of concepts and structure.
+This is a Symfony 4 (flex) project.
 
-Server/hosting reference requirements: _PHP 7.2, Nginx 1.14, MariaDB 10.2,
-ElasticSearch 6.5, Redis Server 3.2, Kibana 6.x._
+Server/hosting reference requirements: _PHP 7.3, Nginx 1.14, MariaDB 10.3,
+ElasticSearch 6.5, Redis Server 3.2.
 
 The application is currently developed and hosted on this stack. However, the
 individual components can be swapped for relevant alternatives. Apache can be
@@ -46,8 +39,6 @@ Application components:
 * [Symfony 4 (flex)](https://symfony.com/) - underlying Web Application
   framework
 * [Doctrine 2](https://www.doctrine-project.org/) - database DBAL/ORM layer
-* [Api-platform](https://github.com/api-platform/api-platform) - REST and
-  GraphQL API framework
 * [Enqueue](https://github.com/php-enqueue/enqueue-dev) - Message Queue, Job
   Queue packages for PHP, Symfony
 
@@ -89,29 +80,7 @@ imports and images. These are mapped to and persisted in the database through
 doctrine. Further a 'search' entity is defined with the fields exposed by the
 REST API. This entity is mapped one-to-one to an index in ElasticSearch.
 
-### Logging
-
-We use [Kibana](https://www.elastic.co/products/kibana) for logging. All
-relevant events and errors are logged to enable usage monitoring and debugging.
-
 ## Implementation Overview
-
-### REST API
-
-The API functionality is built on
-[api-platform](https://github.com/api-platform/api-platform) and adapted to our
-specific API design and performance requirements. To define and expose the
-defined API, relevant data transfer objects (DTO) are defined for each of the id
-types we support. We use a different 'list' format than api-platform for
-submitting multiple values for the same parameter. To enable this and to support
-searching directly in ElasticSearch and bypass the database custom [data
-providers](https://api-platform.com/docs/core/data-providers/) 
-(`/src/Api/DataProvider/*`) and
-[filters](https://api-platform.com/docs/core/filters/) (`/src/Api/Filter/*`) 
-are defined. All other custom functionality related to the REST API is also 
-defined under `/src/Api`. 
-
-A test suite for the REST API is defined as Behat features under `/features`.
 
 ### Import/Index/Upload Engine
 
@@ -209,16 +178,9 @@ Nginx, MariaDB, ElasticSearch and Redis.
    match your setup
 3. Run migrations `bin/console doctrine:migrations:migrate`
 4. Create ES search index `bin/console fos:elastica:create`
-5. Run `vendor/bin/phpunit` and `vendor/bin/behat` to ensure your test suite is
-   working.
+5. Run `vendor/bin/phpunit` to ensure your test suite is working.
 
 API is now exposed at `http://<servername>/api`
-
-### Fixtures
-
-To add test data to the database and elastic index you can run the database
-fixtures command.  Run `bin/console doctrine:fixtures:load` to populate the 
-database with random data.
 
 ## Development
 
