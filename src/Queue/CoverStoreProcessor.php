@@ -20,9 +20,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Enqueue\Client\ProducerInterface;
 use Enqueue\Client\TopicSubscriberInterface;
 use Enqueue\Util\JSON;
-use Interop\Queue\PsrContext;
-use Interop\Queue\PsrMessage;
-use Interop\Queue\PsrProcessor;
+use Interop\Queue\Context;
+use Interop\Queue\Message;
+use Interop\Queue\Processor;
 use Karriere\JsonDecoder\JsonDecoder;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -30,7 +30,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 /**
  * Class CoverStoreProcessor.
  */
-class CoverStoreProcessor implements PsrProcessor, TopicSubscriberInterface
+class CoverStoreProcessor implements Processor, TopicSubscriberInterface
 {
     private $em;
     private $producer;
@@ -56,7 +56,7 @@ class CoverStoreProcessor implements PsrProcessor, TopicSubscriberInterface
     /**
      * {@inheritdoc}
      */
-    public function process(PsrMessage $message, PsrContext $session)
+    public function process(Message $message, Context $session)
     {
         $jsonDecoder = new JsonDecoder(true);
         $processMessage = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);

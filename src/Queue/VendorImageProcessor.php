@@ -16,16 +16,16 @@ use Doctrine\ORM\EntityManagerInterface;
 use Enqueue\Client\ProducerInterface;
 use Enqueue\Client\TopicSubscriberInterface;
 use Enqueue\Util\JSON;
-use Interop\Queue\PsrContext;
-use Interop\Queue\PsrMessage;
-use Interop\Queue\PsrProcessor;
+use Interop\Queue\Context;
+use Interop\Queue\Message;
+use Interop\Queue\Processor;
 use Karriere\JsonDecoder\JsonDecoder;
 use Psr\Log\LoggerInterface;
 
 /**
  * Class CoverStoreProcessor.
  */
-class VendorImageProcessor implements PsrProcessor, TopicSubscriberInterface
+class VendorImageProcessor implements Processor, TopicSubscriberInterface
 {
     private $em;
     private $imageValidator;
@@ -52,7 +52,7 @@ class VendorImageProcessor implements PsrProcessor, TopicSubscriberInterface
     /**
      * {@inheritdoc}
      */
-    public function process(PsrMessage $message, PsrContext $session)
+    public function process(Message $message, Context $session)
     {
         $jsonDecoder = new JsonDecoder(true);
         $processMessage = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
