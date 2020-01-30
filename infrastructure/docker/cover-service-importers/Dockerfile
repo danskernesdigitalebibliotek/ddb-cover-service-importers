@@ -1,11 +1,11 @@
-FROM docker.pkg.github.com/danskernesdigitalebibliotek/ddb-cover-service/php7.3-fpm:1.1.12 AS APP_BUILDER
+FROM docker.pkg.github.com/danskernesdigitalebibliotek/ddb-base-images-k8s/php7.3-fpm-base AS APP_BUILDER
 LABEL maintainer="ITK Dev <itkdev@mkb.aarhus.dk>"
 
 ARG APP_VERSION=1.1.12
 ENV APP_PATH=/var/www/html
 
 # Move site into the container.
-ADD https://github.com/danskernesdigitalebibliotek/ddb-cover-service/archive/${APP_VERSION}.tar.gz /tmp/app.tar
+ADD https://github.com/danskernesdigitalebibliotek/ddb-cover-service-importers/archive/${APP_VERSION}.tar.gz /tmp/app.tar
 RUN tar -zxf /tmp/app.tar --strip-components=1 -C ${APP_PATH} \
     && rm /tmp/app.tar
 
@@ -14,17 +14,29 @@ COPY --from=composer:1.9.1 /usr/bin/composer /usr/bin/composer
 
 WORKDIR ${APP_PATH}
 
+# Install imagemagick.
+RUN apk --update add --no-cache \
+        imagemagick \
+        imagemagick-libs \
+        imagemagick-dev
+
+RUN apk --update add --no-cache --virtual .build-deps autoconf g++ make \
+    && pecl install imagick \
+    && docker-php-ext-enable imagick \
+    && apk del .build-deps
+
 ## Install assets, which requires a HACK as redis is not available (should be removed later on).
 RUN APP_ENV=prod composer install --no-dev -o --no-scripts --classmap-authoritative \
     && cp config/packages/framework.yaml /tmp \
     && awk '!/system: cache.adapter.redis/' config/packages/framework.yaml > temp && mv temp config/packages/framework.yaml \
     && APP_ENV=prod REDIS_CACHE_SYSTEM_BACKEND=cache.adapter.system composer docker-build \
-    && cp -f /tmp/framework.yaml config/packages/framework.yaml
+    && cp -f /tmp/framework.yaml config/packages/framework.yaml \
+    && composer clear-cache
 
 ####
 ## Build main application image.
 ####
-FROM docker.pkg.github.com/danskernesdigitalebibliotek/ddb-cover-service/php7.3-fpm:1.1.12
+FROM docker.pkg.github.com/danskernesdigitalebibliotek/ddb-base-images-k8s/php7.3-fpm-base
 LABEL maintainer="ITK Dev <itkdev@mkb.aarhus.dk>"
 
 ENV APP_PATH=/var/www/html

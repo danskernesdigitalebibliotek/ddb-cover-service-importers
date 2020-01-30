@@ -13,6 +13,7 @@ parameters:
     openPlatform.search.url: '%env(OPENPLATFORM_SEARCH_URL)%'
     openPlatform.search.index: '%env(OPENPLATFORM_SEARCH_INDEX)%'
     openPlatform.search.ttl: '%env(OPENPLATFORM_SEARCH_TTL)%'
+    openPlatform.search.profile: '%env(OPENPLATFORM_SEARCH_PROFILE)%'
     datawell.vendor.agency: '%env(DATAWELL_VENDOR_AGENCY)%'
     datawell.vendor.profile: '%env(DATAWELL_VENDOR_PROFILE)%'
     datawell.vendor.search_url: '%env(DATAWELL_VENDOR_SEARCH_URL)%'
@@ -63,38 +64,6 @@ services:
     App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiService:
         arguments:
             $apiKey: '%env(THEMOVIEDATABASE_APIKEY)%'
-
-    App\Service\MoreInfoService\DdbMoreInfoService:
-        autoconfigure: false
-        arguments:
-            $index: '@fos_elastica.index.app.search'
-
-    App\Service\MoreInfoService\DbcMoreInfoService:
-        autoconfigure: false
-        arguments:
-            $index: '@fos_elastica.index.app.search'
-
-    App\Service\MoreInfoService\DefaultCoverMoreInfoService:
-        autoconfigure: false
-        arguments:
-            $index: '@fos_elastica.index.app.search'
-
-    App\Api\DataProvider\CoverCollectionDataProvider:
-        tags: [ { name: 'api_platform.collection_data_provider', priority: 2 } ]
-        autoconfigure: false
-        arguments:
-            $index: '@fos_elastica.index.app.search'
-
-    App\Api\DataProvider\CoverItemDataProvider:
-        tags: [ { name: 'api_platform.item_data_provider', priority: 2 } ]
-        autoconfigure: false
-        arguments:
-            $index: '@fos_elastica.index.app.search'
-
-    App\OpenApi\DocumentationDecorator:
-        decorates: 'api_platform.swagger.normalizer.documentation'
-        arguments: [ '@App\OpenApi\DocumentationDecorator.inner']
-        autoconfigure: false
 
     Enqueue\Bundle\Consumption\Extension\DoctrinePingConnectionExtension:
         public: false
