@@ -13,9 +13,9 @@ use App\Service\OpenPlatform\SearchService;
 use App\Utils\Message\ProcessMessage;
 use Doctrine\ORM\EntityManagerInterface;
 use Enqueue\Client\TopicSubscriberInterface;
-use Interop\Queue\PsrContext;
-use Interop\Queue\PsrMessage;
-use Interop\Queue\PsrProcessor;
+use Interop\Queue\Context;
+use Interop\Queue\Message;
+use Interop\Queue\Processor;
 use Karriere\JsonDecoder\JsonDecoder;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -23,7 +23,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 /**
  * Class SearchProcessor.
  */
-class SearchProcessor implements PsrProcessor, TopicSubscriberInterface
+class SearchProcessor implements Processor, TopicSubscriberInterface
 {
     private $em;
     private $dispatcher;
@@ -52,7 +52,7 @@ class SearchProcessor implements PsrProcessor, TopicSubscriberInterface
      * @throws \App\Exception\PlatformAuthException
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function process(PsrMessage $message, PsrContext $session)
+    public function process(Message $message, Context $session)
     {
         $jsonDecoder = new JsonDecoder(true);
         $processMessage = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
