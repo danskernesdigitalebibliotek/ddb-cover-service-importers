@@ -75,7 +75,7 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
         }
 
         $item = new CoverStoreItem();
-        $item->setUrl($image['url'])
+        $item->setUrl($image['secure_url'])
             ->setVendor($folder)
             ->setSize($image['bytes'])
             ->setWidth((int) $image['width'])

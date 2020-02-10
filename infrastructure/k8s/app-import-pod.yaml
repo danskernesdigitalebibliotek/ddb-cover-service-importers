@@ -28,7 +28,7 @@ spec:
   containers:
   - name: cover-service-import
     image: docker.pkg.github.com/danskernesdigitalebibliotek/ddb-cover-service-importers/cover-service-importers:${APP_VERSION}
-    imagePullPolicy: IfNotPresent
+    imagePullPolicy: Always
     resources:
       requests:
         memory: "640Mi"
