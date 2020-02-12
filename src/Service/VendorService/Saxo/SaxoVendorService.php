@@ -58,13 +58,14 @@ class SaxoVendorService extends AbstractBaseVendorService
     /**
      * {@inheritdoc}
      */
-    public function load(bool $queue = true, int $limit = null): VendorImportResultMessage
+    public function load(bool $queue = true, int $limit = null, $withUpdates = false): VendorImportResultMessage
     {
         if (!$this->acquireLock()) {
             return VendorImportResultMessage::error(parent::ERROR_RUNNING);
         }
 
         $this->queue = $queue;
+        $this->withUpdates = $withUpdates;
 
         try {
             $this->progressStart('Opening sheet: "'.self::VENDOR_ARCHIVE_NAME.'"');

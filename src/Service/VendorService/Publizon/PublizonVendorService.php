@@ -45,13 +45,15 @@ class PublizonVendorService extends AbstractBaseVendorService
     /**
      * {@inheritdoc}
      */
-    public function load(bool $queue = true, int $limit = null): VendorImportResultMessage
+    public function load(bool $queue = true, int $limit = null, $withUpdates = false): VendorImportResultMessage
     {
         if (!$this->acquireLock()) {
             return VendorImportResultMessage::error(parent::ERROR_RUNNING);
         }
 
         $this->loadConfig();
+        $this->queue = $queue;
+        $this->withUpdates = $withUpdates;
 
         $this->progressStart('Opening xml resource stream from: '.$this->apiEndpoint);
 

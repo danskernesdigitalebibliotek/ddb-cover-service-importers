@@ -36,6 +36,8 @@ abstract class AbstractBaseVendorService
     protected $statsLogger;
 
     protected $queue = true;
+    protected $withUpdates = false;
+
     protected $totalUpdated = 0;
     protected $totalInserted = 0;
     protected $totalDeleted = 0;
@@ -67,10 +69,12 @@ abstract class AbstractBaseVendorService
      *   downloaded to cover store
      * @param int $limit
      *   Set a limit to the amount of records to import
+     * @param bool $withUpdates
+     *   If true run updates on existing covers.
      *
      * @return VendorImportResultMessage
      */
-    abstract public function load(bool $queue = true, int $limit = null): VendorImportResultMessage;
+    abstract public function load(bool $queue = true, int $limit = null, bool $withUpdates = false): VendorImportResultMessage;
 
     /**
      * Get the database id of the vendor the class represents.
@@ -205,7 +209,9 @@ abstract class AbstractBaseVendorService
         foreach ($batch as $identifier => $imageUrl) {
             if (array_key_exists($identifier, $sources)) {
                 $source = $sources[$identifier];
-                ++$this->totalUpdated;
+                if ($this->withUpdates) {
+                    ++$this->totalUpdated;
+                }
                 $updatedIdentifiers[] = $identifier;
             } else {
                 $source = new Source();
@@ -248,7 +254,7 @@ abstract class AbstractBaseVendorService
                 $event = new VendorEvent(VendorState::INSERT, $insertedIdentifiers, $identifierType, $this->vendor->getId());
                 $this->dispatcher->dispatch($event::NAME, $event);
             }
-            if (!empty($updatedIdentifiers)) {
+            if (!empty($updatedIdentifiers) && $this->withUpdates) {
                 $event = new VendorEvent(VendorState::UPDATE, $updatedIdentifiers, $identifierType, $this->vendor->getId());
                 $this->dispatcher->dispatch($event::NAME, $event);
             }
