@@ -70,7 +70,7 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
     /**
      * {@inheritdoc}
      */
-    public function load(bool $queue = true, int $limit = null, $withUpdates = false): VendorImportResultMessage
+    public function load(): VendorImportResultMessage
     {
         if (!$this->acquireLock()) {
             return VendorImportResultMessage::error(parent::ERROR_RUNNING);
@@ -78,8 +78,6 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
 
         // We're lazy loading the config to avoid errors from missing config values on dependency injection
         $this->loadConfig();
-        $this->queue = $queue;
-        $this->withUpdates = $withUpdates;
 
         $mrcFileNames = [];
         foreach (self::VENDOR_ARCHIVES_DIRECTORIES as $directory) {
@@ -125,9 +123,13 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
                             $this->progressAdvance();
                         }
                     }
+
+                    if ($this->limit && $count >= $this->limit) {
+                        break;
+                    }
                 }
 
-                RbDigitalPublicUrlConverter::convertArrayValues($isbnImageUrlArray);
+                RbDigitalBooksPublicUrlConverter::convertArrayValues($isbnImageUrlArray);
                 $this->updateOrInsertMaterials($isbnImageUrlArray);
                 $isbnImageUrlArray = [];
 

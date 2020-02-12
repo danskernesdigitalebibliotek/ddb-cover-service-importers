@@ -53,14 +53,11 @@ class RbDigitalMagazinesVendorService extends AbstractBaseVendorService
     /**
      * {@inheritdoc}
      */
-    public function load(bool $queue = true, int $limit = null, $withUpdates = false): VendorImportResultMessage
+    public function load(): VendorImportResultMessage
     {
         if (!$this->acquireLock()) {
             return VendorImportResultMessage::error(parent::ERROR_RUNNING);
         }
-
-        $this->queue = $queue;
-        $this->withUpdates = $withUpdates;
 
         $this->progressStart('Search data well for: "'.self::VENDOR_SEARCH_TERM.'"');
 
@@ -87,7 +84,7 @@ class RbDigitalMagazinesVendorService extends AbstractBaseVendorService
                 $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
                 $this->progressAdvance();
 
-                if ($limit && $this->totalIsIdentifiers >= $limit) {
+                if ($this->limit && $this->totalIsIdentifiers >= $this->limit) {
                     $more = false;
                 }
             } while ($more);

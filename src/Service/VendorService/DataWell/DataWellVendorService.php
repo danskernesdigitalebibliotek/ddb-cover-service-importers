@@ -49,7 +49,7 @@ class DataWellVendorService extends AbstractBaseVendorService
     /**
      * @{@inheritdoc}
      */
-    public function load(bool $queue = true, int $limit = null, $withUpdates = false): VendorImportResultMessage
+    public function load(): VendorImportResultMessage
     {
         if (!$this->acquireLock()) {
             return VendorImportResultMessage::error(parent::ERROR_RUNNING);
@@ -57,8 +57,6 @@ class DataWellVendorService extends AbstractBaseVendorService
 
         // We're lazy loading the config to avoid errors from missing config values on dependency injection
         $this->loadConfig();
-        $this->queue = $queue;
-        $this->withUpdates = $withUpdates;
 
         $this->progressStart('Search data well for: "'.self::VENDOR_ARCHIVE_NAME.'"');
 
@@ -77,7 +75,7 @@ class DataWellVendorService extends AbstractBaseVendorService
                 $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
                 $this->progressAdvance();
 
-                if ($limit && $this->totalIsIdentifiers >= $limit) {
+                if ($this->limit && $this->totalIsIdentifiers >= $this->limit) {
                     $more = false;
                 }
             } while ($more);

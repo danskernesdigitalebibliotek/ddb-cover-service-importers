@@ -6,6 +6,7 @@
 
 namespace App\Command\Vendors;
 
+use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\VendorServiceFactory;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Console\Command\Command;
@@ -56,7 +57,7 @@ class VendorCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $limit = $input->getOption('limit');
-        $queue = !$input->getOption('without-queue');
+        $dispatchToQueue = !$input->getOption('without-queue');
         $withUpdates = $input->getOption('with-updates');
 
         $vendor = $input->getOption('vendor');
@@ -82,8 +83,12 @@ class VendorCommand extends Command
         $results = [];
         foreach ($vendorServices as $vendorService) {
             try {
+                /* @var AbstractBaseVendorService $vendorService */
+                $vendorService->setDispatchToQueue($dispatchToQueue);
+                $vendorService->setWithUpdates($withUpdates);
+                $vendorService->setLimit($limit);
                 $vendorService->setProgressBar($progressBarSheet);
-                $results[$vendorService->getVendorName()] = $vendorService->load($queue, $limit, $withUpdates);
+                $results[$vendorService->getVendorName()] = $vendorService->load();
             } catch (Exception $exception) {
                 $io->error('👎 '.$exception->getMessage());
             }
