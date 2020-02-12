@@ -6,11 +6,14 @@
 
 namespace App\Service\VendorService\BogPortalen;
 
+use App\Exception\IllegalVendorServiceException;
+use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use Doctrine\ORM\EntityManagerInterface;
 use League\Flysystem\Filesystem;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -24,7 +27,7 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     use ProgressBarTrait;
 
     protected const VENDOR_ID = 1;
-    private const VENDOR_ARCHIVE_NAME = 'BOP-ProductAll.zip';
+    private const VENDOR_ARCHIVE_NAMES = ['BOP-ProductAll.zip', 'BOP-Actual-EXT.zip'];
 
     private $local;
     private $ftp;
@@ -69,59 +72,61 @@ class BogPortalenVendorService extends AbstractBaseVendorService
         // We're lazy loading the config to avoid errors from missing config values on dependency injection
         $this->loadConfig();
 
-        $this->progressStart('Checking for updated archive: "'.self::VENDOR_ARCHIVE_NAME.'"');
+        foreach (self::VENDOR_ARCHIVE_NAMES as $archive) {
+            try {
+                $this->progressStart('Checking for updated archive: "'.$archive.'"');
 
-        try {
-            if ($this->archiveHasUpdate()) {
-                $this->progressMessage('New archive found, Downloading....');
+                if ($this->archiveHasUpdate($archive)) {
+                    $this->progressMessage('New '.$archive.' archive found, Downloading....');
+                    $this->progressAdvance();
+
+                    $this->updateArchive($archive);
+                }
+
+                $this->progressMessage('Getting filenames from archive....');
                 $this->progressAdvance();
 
-                $this->updateArchive();
-            }
+                $localArchivePath = $this->local->getAdapter()->getPathPrefix().$archive;
+                $files = $this->listZipContents($localArchivePath);
+                $isbnList = $this->getIsbnNumbers($files);
 
-            $this->progressMessage('Getting filenames from archive....');
-            $this->progressAdvance();
-
-            $localArchivePath = $this->local->getAdapter()->getPathPrefix().self::VENDOR_ARCHIVE_NAME;
-            $files = $this->listZipContents($localArchivePath);
-            $isbnList = $this->getIsbnNumbers($files);
-
-            $this->progressMessage('Removing ISBNs not found in archive');
-            $this->progressAdvance();
-
-            // @TODO Dispatch delete event to deleteProcessor
-            // $deleted = $this->deleteRemovedMaterials($isbnList);
-
-            $offset = 0;
-            $count = $limit ?: \count($isbnList);
-
-            while ($offset < $count) {
-                $isbnBatch = \array_slice($isbnList, $offset, self::BATCH_SIZE, true);
-
-                $isbnImageUrlArray = $this->buildIsbnImageUrlArray($isbnBatch);
-                $this->updateOrInsertMaterials($isbnImageUrlArray);
-
-                $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                $this->progressMessage('Removing ISBNs not found in archive');
                 $this->progressAdvance();
 
-                $offset += self::BATCH_SIZE;
+                // @TODO Dispatch delete event to deleteProcessor
+                // $deleted = $this->deleteRemovedMaterials($isbnList);
+
+                $offset = 0;
+                $count = $limit ?: \count($isbnList);
+
+                while ($offset < $count) {
+                    $isbnBatch = \array_slice($isbnList, $offset, self::BATCH_SIZE, true);
+
+                    $isbnImageUrlArray = $this->buildIsbnImageUrlArray($isbnBatch);
+                    $this->updateOrInsertMaterials($isbnImageUrlArray);
+
+                    $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                    $this->progressAdvance();
+
+                    $offset += self::BATCH_SIZE;
+                }
+
+                $this->logStatistics();
+
+                $this->progressFinish();
+
+                return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted, $this->totalDeleted);
+            } catch (\Exception $exception) {
+                return VendorImportResultMessage::error($exception->getMessage());
             }
-
-            $this->logStatistics();
-
-            $this->progressFinish();
-
-            return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted, $this->totalDeleted);
-        } catch (\Exception $exception) {
-            return VendorImportResultMessage::error($exception->getMessage());
         }
     }
 
     /**
      * Set config from service from DB vendor object.
      *
-     * @throws \App\Exception\UnknownVendorServiceException
-     * @throws \App\Exception\IllegalVendorServiceException
+     * @throws UnknownVendorServiceException
+     * @throws IllegalVendorServiceException
      */
     private function loadConfig(): void
     {
@@ -158,8 +163,8 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      *
      * @return string
      *
-     * @throws \App\Exception\UnknownVendorServiceException
-     * @throws \App\Exception\IllegalVendorServiceException
+     * @throws UnknownVendorServiceException
+     * @throws IllegalVendorServiceException
      */
     private function getVendorsImageUrl(string $isbn): string
     {
@@ -169,21 +174,24 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     /**
      * Check if vendors archive has update.
      *
+     * @param string $archive
+     *   Filename for the archive
+     *
      * @return bool
      *
+     * @throws IllegalVendorServiceException
+     * @throws InvalidArgumentException
      * @throws \League\Flysystem\FileNotFoundException
-     * @throws \Psr\Cache\InvalidArgumentException
-     * @throws \App\Exception\IllegalVendorServiceException
      */
-    private function archiveHasUpdate(): bool
+    private function archiveHasUpdate(string $archive): bool
     {
         $update = true;
 
-        if ($this->local->has(self::VENDOR_ARCHIVE_NAME)) {
+        if ($this->local->has($archive)) {
             $remoteModifiedAtCache = $this->cache->getItem('app.vendor.'.$this->getVendorId().'.remoteModifiedAt');
 
             if ($remoteModifiedAtCache->isHit()) {
-                $remote = $this->ftp->getTimestamp(self::VENDOR_ARCHIVE_NAME);
+                $remote = $this->ftp->getTimestamp($archive);
                 $update = $remote > $remoteModifiedAtCache->get();
             }
         }
@@ -194,15 +202,18 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     /**
      * Update local copy of vendors archive.
      *
+     * @param string $archive
+     *   Filename for the archive
+     *
      * @return bool
      *
+     * @throws IllegalVendorServiceException
+     * @throws InvalidArgumentException
      * @throws \League\Flysystem\FileNotFoundException
-     * @throws \Psr\Cache\InvalidArgumentException
-     * @throws \App\Exception\IllegalVendorServiceException
      */
-    private function updateArchive(): bool
+    private function updateArchive(string $archive): bool
     {
-        $remoteModifiedAt = $this->ftp->getTimestamp(self::VENDOR_ARCHIVE_NAME);
+        $remoteModifiedAt = $this->ftp->getTimestamp($archive);
         $remoteModifiedAtCache = $this->cache->getItem('app.vendor.'.$this->getVendorId().'.remoteModifiedAt');
         $remoteModifiedAtCache->set($remoteModifiedAt);
         $remoteModifiedAtCache->expiresAfter(24 * 60 * 60);
@@ -210,7 +221,7 @@ class BogPortalenVendorService extends AbstractBaseVendorService
         $this->cache->save($remoteModifiedAtCache);
 
         // @TODO Error handling for missing archive
-        return $this->local->put(self::VENDOR_ARCHIVE_NAME, $this->ftp->read(self::VENDOR_ARCHIVE_NAME));
+        return $this->local->put($archive, $this->ftp->read($archive));
     }
 
     /**
