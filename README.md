@@ -19,6 +19,19 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see [https://www.gnu.org/licenses/](https://www.gnu.org/licenses/).
 
+## Architecture Overview
+
+The DDB COver Service application consists of multiple logical parts with individual repositories:
+
+This repository:
+* An CLI based image import/index/upload engine that handles import, indexing
+  and uploading of cover images from external providers.
+
+Other repositories:
+* [A web facing REST API powered by the ElasticSearch index](https://github.com/danskernesdigitalebibliotek/ddb-cover-service)
+* [Statistics export to the Faktor Service](https://github.com/danskernesdigitalebibliotek/ddb-cover-service-faktor-export)
+* [Upload Service for DDB CMS](https://github.com/danskernesdigitalebibliotek/ddb-cover-service-upload)
+
 ## Tech Stack
 
 This is a Symfony 4 (flex) project.
@@ -49,14 +62,6 @@ External Services:
 * [Open Search](https://www.dbc.dk/produkter-services/webservices/open-search)
   is used for mapping between common ids (isbn etc.) and library specific id's
   such as 'pid' and 'faust'
-
-## Architecture Overview
-
-The application consists of two logical parts:
-
-* A web facing REST API powered by the ElasticSearch index
-* An CLI based image import/index/upload engine that handles import, indexing
-  and uploading of cover images from external providers.
 
 ### Messaging
 
@@ -142,24 +147,20 @@ contain the import logic for the vendors specific access setup
 ## Development Setup
 
 ### Docker compose
-The project comes with a docker-compose setup base on development only images, that comes with all required extensions 
-to PHP (including xdebug) and all services required to run the application.
+The project comes with a docker-compose setup base on development only images, 
+that comes with all required extensions to PHP (including xdebug) and all services 
+required to run the application.
 
-For easy usage it's recommended to use træfik (proxy) and the wrapper script for docker-compose used at ITKDev 
-(https://github.com/aakb/itkdev-docker/tree/develop/scripts). It's not an requirement and the setup examples below is 
-without the script. The script just makes working with docker simpler and faster. 
+For easy usage it's recommended to use træfik (proxy) and the wrapper script for 
+docker-compose used at ITKDev (https://github.com/aakb/itkdev-docker/tree/develop/scripts). 
+It's not an requirement and the setup examples below is without the script. The 
+script just makes working with docker simpler and faster. 
 
 #### Running docker setup
 
 Start the stack.
 ```
 docker-compose up --detach
-```
-
-Access the site using the command blow to get the port number and append it to this URL `http://0.0.0.0:<PORT>` in your
-browser.
-```
-docker-compose port nginx 80 | cut -d: -f2
 ```
 
 All the symfony commands below to install the application can be executed using this pattern.
@@ -179,8 +180,12 @@ Nginx, MariaDB, ElasticSearch and Redis.
 3. Run migrations `bin/console doctrine:migrations:migrate`
 4. Create ES search index `bin/console fos:elastica:create`
 5. Run `vendor/bin/phpunit` to ensure your test suite is working.
+6. Run `bin/console app:vendor:populate` to populate the vendor tables with the implemented vendors.
+7. Add relevant access config to the vendor table
 
-API is now exposed at `http://<servername>/api`
+Application can now load vendors through the `bin/console app:vendor:load` command. 
+The application is purely a job queue and command based. No API or site is exposed 
+through http(s). 
 
 ## Development
 
@@ -189,15 +194,14 @@ API is now exposed at `http://<servername>/api`
 The project follows the [PSR2](https://www.php-fig.org/psr/psr-2/) and
 [Symfony](https://symfony.com/doc/current/contributing/code/standards.html) code
 styles. The PHP CS Fixer tool is installed automatically. To check if your code
-matches the expected code syntax you can run `composer php-cs-check`, to fix
-code style errors you can run `composer php-cs-fix`
+matches the expected code syntax you can run `composer check-coding-standards/php-cs-fixer `, 
+to fix code style errors you can run `composer apply-coding-standards/php-cs-fixer`
 
 ### Tests
 
-The application has a test suite consisting of unit tests and Behat features.
+The application has a test suite consisting of unit tests.
 
 * To run the unit tests located in `/tests` you can run `vendor/bin/phpunit`
-* To run the Behat features in `/feature` you can run `vendor/bin/behat`
 
 Both bugfixes and added features should be supported by matching tests.
 
