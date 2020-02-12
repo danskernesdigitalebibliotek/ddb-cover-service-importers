@@ -70,7 +70,7 @@ abstract class AbstractBaseVendorService
      * @param int $limit
      *   Set a limit to the amount of records to import
      * @param bool $withUpdates
-     *   If true run updates on existing covers.
+     *   If true run updates on existing covers
      *
      * @return VendorImportResultMessage
      */
