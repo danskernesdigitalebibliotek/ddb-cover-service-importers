@@ -75,7 +75,8 @@ abstract class AbstractBaseVendorService
      * @param bool $dispatchToQueue
      *   If true send events into queue system (default: true)
      */
-    final public function setDispatchToQueue(bool $dispatchToQueue) {
+    final public function setDispatchToQueue(bool $dispatchToQueue)
+    {
         $this->dispatchToQueue = $dispatchToQueue;
     }
 
@@ -85,7 +86,8 @@ abstract class AbstractBaseVendorService
      * @param bool $withUpdates
      *   If true existing covers are updated (default: false)
      */
-    final public function setWithUpdates(bool $withUpdates) {
+    final public function setWithUpdates(bool $withUpdates)
+    {
         $this->withUpdates = $withUpdates;
     }
 
@@ -95,7 +97,8 @@ abstract class AbstractBaseVendorService
      * @param int $limit
      *   The limit to use (default: 0 - no limit)
      */
-    final public function setLimit(int $limit) {
+    final public function setLimit(int $limit)
+    {
         $this->limit = $limit;
     }
 
@@ -231,23 +234,28 @@ abstract class AbstractBaseVendorService
 
         foreach ($batch as $identifier => $imageUrl) {
             if (array_key_exists($identifier, $sources)) {
-                $source = $sources[$identifier];
                 if ($this->withUpdates) {
+                    /* @var Source $source */
+                    $source = $sources[$identifier];
+                    $source->setMatchType($identifierType)
+                        ->setMatchId($identifier)
+                        ->setVendor($this->vendor)
+                        ->setDate(new \DateTime())
+                        ->setOriginalFile($imageUrl);
                     ++$this->totalUpdated;
+                    $updatedIdentifiers[] = $identifier;
                 }
-                $updatedIdentifiers[] = $identifier;
             } else {
                 $source = new Source();
+                $source->setMatchType($identifierType)
+                    ->setMatchId($identifier)
+                    ->setVendor($this->vendor)
+                    ->setDate(new \DateTime())
+                    ->setOriginalFile($imageUrl);
                 $this->em->persist($source);
                 ++$this->totalInserted;
                 $insertedIdentifiers[] = $identifier;
             }
-
-            $source->setMatchType($identifierType)
-                ->setMatchId($identifier)
-                ->setVendor($this->vendor)
-                ->setDate(new \DateTime())
-                ->setOriginalFile($imageUrl);
 
             ++$this->totalIsIdentifiers;
         }

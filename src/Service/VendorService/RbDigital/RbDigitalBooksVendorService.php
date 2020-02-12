@@ -11,7 +11,6 @@ use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\RbDigital\DataConverter\RbDigitalBooksPublicUrlConverter;
-use App\Service\VendorService\RbDigital\DataConverter\RbDigitalPublicUrlConverter;
 use App\Utils\Message\VendorImportResultMessage;
 use Doctrine\ORM\EntityManagerInterface;
 use League\Flysystem\FileNotFoundException;
