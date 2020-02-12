@@ -35,7 +35,10 @@ abstract class AbstractBaseVendorService
     protected $dispatcher;
     protected $statsLogger;
 
-    protected $queue = true;
+    protected $dispatchToQueue = true;
+    protected $withUpdates = false;
+    protected $limit = 0;
+
     protected $totalUpdated = 0;
     protected $totalInserted = 0;
     protected $totalDeleted = 0;
@@ -62,15 +65,42 @@ abstract class AbstractBaseVendorService
     /**
      * Load new data from vendor.
      *
-     * @param bool $queue
-     *   If FALSE the queue system will not be activate and images will not be
-     *   downloaded to cover store
-     * @param int $limit
-     *   Set a limit to the amount of records to import
-     *
      * @return VendorImportResultMessage
      */
-    abstract public function load(bool $queue = true, int $limit = null): VendorImportResultMessage;
+    abstract public function load(): VendorImportResultMessage;
+
+    /**
+     * Set dispatch to queue.
+     *
+     * @param bool $dispatchToQueue
+     *   If true send events into queue system (default: true)
+     */
+    final public function setDispatchToQueue(bool $dispatchToQueue)
+    {
+        $this->dispatchToQueue = $dispatchToQueue;
+    }
+
+    /**
+     * Set with updates.
+     *
+     * @param bool $withUpdates
+     *   If true existing covers are updated (default: false)
+     */
+    final public function setWithUpdates(bool $withUpdates)
+    {
+        $this->withUpdates = $withUpdates;
+    }
+
+    /**
+     * Set the amount of records imported per vendor.
+     *
+     * @param int $limit
+     *   The limit to use (default: 0 - no limit)
+     */
+    final public function setLimit(int $limit)
+    {
+        $this->limit = $limit;
+    }
 
     /**
      * Get the database id of the vendor the class represents.
@@ -204,21 +234,28 @@ abstract class AbstractBaseVendorService
 
         foreach ($batch as $identifier => $imageUrl) {
             if (array_key_exists($identifier, $sources)) {
-                $source = $sources[$identifier];
-                ++$this->totalUpdated;
-                $updatedIdentifiers[] = $identifier;
+                if ($this->withUpdates) {
+                    /* @var Source $source */
+                    $source = $sources[$identifier];
+                    $source->setMatchType($identifierType)
+                        ->setMatchId($identifier)
+                        ->setVendor($this->vendor)
+                        ->setDate(new \DateTime())
+                        ->setOriginalFile($imageUrl);
+                    ++$this->totalUpdated;
+                    $updatedIdentifiers[] = $identifier;
+                }
             } else {
                 $source = new Source();
+                $source->setMatchType($identifierType)
+                    ->setMatchId($identifier)
+                    ->setVendor($this->vendor)
+                    ->setDate(new \DateTime())
+                    ->setOriginalFile($imageUrl);
                 $this->em->persist($source);
                 ++$this->totalInserted;
                 $insertedIdentifiers[] = $identifier;
             }
-
-            $source->setMatchType($identifierType)
-                ->setMatchId($identifier)
-                ->setVendor($this->vendor)
-                ->setDate(new \DateTime())
-                ->setOriginalFile($imageUrl);
 
             ++$this->totalIsIdentifiers;
         }
@@ -243,12 +280,12 @@ abstract class AbstractBaseVendorService
      */
     private function sendCoverImportEvents(array $updatedIdentifiers, array $insertedIdentifiers, string $identifierType): void
     {
-        if ($this->queue) {
+        if ($this->dispatchToQueue) {
             if (!empty($insertedIdentifiers)) {
                 $event = new VendorEvent(VendorState::INSERT, $insertedIdentifiers, $identifierType, $this->vendor->getId());
                 $this->dispatcher->dispatch($event::NAME, $event);
             }
-            if (!empty($updatedIdentifiers)) {
+            if (!empty($updatedIdentifiers) && $this->withUpdates) {
                 $event = new VendorEvent(VendorState::UPDATE, $updatedIdentifiers, $identifierType, $this->vendor->getId());
                 $this->dispatcher->dispatch($event::NAME, $event);
             }

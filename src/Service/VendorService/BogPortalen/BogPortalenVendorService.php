@@ -63,7 +63,7 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     /**
      * {@inheritdoc}
      */
-    public function load(bool $queue = true, int $limit = null): VendorImportResultMessage
+    public function load(): VendorImportResultMessage
     {
         if (!$this->acquireLock()) {
             return VendorImportResultMessage::error(parent::ERROR_RUNNING);
@@ -97,7 +97,7 @@ class BogPortalenVendorService extends AbstractBaseVendorService
                 // $deleted = $this->deleteRemovedMaterials($isbnList);
 
                 $offset = 0;
-                $count = $limit ?: \count($isbnList);
+                $count = $this->limit ?: \count($isbnList);
 
                 while ($offset < $count) {
                     $isbnBatch = \array_slice($isbnList, $offset, self::BATCH_SIZE, true);
