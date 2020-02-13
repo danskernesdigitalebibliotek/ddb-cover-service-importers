@@ -83,7 +83,7 @@ spec:
                     secretKeyRef:
                       name: cover-service-import-secret
                       key: APP_SECRET
-                envFrom:
-                  - configMapRef:
-                      name: cover-service-importers-config
+              envFrom:
+                - configMapRef:
+                    name: cover-service-importers-config
           restartPolicy: OnFailure
