@@ -11,7 +11,6 @@ use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\RbDigital\DataConverter\RbDigitalBooksPublicUrlConverter;
-use App\Service\VendorService\RbDigital\DataConverter\RbDigitalPublicUrlConverter;
 use App\Utils\Message\VendorImportResultMessage;
 use Doctrine\ORM\EntityManagerInterface;
 use League\Flysystem\FileNotFoundException;
@@ -70,7 +69,7 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
     /**
      * {@inheritdoc}
      */
-    public function load(bool $queue = true, int $limit = null): VendorImportResultMessage
+    public function load(): VendorImportResultMessage
     {
         if (!$this->acquireLock()) {
             return VendorImportResultMessage::error(parent::ERROR_RUNNING);
@@ -123,9 +122,13 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
                             $this->progressAdvance();
                         }
                     }
+
+                    if ($this->limit && $count >= $this->limit) {
+                        break;
+                    }
                 }
 
-                RbDigitalPublicUrlConverter::convertArrayValues($isbnImageUrlArray);
+                RbDigitalBooksPublicUrlConverter::convertArrayValues($isbnImageUrlArray);
                 $this->updateOrInsertMaterials($isbnImageUrlArray);
                 $isbnImageUrlArray = [];
 

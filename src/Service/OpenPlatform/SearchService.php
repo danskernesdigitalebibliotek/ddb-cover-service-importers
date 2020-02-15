@@ -171,14 +171,17 @@ class SearchService
         foreach ($result as $key => $items) {
             switch ($key) {
                 case 'pid':
-                  $material->addIdentifier(IdentifierType::PID, reset($items));
+                    foreach ($items as $item) {
+                        $material->addIdentifier(IdentifierType::PID, $item);
 
-                  // We know that the last part of the PID is the material faust
-                  // so we extract that here and add that as a identifier as
-                  // well.
-                  if (preg_match('/:(1?\d{8}$)/', reset($items), $matches)) {
-                      $material->addIdentifier(IdentifierType::FAUST, $matches[1]);
-                  }
+                        // We know that the last part of the PID is the material faust
+                        // so we extract that here and add that as a identifier as
+                        // well.
+                        if (preg_match('/:(1?\d{8}$)/', $item, $matches)) {
+                            $material->addIdentifier(IdentifierType::FAUST, $matches[1]);
+                        }
+                    }
+
                   break;
 
                 case 'identifierISBN':
@@ -277,7 +280,20 @@ class SearchService
         $json = json_decode($content, true);
 
         if (isset($json['hitCount']) && $json['hitCount'] > 0) {
-            $results = array_merge($results, reset($json['data']));
+            foreach ($json['data'] as $item) {
+                // These basic information is also set inside the loop as the last on seams to always be the global
+                // post.
+                foreach ($this->fields as $field) {
+                    if (array_key_exists($field, $item)) {
+                        if (!array_key_exists($field, $results)) {
+                            $results[$field] = [];
+                        }
+                        if (!in_array($item[$field], $results[$field])) {
+                            $results[$field][] = reset($item[$field]);
+                        }
+                    }
+                }
+            }
         }
 
         // If there are more results get the next chunk.
