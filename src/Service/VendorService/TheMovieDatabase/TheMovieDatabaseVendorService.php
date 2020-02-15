@@ -60,7 +60,7 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
     /**
      * @{@inheritdoc}
      */
-    public function load(bool $queue = true, int $limit = null): VendorImportResultMessage
+    public function load(): VendorImportResultMessage
     {
         if (!$this->acquireLock()) {
             return VendorImportResultMessage::error(parent::ERROR_RUNNING);
@@ -69,7 +69,6 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
         // We're lazy loading the config to avoid errors from missing config values on dependency injection
         $this->loadConfig();
 
-        $this->queue = $queue;
         $this->progressStart('Search data well for movies');
 
         $offset = 1;
@@ -110,7 +109,7 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
                     $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
                     $this->progressAdvance();
 
-                    if ($limit && $this->totalIsIdentifiers >= $limit) {
+                    if ($this->limit && $this->totalIsIdentifiers >= $this->limit) {
                         $more = false;
                     }
                 } while ($more);

@@ -22,10 +22,10 @@ jobs:
         run: docker login docker.pkg.github.com -u publisher -p "${{ secrets.GITHUB_TOKEN }}"
 
       - name: Build CoverService imports image
-        run: docker build --build-arg APP_VERSION=${{ env.APP_VERSION }} --tag="docker.pkg.github.com/${{ env.ORG_NAME }}/ddb-cover-service-importers/cover-service-importers:latest" --file="infrastructure/docker/cover-service-importers/Dockerfile" .
+        run: docker build --build-arg APP_VERSION=${{ env.APP_VERSION }} --tag="docker.pkg.github.com/${{ env.ORG_NAME }}/ddb-cover-service-importers/cover-service-importers:latest" --file="infrastructure/docker/cover-service-importers/Dockerfile" infrastructure/docker/cover-service-importers
 
       - name: Build CoverService jobs image
-        run: docker build --build-arg APP_VERSION=${{ env.APP_VERSION }} --tag="docker.pkg.github.com/${{ env.ORG_NAME }}/ddb-cover-service/cover-service-jobs:latest" --file="infrastructure/docker/cover-service-jobs/Dockerfile" .
+        run: docker build --build-arg APP_VERSION=${{ env.APP_VERSION }} --tag="docker.pkg.github.com/${{ env.ORG_NAME }}/ddb-cover-service/cover-service-jobs:latest" --file="infrastructure/docker/cover-service-jobs/Dockerfile" infrastructure/docker/cover-service-jobs
 
       - name: Push CoverService importers image
         run: docker push docker.pkg.github.com/${{ env.ORG_NAME }}/ddb-cover-service-importers/cover-service-importers:latest

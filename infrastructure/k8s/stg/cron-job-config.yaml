@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: cover-service
+  name: cover-service-importers-config
+data:
+  APP_DB_SERVER: 'cover-service-stg-database.mariadb.database.azure.com'
+  APP_DB_PORT: '3306'
+  APP_DB_DATABASE: 'cover-service'
+  APP_REDIS_SERVER: 'redis'
+  APP_REDIS_PORT: '6379'
+  APP_REDIS_CACHE_SERVER: 'redis'
+  APP_REDIS_CACHE_PORT: '6379'
+  APP_REDIS_CACHE_DB: '11'
+  APP_ELASTIC_URL: 'http://elasticsearch-es-http:9200/'
+  PHP_MEMORY_LIMIT: '512M'

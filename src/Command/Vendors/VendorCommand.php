@@ -6,6 +6,7 @@
 
 namespace App\Command\Vendors;
 
+use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\VendorServiceFactory;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Console\Command\Command;
@@ -15,7 +16,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
-use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
@@ -45,9 +45,10 @@ class VendorCommand extends Command
     protected function configure(): void
     {
         $this->setDescription('Load all sources/covers from known vendors');
-        $this->addOption('queue', null, InputOption::VALUE_OPTIONAL, 'Should the imported data be sent into the queues - image uploader');
-        $this->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit the amount of records imported per vendor');
+        $this->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit the amount of records imported per vendor', 0);
         $this->addOption('vendor', null, InputOption::VALUE_OPTIONAL, 'Which Vendor should be loaded');
+        $this->addOption('without-queue', null, InputOption::VALUE_NONE, 'Should the imported data be sent into the queues - image uploader');
+        $this->addOption('with-updates', null, InputOption::VALUE_NONE, 'Execute updates to existing covers');
     }
 
     /**
@@ -55,11 +56,9 @@ class VendorCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $queue = $input->getOption('queue');
-        $queue = 'false' !== $queue;
-
         $limit = $input->getOption('limit');
-        $limit = $limit ?: 0;
+        $dispatchToQueue = !$input->getOption('without-queue');
+        $withUpdates = $input->getOption('with-updates');
 
         $vendor = $input->getOption('vendor');
         // Ask 'all', 'none' or '<vendor>'
@@ -68,14 +67,12 @@ class VendorCommand extends Command
         }
 
         $vendorServices = [];
-        // Check for 'all' answer
         if ('all' === $vendor) {
             $vendorServices = $this->vendorFactory->getVendorServices();
-        // If answer is not 'none' it must be specific vendor
         } elseif ('none' !== $vendor) {
+            // If answer is not 'none' it must be specific vendor
             $vendorServices[] = $this->vendorFactory->getVendorServiceByName($vendor);
         }
-        // Answer is 'none'
 
         $io = new SymfonyStyle($input, $output);
 
@@ -86,8 +83,12 @@ class VendorCommand extends Command
         $results = [];
         foreach ($vendorServices as $vendorService) {
             try {
+                /* @var AbstractBaseVendorService $vendorService */
+                $vendorService->setDispatchToQueue($dispatchToQueue);
+                $vendorService->setWithUpdates($withUpdates);
+                $vendorService->setLimit($limit);
                 $vendorService->setProgressBar($progressBarSheet);
-                $results[$vendorService->getVendorName()] = $vendorService->load($queue, $limit);
+                $results[$vendorService->getVendorName()] = $vendorService->load();
             } catch (Exception $exception) {
                 $io->error('👎 '.$exception->getMessage());
             }

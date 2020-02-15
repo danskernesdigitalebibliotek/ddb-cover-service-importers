@@ -45,7 +45,7 @@ class PublizonVendorService extends AbstractBaseVendorService
     /**
      * {@inheritdoc}
      */
-    public function load(bool $queue = true, int $limit = null): VendorImportResultMessage
+    public function load(): VendorImportResultMessage
     {
         if (!$this->acquireLock()) {
             return VendorImportResultMessage::error(parent::ERROR_RUNNING);
@@ -145,7 +145,7 @@ class PublizonVendorService extends AbstractBaseVendorService
                 ++$totalProducts;
             }
 
-            if ($limit && $totalProducts >= $limit) {
+            if ($this->limit && $totalProducts >= $this->limit) {
                 break;
             }
 
