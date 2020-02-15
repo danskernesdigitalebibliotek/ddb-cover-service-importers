@@ -23,7 +23,7 @@ spec:
                 - "bin/console"
                 - "app:vendor:load"
                 - "--no-debug"
-                - "--vendor=1"
+                - "--vendor=bogportalen.dk"
               env:
                 - name: APP_DB_USERNAME
                   valueFrom:
