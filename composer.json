@@ -15,7 +15,7 @@
         "ext-xmlreader": "*",
         "ext-zend-opcache": "*",
         "ext-zip": "*",
-        "box/spout": "^2.7",
+        "box/spout": "^3.0",
         "cloudinary/cloudinary_php": "^1.12",
         "doctrine/doctrine-migrations-bundle": "^1.0",
         "eightpoints/guzzle-bundle": "^7.4",

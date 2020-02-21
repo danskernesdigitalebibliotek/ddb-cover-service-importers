@@ -11,9 +11,7 @@ use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use Box\Spout\Common\Exception\IOException;
-use Box\Spout\Common\Exception\UnsupportedTypeException;
-use Box\Spout\Common\Type;
-use Box\Spout\Reader\ReaderFactory;
+use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Reader\XLSX\Reader;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -46,9 +44,12 @@ class EbookCentralVendorService extends AbstractBaseVendorService
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager,
-                                LoggerInterface $statsLogger, string $resourcesDir)
-    {
+    public function __construct(
+        EventDispatcherInterface $eventDispatcher,
+        EntityManagerInterface $entityManager,
+        LoggerInterface $statsLogger,
+        string $resourcesDir
+    ) {
         parent::__construct($eventDispatcher, $entityManager, $statsLogger);
 
         $this->resourcesDir = $resourcesDir;
@@ -75,15 +76,16 @@ class EbookCentralVendorService extends AbstractBaseVendorService
 
             foreach ($reader->getSheetIterator() as $sheet) {
                 foreach ($sheet->getRowIterator() as $row) {
+                    $cellsArray = $row->getCells();
                     if (0 === $totalRows) {
-                        if ('PrintIsbn' !== $row[2] || 'EIsbn' !== $row[3] || 'http://ebookcentral.proquest.com/covers/Document ID-l.jpg' !== $row[6]) {
+                        if ('PrintIsbn' !== $cellsArray[2]->getValue() || 'EIsbn' !== $cellsArray[3]->getVAlue() || 'http://ebookcentral.proquest.com/covers/Document ID-l.jpg' !== $cellsArray[6]->getValue()) {
                             throw new UnknownVendorResourceFormatException('Unknown columns in xlsx resource file.');
                         }
                     } else {
-                        $imageUrl = $row[6];
+                        $imageUrl = $cellsArray[6]->getVAlue();
                         if (!empty($imageUrl)) {
-                            $printIsbn = $row[2];
-                            $eIsbn = $row[3];
+                            $printIsbn = $cellsArray[2]->getValue();
+                            $eIsbn = $cellsArray[3]->getValue();
 
                             if (!empty($printIsbn)) {
                                 $isbnArray[$printIsbn] = $imageUrl;
@@ -142,12 +144,11 @@ class EbookCentralVendorService extends AbstractBaseVendorService
     }
 
     /**
-     * Get a reference a xlsx filereader reference for the import source.
+     * Get a xlsx filereader reference for the import source.
      *
      * @return Reader
      *
      * @throws IOException
-     * @throws UnsupportedTypeException
      */
     private function getSheetReader(): Reader
     {
@@ -156,7 +157,7 @@ class EbookCentralVendorService extends AbstractBaseVendorService
         $fileLocator = new FileLocator($resourceDirectories);
         $filePath = $fileLocator->locate(self::VENDOR_ARCHIVE_NAME, null, true);
 
-        $reader = ReaderFactory::create(Type::XLSX);
+        $reader = ReaderEntityFactory::createXLSXReader();
         $reader->open($filePath);
 
         return $reader;
