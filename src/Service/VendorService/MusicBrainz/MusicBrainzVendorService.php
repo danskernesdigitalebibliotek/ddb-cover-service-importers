@@ -48,8 +48,7 @@ class MusicBrainzVendorService extends AbstractBaseVendorService
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager,
-                                LoggerInterface $statsLogger, string $resourcesDir)
+    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, string $resourcesDir)
     {
         parent::__construct($eventDispatcher, $entityManager, $statsLogger);
 
@@ -116,7 +115,7 @@ class MusicBrainzVendorService extends AbstractBaseVendorService
     }
 
     /**
-     * Get a tsv filereader reference for the import source.
+     * Get a tsv file reader reference for the import source.
      *
      * @return Reader
      *
