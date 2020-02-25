@@ -10,8 +10,7 @@ jobs:
                 uses: shivammathur/setup-php@master
                 with:
                     php-version: 7.3
-                    tools: pecl
-                    extension-csv: ctype, iconv, imagick, json, redis, soap, xmlreader, zip
+                    extensions: ctype, iconv, imagick, json, redis, soap, xmlreader, zip
                     coverage: none
             -   name: Validate composer files
                 run: |
@@ -30,8 +29,7 @@ jobs:
               uses: shivammathur/setup-php@master
               with:
                   php-version: 7.3
-                  tools: pecl
-                  extension-csv: ctype, iconv, imagick, json, redis, soap, xmlreader, zip
+                  extensions: ctype, iconv, imagick, json, redis, soap, xmlreader, zip
                   coverage: none
             - name: Install Reviewdog
               run: |
@@ -53,8 +51,7 @@ jobs:
               uses: shivammathur/setup-php@master
               with:
                   php-version: 7.3
-                  tools: pecl
-                  extension-csv: ctype, iconv, imagick, json, redis, soap, xmlreader, zip
+                  extensions: ctype, iconv, imagick, json, redis, soap, xmlreader, zip
                   coverage: none
             - name: Install Dependencies
               run: |
