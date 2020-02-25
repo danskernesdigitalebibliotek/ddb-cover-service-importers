@@ -44,12 +44,8 @@ class EbookCentralVendorService extends AbstractBaseVendorService
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(
-        EventDispatcherInterface $eventDispatcher,
-        EntityManagerInterface $entityManager,
-        LoggerInterface $statsLogger,
-        string $resourcesDir
-    ) {
+    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, string $resourcesDir)
+    {
         parent::__construct($eventDispatcher, $entityManager, $statsLogger);
 
         $this->resourcesDir = $resourcesDir;
@@ -144,7 +140,7 @@ class EbookCentralVendorService extends AbstractBaseVendorService
     }
 
     /**
-     * Get a xlsx filereader reference for the import source.
+     * Get a xlsx file reader reference for the import source.
      *
      * @return Reader
      *
