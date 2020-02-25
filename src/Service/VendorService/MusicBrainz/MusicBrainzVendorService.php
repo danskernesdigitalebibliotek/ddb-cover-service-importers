@@ -6,14 +6,11 @@
 
 namespace App\Service\VendorService\MusicBrainz;
 
-use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorResourceFormatException;
-use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use Box\Spout\Common\Exception\IOException;
-use Box\Spout\Common\Exception\UnsupportedTypeException;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Reader\ReaderFactory;
 use Box\Spout\Reader\CSV\Reader;
