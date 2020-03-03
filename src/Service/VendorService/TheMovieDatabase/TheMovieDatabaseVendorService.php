@@ -83,7 +83,7 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
                     $query = $this->queries[$queriesIndex];
                     [$resultArray, $more, $offset] = $this->dataWell->search($query, $offset);
 
-                    // This is an hack to get the 'processBatch' working below.
+                    // This is a hack to get the 'processBatch' working below.
                     $pidArray = array_map(
                         function ($value) {
                             return '';
@@ -145,15 +145,16 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
      * Lookup post urls post normal batch processing.
      *
      * @param array $pids
-     *   The source table pids.
+     *   The source table pids
      * @param array $searchResults
-     *   The datawell search result.
+     *   The datawell search result
      *
      * @throws IllegalVendorServiceException
      * @throws UnknownVendorServiceException
      * @throws GuzzleException
      */
-    private function postProcess(array $pids, array $searchResults) {
+    private function postProcess(array $pids, array $searchResults)
+    {
         $sourceRepo = $this->em->getRepository(Source::class);
 
         foreach ($pids as $pid) {
@@ -182,5 +183,4 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
             }
         }
     }
-
 }
