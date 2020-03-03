@@ -8,14 +8,16 @@
 namespace App\Service\VendorService\TheMovieDatabase;
 
 use App\Entity\Source;
+use App\Event\VendorEvent;
 use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\TheMovieDatabase\Event\ResultEvent;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
+use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
+use GuzzleHttp\Exception\GuzzleException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -81,6 +83,7 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
                     $query = $this->queries[$queriesIndex];
                     [$resultArray, $more, $offset] = $this->dataWell->search($query, $offset);
 
+                    // This is an hack to get the 'processBatch' working below.
                     $pidArray = array_map(
                         function ($value) {
                             return '';
@@ -98,12 +101,11 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
                         $batch = \array_slice($pidArray, $batchOffset, self::BATCH_SIZE, true);
                         [$updatedIdentifiers, $insertedIdentifiers] = $this->processBatch($batch, $sourceRepo, IdentifierType::PID);
 
+                        $this->postProcess($updatedIdentifiers, $resultArray);
+                        $this->postProcess($insertedIdentifiers, $resultArray);
+
                         $batchOffset += $batchSize;
                     }
-
-                    // @TODO: Find the one that update/insert base on the identifier arrays above.
-                    $event = new ResultEvent($resultArray, IdentifierType::PID, $this->getVendorId());
-                    $this->dispatcher->dispatch($event::NAME, $event);
 
                     // @TODO: How to handle multiple queries with progress bar.
                     $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
@@ -138,4 +140,47 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
         $this->dataWell->setUser($this->getVendor()->getDataServerUser());
         $this->dataWell->setPassword($this->getVendor()->getDataServerPassword());
     }
+
+    /**
+     * Lookup post urls post normal batch processing.
+     *
+     * @param array $pids
+     *   The source table pids.
+     * @param array $searchResults
+     *   The datawell search result.
+     *
+     * @throws IllegalVendorServiceException
+     * @throws UnknownVendorServiceException
+     * @throws GuzzleException
+     */
+    private function postProcess(array $pids, array $searchResults) {
+        $sourceRepo = $this->em->getRepository(Source::class);
+
+        foreach ($pids as $pid) {
+            $metadata = $searchResults[$pid];
+
+            // Find source in database.
+            $source = $sourceRepo->findOneBy([
+                'matchId' => $pid,
+                'matchType' => IdentifierType::PID,
+                'vendor' => $this->getVendor(),
+            ]);
+
+            if (null !== $source) {
+                // Get poster url.
+                $posterUrl = $this->api->searchPosterUrl($metadata['title'], $metadata['originalYear'], $metadata['director']);
+
+                if (null !== $posterUrl) {
+                    // Set poster url of source.
+                    $source->setOriginalFile($posterUrl);
+                    $this->em->flush();
+
+                    // Create vendor event.
+                    $event = new VendorEvent(VendorState::INSERT, [$source->getMatchId()], $source->getMatchType(), $source->getVendor()->getId());
+                    $this->dispatcher->dispatch($event::NAME, $event);
+                }
+            }
+        }
+    }
+
 }
