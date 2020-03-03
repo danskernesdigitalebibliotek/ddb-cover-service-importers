@@ -7,12 +7,14 @@
 namespace App\Command\Search;
 
 use App\Entity\Source;
+use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Message\ProcessMessage;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
 use Enqueue\Client\ProducerInterface;
 use Enqueue\Util\JSON;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -20,6 +22,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class SearchReindexCommand extends Command
 {
+    use ProgressBarTrait;
+
     protected static $defaultName = 'app:search:reindex';
 
     private $em;
@@ -51,8 +55,14 @@ class SearchReindexCommand extends Command
         $vendorId = $input->getArgument('vendorid');
         $cleanUp = $input->getOption('clean-up');
 
-        $batchSize = 50;
+        $batchSize = 200;
         $i = 0;
+
+        $section = $output->section('Sheet');
+        $progressBarSheet = new ProgressBar($section);
+        $progressBarSheet->setFormat('[%bar%] %elapsed% (%memory%) - %message%');
+        $this->setProgressBar($progressBarSheet);
+        $this->progressStart('Loading database source table in batches of '.$batchSize.' records');
 
         // @TODO: Move into repository and use query builder.
         $query = 'SELECT s FROM App\Entity\Source s WHERE s.image IS NOT NULL';
@@ -62,7 +72,7 @@ class SearchReindexCommand extends Command
         $query = $this->em->createQuery($query);
         $iterableResult = $query->iterate();
         foreach ($iterableResult as $row) {
-            /* @var Source $source*/
+            /* @var Source $source */
             $source = $row[0];
 
             // Build and create new search job which will trigger index event.
@@ -77,9 +87,15 @@ class SearchReindexCommand extends Command
             // Free memory when batch size is reached.
             if (0 === ($i % $batchSize)) {
                 $this->em->clear();
+                gc_collect_cycles();
             }
 
             ++$i;
+
+            $this->progressAdvance();
+            $this->progressMessage('Source rows found '.$i.' in DB');
         }
+
+        $this->progressFinish();
     }
 }
