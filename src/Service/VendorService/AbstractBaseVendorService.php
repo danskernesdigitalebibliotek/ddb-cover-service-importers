@@ -185,7 +185,7 @@ abstract class AbstractBaseVendorService
      *
      * @throws \Exception
      */
-    protected function updateOrInsertMaterials(array &$identifierImageUrlArray, string $identifierType = IdentifierType::ISBN, int $batchSize = self::BATCH_SIZE): void
+    protected function updateOrInsertMaterials(array &$identifierImageUrlArray, string $identifierType, int $batchSize = self::BATCH_SIZE): void
     {
         $sourceRepo = $this->em->getRepository(Source::class);
 

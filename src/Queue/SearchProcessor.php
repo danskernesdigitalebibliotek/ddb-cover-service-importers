@@ -6,11 +6,14 @@
 
 namespace App\Queue;
 
+use App\Entity\Search;
+use App\Entity\Source;
 use App\Event\IndexReadyEvent;
 use App\Exception\MaterialTypeException;
 use App\Exception\PlatformSearchException;
 use App\Service\OpenPlatform\SearchService;
 use App\Utils\Message\ProcessMessage;
+use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
 use Enqueue\Client\TopicSubscriberInterface;
 use Interop\Queue\Context;
@@ -55,7 +58,37 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
     public function process(Message $message, Context $session)
     {
         $jsonDecoder = new JsonDecoder(true);
+        /* @var ProcessMessage $processMessage */
         $processMessage = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
+
+        // Clean up: find all search that links back to a give source and remove them before sending new index event.
+        // This is done even if the search below is a zero-hit.
+        if (VendorState::DELETE_AND_UPDATE === $processMessage->getOperation()) {
+            $sourceRepos = $this->em->getRepository(Source::class);
+            /* @var Source $source */
+            $source = $sourceRepos->findOneBy([
+                'matchId' => $processMessage->getIdentifier(),
+                'matchType' => $processMessage->getIdentifierType(),
+                'vendor' => $processMessage->getVendorId(),
+            ]);
+            if (!is_null($source)) {
+                $searches = $source->getSearches();
+                foreach ($searches as $search) {
+                    $this->em->remove($search);
+                }
+                $this->em->flush();
+            } else {
+                $this->statsLogger->error('Unknown material type found', [
+                    'service' => 'SearchProcessor',
+                    'message' => 'Doing reindex source was null, hence the database has changed',
+                    'matchId' => $processMessage->getIdentifier(),
+                    'matchType' => $processMessage->getIdentifierType(),
+                    'vendor' => $processMessage->getVendorId(),
+                ]);
+
+                return self::REJECT;
+            }
+        }
 
         try {
             $material = $this->searchService->search($processMessage->getIdentifier(), $processMessage->getIdentifierType());
