@@ -6,6 +6,7 @@ use App\Entity\Source;
 use App\Utils\CoverVendor\VendorImageItem;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
 
 /**
  * Class VendorImageValidatorService.
@@ -29,12 +30,16 @@ class VendorImageValidatorService
      *
      * @param VendorImageItem $item
      *
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function validateRemoteImage(VendorImageItem $item): void
     {
         try {
-            $head = $this->httpClient->request('HEAD', $item->getOriginalFile());
+            $head = $this->httpClient->request('HEAD', $item->getOriginalFile(), [
+                'allow_redirects' => [
+                    'strict' => true,   // use "strict" RFC compliant redirects to avoid 30x redirects resulting in GET calls
+                ],
+            ]);
 
             $contentLengthArray = $head->getHeader('Content-Length');
             $lastModifiedArray = $head->getHeader('Last-Modified');
@@ -59,7 +64,7 @@ class VendorImageValidatorService
      * @param VendorImageItem $item
      * @param Source $source
      *
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function isRemoteImageUpdated(VendorImageItem $item, Source $source): void
     {

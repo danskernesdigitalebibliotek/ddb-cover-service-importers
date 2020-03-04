@@ -10,6 +10,7 @@ use App\Exception\UnknownVendorResourceFormatException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Message\VendorImportResultMessage;
+use App\Utils\Types\IdentifierType;
 use Box\Spout\Common\Exception\IOException;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Reader\XLSX\Reader;
@@ -105,7 +106,7 @@ class EbookCentralVendorService extends AbstractBaseVendorService
                     }
 
                     if (0 === $totalRows % 100) {
-                        $this->updateOrInsertMaterials($isbnArray);
+                        $this->updateOrInsertMaterials($isbnArray, IdentifierType::ISBN);
 
                         $this->totalIsIdentifiers += \count($isbnArray);
                         $isbnArray = [];
@@ -127,7 +128,7 @@ class EbookCentralVendorService extends AbstractBaseVendorService
                 }
             }
 
-            $this->updateOrInsertMaterials($isbnArray);
+            $this->updateOrInsertMaterials($isbnArray, IdentifierType::ISBN);
 
             $this->logStatistics();
 

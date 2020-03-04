@@ -10,6 +10,7 @@ use App\Exception\UnknownVendorResourceFormatException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Message\VendorImportResultMessage;
+use App\Utils\Types\IdentifierType;
 use Box\Spout\Common\Exception\IOException;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Reader\CSV\Reader;
@@ -90,7 +91,7 @@ class MusicBrainzVendorService extends AbstractBaseVendorService
                     }
 
                     if (0 === $totalRows % 100) {
-                        $this->updateOrInsertMaterials($pidArray);
+                        $this->updateOrInsertMaterials($pidArray, IdentifierType::PID);
 
                         $pidArray = [];
 
@@ -100,7 +101,7 @@ class MusicBrainzVendorService extends AbstractBaseVendorService
                 }
             }
 
-            $this->updateOrInsertMaterials($pidArray);
+            $this->updateOrInsertMaterials($pidArray, IdentifierType::PID);
             $this->logStatistics();
             $this->progressFinish();
 
