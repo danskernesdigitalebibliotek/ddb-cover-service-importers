@@ -69,12 +69,25 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
             $source = $sourceRepos->findOneBy([
                 'matchId' => $processMessage->getIdentifier(),
                 'matchType' => $processMessage->getIdentifierType(),
+                'vendor' => $processMessage->getVendorId(),
             ]);
-            $searches = $source->getSearches();
-            foreach ($searches as $search) {
-                $this->em->remove($search);
+            if (!is_null($source)) {
+                $searches = $source->getSearches();
+                foreach ($searches as $search) {
+                    $this->em->remove($search);
+                }
+                $this->em->flush();
+            } else {
+                $this->statsLogger->error('Unknown material type found', [
+                    'service' => 'SearchProcessor',
+                    'message' => 'Doing reindex source was null, hence the database has changed',
+                    'matchId' => $processMessage->getIdentifier(),
+                    'matchType' => $processMessage->getIdentifierType(),
+                    'vendor' => $processMessage->getVendorId(),
+                ]);
+
+                return self::REJECT;
             }
-            $this->em->flush();
         }
 
         try {
