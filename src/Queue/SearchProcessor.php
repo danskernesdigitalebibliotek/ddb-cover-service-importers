@@ -58,11 +58,11 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
     public function process(Message $message, Context $session)
     {
         $jsonDecoder = new JsonDecoder(true);
-        /* @var ProcessMessage $processMessage*/
+        /* @var ProcessMessage $processMessage */
         $processMessage = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
 
         // Clean up: find all search that links back to a give source and remove them before sending new index event.
-        // This is done even if the search below is an zero-hit.
+        // This is done even if the search below is a zero-hit.
         if (VendorState::DELETE_AND_UPDATE === $processMessage->getOperation()) {
             $sourceRepos = $this->em->getRepository(Source::class);
             /* @var Source $source */

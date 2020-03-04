@@ -7,5 +7,5 @@ class VendorState
     const INSERT = 'insert';
     const UPDATE = 'update';
     const DELETE = 'delete';
-    const DELETE_AND_UPDATE = 'DeleteAndUpdate';
+    const DELETE_AND_UPDATE = 'deleteAndUpdate';
 }

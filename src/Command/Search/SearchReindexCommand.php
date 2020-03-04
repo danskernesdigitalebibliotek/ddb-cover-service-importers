@@ -44,7 +44,7 @@ class SearchReindexCommand extends Command
     {
         $this->setDescription('Reindex search table')
             ->addArgument('vendorid', InputArgument::OPTIONAL, 'Limit the re-index to vendor with this id number')
-            ->addOption('clean-up', null, InputOption::VALUE_NONE, 'Remove all rows from the search table related to an given source before insert');
+            ->addOption('clean-up', null, InputOption::VALUE_NONE, 'Remove all rows from the search table related to a given source before insert');
     }
 
     /**
