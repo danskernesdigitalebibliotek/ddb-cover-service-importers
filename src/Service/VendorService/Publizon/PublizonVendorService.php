@@ -12,6 +12,7 @@ use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Message\VendorImportResultMessage;
+use App\Utils\Types\IdentifierType;
 use App\Utils\Types\OnixOutputDefinition;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -150,7 +151,7 @@ class PublizonVendorService extends AbstractBaseVendorService
             }
 
             if (0 === $totalProducts % 100) {
-                $this->updateOrInsertMaterials($isbnArray);
+                $this->updateOrInsertMaterials($isbnArray, IdentifierType::ISBN);
 
                 $isbnArray = [];
 
@@ -159,7 +160,7 @@ class PublizonVendorService extends AbstractBaseVendorService
             }
         }
 
-        $this->updateOrInsertMaterials($isbnArray);
+        $this->updateOrInsertMaterials($isbnArray, IdentifierType::ISBN);
 
         $this->logStatistics();
 

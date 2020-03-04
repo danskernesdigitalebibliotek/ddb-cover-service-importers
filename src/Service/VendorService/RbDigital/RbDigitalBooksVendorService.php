@@ -12,6 +12,7 @@ use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\RbDigital\DataConverter\RbDigitalBooksPublicUrlConverter;
 use App\Utils\Message\VendorImportResultMessage;
+use App\Utils\Types\IdentifierType;
 use Doctrine\ORM\EntityManagerInterface;
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem;
@@ -115,7 +116,7 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
 
                         if (0 === $count % self::BATCH_SIZE) {
                             RbDigitalBooksPublicUrlConverter::convertArrayValues($isbnImageUrlArray);
-                            $this->updateOrInsertMaterials($isbnImageUrlArray);
+                            $this->updateOrInsertMaterials($isbnImageUrlArray, IdentifierType::ISBN);
                             $isbnImageUrlArray = [];
 
                             $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
@@ -129,7 +130,7 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
                 }
 
                 RbDigitalBooksPublicUrlConverter::convertArrayValues($isbnImageUrlArray);
-                $this->updateOrInsertMaterials($isbnImageUrlArray);
+                $this->updateOrInsertMaterials($isbnImageUrlArray, IdentifierType::ISBN);
                 $isbnImageUrlArray = [];
 
                 $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);

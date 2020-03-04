@@ -44,7 +44,6 @@ class SearchService
 
     private $searchCacheTTL;
     private $searchURL;
-    private $searchIndex;
     private $searchProfile;
 
     /**
@@ -72,7 +71,6 @@ class SearchService
         $this->client = $httpClient;
 
         $this->searchURL = $this->params->get('openPlatform.search.url');
-        $this->searchIndex = $this->params->get('openPlatform.search.index');
         $this->searchCacheTTL = (int) $this->params->get('openPlatform.search.ttl');
         $this->searchProfile = (string) $this->params->get('openPlatform.search.profile');
     }
@@ -258,11 +256,20 @@ class SearchService
      */
     private function recursiveSearch(string $token, string $identifier, string $type, int $offset = 0, array $results = []): array
     {
-        $query = $this->searchIndex.'='.$identifier;
-        if (IdentifierType::PID == $type) {
-            // If this is a search after a pid simply search for it and not in the search index.
-            $query = $identifier;
+        switch ($type) {
+            case IdentifierType::PID:
+                // If this is a search after a pid simply search for it and not in the search index.
+                $query = 'rec.id='.$identifier;
+                break;
+
+            case IdentifierType::ISBN:
+                $query = 'term.isbn='.$identifier;
+                break;
+
+            default:
+                $query = 'dkcclterm.is='.$identifier;
         }
+
         $response = $this->client->request('POST', $this->searchURL, [
             RequestOptions::JSON => [
                 'fields' => $this->fields,

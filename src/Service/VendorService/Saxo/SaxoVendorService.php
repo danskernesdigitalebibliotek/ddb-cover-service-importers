@@ -11,10 +11,9 @@ use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Message\VendorImportResultMessage;
+use App\Utils\Types\IdentifierType;
 use Box\Spout\Common\Exception\IOException;
-use Box\Spout\Common\Exception\UnsupportedTypeException;
-use Box\Spout\Common\Type;
-use Box\Spout\Reader\ReaderFactory;
+use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Reader\XLSX\Reader;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -47,8 +46,7 @@ class SaxoVendorService extends AbstractBaseVendorService
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager,
-                                LoggerInterface $statsLogger, string $resourcesDir)
+    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, string $resourcesDir)
     {
         parent::__construct($eventDispatcher, $entityManager, $statsLogger);
 
@@ -74,7 +72,9 @@ class SaxoVendorService extends AbstractBaseVendorService
 
             foreach ($reader->getSheetIterator() as $sheet) {
                 foreach ($sheet->getRowIterator() as $row) {
-                    $isbn = (string) $row[0];
+                    $cellsArray = $row->getCells();
+                    $isbn = (string) $cellsArray[0]->getValue();
+
                     if (!empty($isbn)) {
                         $isbnArray[$isbn] = $this->getVendorsImageUrl($isbn);
                     }
@@ -86,7 +86,7 @@ class SaxoVendorService extends AbstractBaseVendorService
                     }
 
                     if (0 === $totalRows % 100) {
-                        $this->updateOrInsertMaterials($isbnArray);
+                        $this->updateOrInsertMaterials($isbnArray, IdentifierType::ISBN);
 
                         $isbnArray = [];
 
@@ -96,7 +96,7 @@ class SaxoVendorService extends AbstractBaseVendorService
                 }
             }
 
-            $this->updateOrInsertMaterials($isbnArray);
+            $this->updateOrInsertMaterials($isbnArray, IdentifierType::ISBN);
 
             $this->logStatistics();
 
@@ -124,12 +124,11 @@ class SaxoVendorService extends AbstractBaseVendorService
     }
 
     /**
-     * Get a reference a xlsx filereader reference for the import source.
+     * Get a xlsx file reader reference for the import source.
      *
      * @return Reader
      *
      * @throws IOException
-     * @throws UnsupportedTypeException
      */
     private function getSheetReader(): Reader
     {
@@ -138,7 +137,7 @@ class SaxoVendorService extends AbstractBaseVendorService
         $fileLocator = new FileLocator($resourceDirectories);
         $filePath = $fileLocator->locate(self::VENDOR_ARCHIVE_NAME, null, true);
 
-        $reader = ReaderFactory::create(Type::XLSX);
+        $reader = ReaderEntityFactory::createXLSXReader();
         $reader->open($filePath);
 
         return $reader;

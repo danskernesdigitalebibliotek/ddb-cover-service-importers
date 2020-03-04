@@ -1,10 +1,10 @@
 <?php
 /**
  * @file
- * Service for updating data from 'eBook Central' xlsx spreadsheet.
+ * Service for updating data from 'Musicbrainz' tsv file.
  */
 
-namespace App\Service\VendorService\EbookCentral;
+namespace App\Service\VendorService\MusicBrainz;
 
 use App\Exception\UnknownVendorResourceFormatException;
 use App\Service\VendorService\AbstractBaseVendorService;
@@ -13,28 +13,28 @@ use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use Box\Spout\Common\Exception\IOException;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
-use Box\Spout\Reader\XLSX\Reader;
+use Box\Spout\Reader\CSV\Reader;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
- * Class EbookCentralVendorService.
+ * Class MusicBrainzVendorService.
  */
-class EbookCentralVendorService extends AbstractBaseVendorService
+class MusicBrainzVendorService extends AbstractBaseVendorService
 {
     use ProgressBarTrait;
 
-    protected const VENDOR_ID = 2;
+    protected const VENDOR_ID = 9;
 
-    private const VENDOR_ARCHIVE_DIR = 'EbookCentral';
-    private const VENDOR_ARCHIVE_NAME = 'cover images title list ddbdk.xlsx';
+    private const VENDOR_ARCHIVE_DIR = 'MusicBrainz';
+    private const VENDOR_ARCHIVE_NAME = 'mb.covers.tsv';
 
     private $resourcesDir;
 
     /**
-     * EbookCentralVendorService constructor.
+     * SaxoVendorService constructor.
      *
      * @param eventDispatcherInterface $eventDispatcher
      *   Dispatcher to trigger async jobs on import
@@ -62,43 +62,28 @@ class EbookCentralVendorService extends AbstractBaseVendorService
         }
 
         try {
-            $this->progressStart('Opening sheet: "'.self::VENDOR_ARCHIVE_NAME.'"');
+            $this->progressStart('Opening tsv: "'.self::VENDOR_ARCHIVE_NAME.'"');
 
             $reader = $this->getSheetReader();
 
             $totalRows = 0;
-            $consecutivelyEmptyRows = 0;
-
-            $isbnArray = [];
+            $pidArray = [];
 
             foreach ($reader->getSheetIterator() as $sheet) {
                 foreach ($sheet->getRowIterator() as $row) {
                     $cellsArray = $row->getCells();
                     if (0 === $totalRows) {
-                        if ('PrintIsbn' !== $cellsArray[2]->getValue() || 'EIsbn' !== $cellsArray[3]->getVAlue() || 'http://ebookcentral.proquest.com/covers/Document ID-l.jpg' !== $cellsArray[6]->getValue()) {
-                            throw new UnknownVendorResourceFormatException('Unknown columns in xlsx resource file.');
+                        if ('faust' !== $cellsArray[0]->getValue() || 'ppid' !== $cellsArray[1]->getVAlue() || 'mb_coverurl' !== $cellsArray[7]->getValue()) {
+                            throw new UnknownVendorResourceFormatException('Unknown columns in tsv resource file.');
                         }
                     } else {
-                        $imageUrl = $cellsArray[6]->getVAlue();
-                        if (!empty($imageUrl)) {
-                            $printIsbn = $cellsArray[2]->getValue();
-                            $eIsbn = $cellsArray[3]->getValue();
-
-                            if (!empty($printIsbn)) {
-                                $isbnArray[$printIsbn] = $imageUrl;
-                            }
-                            if (!empty($eIsbn)) {
-                                $isbnArray[$eIsbn] = $imageUrl;
-                            }
-                        }
-
-                        // Monitor empty row count to terminate loop.
-                        if (empty($printIsbn) && empty($eIsbn)) {
-                            ++$consecutivelyEmptyRows;
-                        } else {
-                            $consecutivelyEmptyRows = 0;
+                        $basisPid = $cellsArray[1]->getVAlue();
+                        $imageUrl = $cellsArray[7]->getVAlue();
+                        if (!empty($basisPid && !empty($imageUrl))) {
+                            $pidArray[$basisPid] = $imageUrl;
                         }
                     }
+
                     ++$totalRows;
 
                     if ($this->limit && $totalRows >= $this->limit) {
@@ -106,32 +91,18 @@ class EbookCentralVendorService extends AbstractBaseVendorService
                     }
 
                     if (0 === $totalRows % 100) {
-                        $this->updateOrInsertMaterials($isbnArray, IdentifierType::ISBN);
+                        $this->updateOrInsertMaterials($pidArray, IdentifierType::PID);
 
-                        $this->totalIsIdentifiers += \count($isbnArray);
-                        $isbnArray = [];
+                        $pidArray = [];
 
                         $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $totalRows);
                         $this->progressAdvance();
                     }
-
-                    // Sheet has 1 mil+ rows and the last ~850k are empty. Stop when we get to them.
-                    // File also has large gaps of rows withs no ISBNs the first ~150k rows so we can't
-                    // just stop at first empty row.
-                    //
-                    // And yes - import format sucks. Don't mention the war.
-                    if ($consecutivelyEmptyRows > 10000) {
-                        $this->progressMessage('Seen 10000 empty rows, skipping the rest....');
-
-                        break;
-                    }
                 }
             }
 
-            $this->updateOrInsertMaterials($isbnArray, IdentifierType::ISBN);
-
+            $this->updateOrInsertMaterials($pidArray, IdentifierType::PID);
             $this->logStatistics();
-
             $this->progressFinish();
 
             return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted);
@@ -141,7 +112,7 @@ class EbookCentralVendorService extends AbstractBaseVendorService
     }
 
     /**
-     * Get a xlsx file reader reference for the import source.
+     * Get a tsv file reader reference for the import source.
      *
      * @return Reader
      *
@@ -154,7 +125,8 @@ class EbookCentralVendorService extends AbstractBaseVendorService
         $fileLocator = new FileLocator($resourceDirectories);
         $filePath = $fileLocator->locate(self::VENDOR_ARCHIVE_NAME, null, true);
 
-        $reader = ReaderEntityFactory::createXLSXReader();
+        $reader = ReaderEntityFactory::createCSVReader();
+        $reader->setFieldDelimiter("\t");
         $reader->open($filePath);
 
         return $reader;
