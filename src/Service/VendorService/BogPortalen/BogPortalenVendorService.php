@@ -11,6 +11,7 @@ use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Message\VendorImportResultMessage;
+use App\Utils\Types\IdentifierType;
 use Doctrine\ORM\EntityManagerInterface;
 use League\Flysystem\Filesystem;
 use Psr\Cache\InvalidArgumentException;
@@ -103,7 +104,7 @@ class BogPortalenVendorService extends AbstractBaseVendorService
                     $isbnBatch = \array_slice($isbnList, $offset, self::BATCH_SIZE, true);
 
                     $isbnImageUrlArray = $this->buildIsbnImageUrlArray($isbnBatch);
-                    $this->updateOrInsertMaterials($isbnImageUrlArray);
+                    $this->updateOrInsertMaterials($isbnImageUrlArray, IdentifierType::ISBN);
 
                     $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
                     $this->progressAdvance();
