@@ -259,7 +259,7 @@ class SearchService
         switch ($type) {
             case IdentifierType::PID:
                 // If this is a search after a pid simply search for it and not in the search index.
-                $query = $identifier;
+                $query = 'rec.id='.$identifier;
                 break;
 
             case IdentifierType::ISBN:
