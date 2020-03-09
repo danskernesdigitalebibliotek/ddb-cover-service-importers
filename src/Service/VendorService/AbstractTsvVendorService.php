@@ -18,7 +18,7 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
- * Class MusicBrainzVendorService.
+ * Class AbstractTsvVendorService.
  */
 abstract class AbstractTsvVendorService extends AbstractBaseVendorService
 {
