@@ -132,20 +132,7 @@ class SearchService
             $item->expiresAfter($this->searchCacheTTL);
             $item->set($material);
             $this->cache->save($item);
-
-            $this->statsLogger->info('Search requested', [
-                'service' => 'SearchService',
-                'cache' => false,
-                'id' => $identifier,
-                'no hits' => $material->isEmpty(),
-            ]);
         } else {
-            $this->statsLogger->info('Search requested', [
-                'service' => 'SearchService',
-                'cache' => true,
-                'id' => $identifier,
-                'no hits' => $item->get()->isEmpty(),
-            ]);
             $material = $item->get();
         }
 
