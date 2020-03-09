@@ -68,9 +68,9 @@ abstract class AbstractTsvVendorService extends AbstractBaseVendorService
             $pidArray = [];
 
             foreach ($reader->getSheetIterator() as $sheet) {
+                $fields = [];
                 foreach ($sheet->getRowIterator() as $row) {
                     $cellsArray = $row->getCells();
-                    $fields = [];
                     if (0 === $totalRows) {
                         $fields = $this->findCellName($cellsArray);
                         // First row in the tsv file contains the headers.
