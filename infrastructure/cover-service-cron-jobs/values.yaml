@@ -2,6 +2,8 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+env: "prod"
+
 # At 01:00 on every day-of-week from Monday through Saturday.
 cron:
   runAt: "0 1 * * 1-6"
