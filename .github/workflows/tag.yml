@@ -37,13 +37,12 @@ jobs:
       - uses: actions/checkout@master
 
       # Set the target Azure Kubernetes Service (AKS) cluster.
-      - uses: azure/aks-set-context@v1
-        name: Set AKS Context (stg)
-        if: github.ref == 'refs/heads/release'
+      - name: Set AKS Context (Prod)
+        uses: azure/aks-set-context@v1
         with:
           creds: '${{ secrets.AZURE_CREDENTIALS_PROD }}'
-          cluster-name: ddb-cover-service-stg
-          resource-group: CoverServiceStg
+          cluster-name: ddb-cover-service
+          resource-group: CoverService
 
       - uses: azure/setup-helm@v1
         name: Install helm
