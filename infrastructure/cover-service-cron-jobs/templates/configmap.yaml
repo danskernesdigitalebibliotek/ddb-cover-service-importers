@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-configmap
+data:
+  APP_DB_SERVER: {{ .Values.app.db.server | quote }}
+  APP_DB_PORT: {{ .Values.app.db.port | quote }}
+  APP_DB_DATABASE: {{ .Values.app.db.database | quote }}
+  APP_REDIS_SERVER: {{ .Values.app.redis.server | quote }}
+  APP_REDIS_PORT: {{ .Values.app.redis.port | quote }}
+  APP_REDIS_CACHE_SERVER: {{ .Values.app.redis.server | quote }}
+  APP_REDIS_CACHE_PORT: {{ .Values.app.redis.port | quote }}
+  APP_REDIS_CACHE_DB: {{ .Values.app.redis.cache_db | quote }}
+  APP_ELASTIC_URL: {{ .Values.app.elastic_url | quote }}
+  PHP_MEMORY_LIMIT: {{ .Values.app.php.memory_limit | quote }}

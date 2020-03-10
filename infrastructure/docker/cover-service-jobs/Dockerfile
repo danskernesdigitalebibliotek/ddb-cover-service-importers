@@ -1,4 +1,5 @@
-FROM docker.pkg.github.com/danskernesdigitalebibliotek/ddb-cover-service-importers/cover-service-importers
+ARG VERSION=develop
+FROM docker.pkg.github.com/danskernesdigitalebibliotek/ddb-cover-service-importers/cover-service-importers:${VERSION}
 LABEL maintainer="ITK Dev <itkdev@mkb.aarhus.dk>"
 
 # The fcgi packaged is required by the FPM healtcheck script.

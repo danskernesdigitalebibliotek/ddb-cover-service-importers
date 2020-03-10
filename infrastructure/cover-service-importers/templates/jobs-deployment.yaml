@@ -1,0 +1,90 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-jobs
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-jobs
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-jobs
+    spec:
+      containers:
+        - name: jobs
+          image: danskernesdigitalebibliotek/cover-service-jobs:{{ .Values.app.image.version }}
+          imagePullPolicy: {{ .Values.app.image.imagePullPolicy }}
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "512Mi"
+              cpu: "600m"
+          env:
+            - name: APP_DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: APP_DB_USERNAME
+            - name: APP_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: APP_DB_PASSWORD
+            - name: APP_OPENPLATFORM_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: APP_OPENPLATFORM_ID
+            - name: APP_OPENPLATFORM_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: APP_OPENPLATFORM_SECRET
+            - name: APP_OPENPLATFORM_AGENCY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: APP_OPENPLATFORM_AGENCY
+            - name: APP_DATAWELL_VENDOR_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: APP_DATAWELL_VENDOR_USER
+            - name: APP_DATAWELL_VENDOR_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: APP_DATAWELL_VENDOR_PASSWORD
+            - name: APP_CLOUDINARY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: APP_CLOUDINARY_ID
+            - name: APP_CLOUDINARY_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: APP_CLOUDINARY_SECRET
+            - name: APP_CLOUDINARY_DOMAIN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: APP_CLOUDINARY_DOMAIN
+            - name: APP_THEMOVIEDATABASE_APIKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: APP_THEMOVIEDATABASE_APIKEY
+            - name: APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: APP_SECRET
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-configmap

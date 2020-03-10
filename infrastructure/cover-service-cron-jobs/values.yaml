@@ -1,0 +1,25 @@
+# Default values for cover-service-importers.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# At 01:00 on every day-of-week from Monday through Saturday.
+cron:
+  runAt: "0 1 * * 1-6"
+  successfulLimit: 3
+  failedLimit: 1
+
+app:
+  image:
+    version: latest
+    pullPolicy: IfNotPresent
+  elastic_url: "http://elasticsearch-es-http:9200/"
+  redis:
+    server: "redis"
+    port: "6379"
+    cache_db: "11"
+  php:
+    memory_limit: "512"
+  db:
+    server: "cover-service-prod-database.mariadb.database.azure.com"
+    port: "3306"
+    database: "cover-service"
