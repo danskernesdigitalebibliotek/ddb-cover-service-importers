@@ -4,6 +4,8 @@ kind: Pod
 metadata:
   namespace: {{ .Release.Namespace }}
   name: {{ .Release.Name }}-importers
+  annotations:
+    checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
 spec:
   containers:
   - name: importers

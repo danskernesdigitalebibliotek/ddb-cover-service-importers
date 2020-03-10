@@ -12,6 +12,9 @@ spec:
   jobTemplate:
     spec:
       template:
+        metadata:
+          annotations:
+            checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         spec:
           containers:
             - name: cronjob
