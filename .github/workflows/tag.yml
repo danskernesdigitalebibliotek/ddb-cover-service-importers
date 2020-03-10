@@ -14,19 +14,19 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Login to github package registry
-        run: docker login docker.pkg.github.com -u publisher -p "${{ secrets.GITHUB_TOKEN }}"
+        run: docker login --username secrets.DOCKER_USERNAME --password "${{ secrets.DOCKER_PASSWORD }}"
 
       - name: Build CoverService image
-        run: docker build --build-arg APP_VERSION=${{ env.APP_VERSION }} --tag="docker.pkg.github.com/${{ env.ORG_NAME }}/ddb-cover-service-importers/cover-service-importers:${{ env.APP_VERSION }}" --file="infrastructure/docker/cover-service-importers/Dockerfile" infrastructure/docker/cover-service-importers
+        run: docker build --build-arg APP_VERSION=${{ env.APP_VERSION }} --tag="danskernesdigitalebibliotek/cover-service-importers:${{ env.APP_VERSION }}" --file="infrastructure/docker/cover-service-importers/Dockerfile" infrastructure/docker/cover-service-importers
 
       - name: Build nginx side-car image
-        run: docker build --build-arg APP_VERSION=${{ env.APP_VERSION }} --tag="docker.pkg.github.com/${{ env.ORG_NAME }}/ddb-cover-service/cover-service-jobs:${{ env.APP_VERSION }}" --file="infrastructure/docker/cover-service-jobs/Dockerfile" infrastructure/docker/cover-service-jobs
+        run: docker build --build-arg VERSION=${{ env.APP_VERSION }} --tag="danskernesdigitalebibliotek/cover-service-jobs:${{ env.APP_VERSION }}" --file="infrastructure/docker/cover-service-jobs/Dockerfile" infrastructure/docker/cover-service-jobs
 
       - name: Push CoverService image
-        run: docker push docker.pkg.github.com/${{ env.ORG_NAME }}(ddb-cover-service-importers/cover-service-importers:${{ env.APP_VERSION }}
+        run: docker push danskernesdigitalebibliotek/cover-service-importers:${{ env.APP_VERSION }}
 
       - name: Push CoverService Nginx image
-        run: docker push docker.pkg.github.com/${{ env.ORG_NAME }}/ddb-cover-service/cover-service-jobs:${{ env.APP_VERSION }}
+        run: docker push danskernesdigitalebibliotek/cover-service-jobs:${{ env.APP_VERSION }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -35,22 +35,21 @@ jobs:
       build
     steps:
       - uses: actions/checkout@master
-      
-      # Set the target Azure Kubernetes Service (AKS) cluster. 
-      - name: Set AKS Context (Prod)
-        uses: azure/aks-set-context@v1
-        with:
-          creds: '${{ secrets.AZURE_CREDENTIALS }}'
-          cluster-name: ddb-cover-service
-          resource-group: CoverService
 
-      - name: Render Deployment YAML
-        uses: nowactions/envsubst@v1
+      # Set the target Azure Kubernetes Service (AKS) cluster.
+      - uses: azure/aks-set-context@v1
+        name: Set AKS Context (stg)
+        if: github.ref == 'refs/heads/release'
         with:
-          input: ./infrastructure/k8s/jobs-deployment.yaml
-          output: ./rendered-deployment.yaml
-        env:
-          APP_VERSION: ${{ env.APP_VERSION }}
+          creds: '${{ secrets.AZURE_CREDENTIALS_PROD }}'
+          cluster-name: ddb-cover-service-stg
+          resource-group: CoverServiceStg
 
-      - name: Deployment
-        run: kubectl -n ${{ env.NAMESPACE }} apply -f ./rendered-deployment.yaml
+      - uses: azure/setup-helm@v1
+        name: Install helm
+        with:
+          id: install
+
+      - name: Deploy cover service (importers and job queues)
+        run: helm upgrade --install cover-service-imports infrastructure/cover-service-importers --namespace ${{ env.NAMESPACE }} --set app.image.version=${{ env.APP_VERSION }}
+
