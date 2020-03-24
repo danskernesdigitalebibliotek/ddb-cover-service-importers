@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Contains a service to populate search index.
+ */
 
 namespace App\Service;
 
@@ -9,6 +13,9 @@ use Doctrine\ORM\EntityManagerInterface;
 use Elasticsearch\ClientBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
+/**
+ * Class PopulateService.
+ */
 class PopulateService
 {
     use ProgressBarTrait;
