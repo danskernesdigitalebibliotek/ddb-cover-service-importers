@@ -17,7 +17,7 @@ class UploadServiceVendorService extends AbstractBaseVendorService
 {
     use ProgressBarTrait;
 
-    protected const VENDOR_ID = 9;
+    protected const VENDOR_ID = 11;
 
     /**
      * {@inheritdoc}
