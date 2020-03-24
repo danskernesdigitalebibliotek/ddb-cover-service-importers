@@ -48,11 +48,12 @@ class SearchPopulateCommand extends Command
 
     /**
      * {@inheritdoc}
+     *
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $style = new SymfonyStyle($input, $output);
-
         $index = $input->getOption('index');
 
         if (!$index) {
@@ -64,8 +65,6 @@ class SearchPopulateCommand extends Command
 
         $this->populateService->setProgressBar($progressBar);
         $this->populateService->populate($index);
-
-        $style->success('Successfully populated.');
 
         return 0;
     }

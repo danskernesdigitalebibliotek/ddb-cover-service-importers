@@ -45,6 +45,9 @@ class PopulateService
      *
      * @param string $index
      *   The index to populate
+     *
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function populate(string $index)
     {
@@ -54,54 +57,54 @@ class PopulateService
 
         $params = ['body' => []];
 
-        $lastId = $this->searchRepository->findLastId();
+        $numberOfRecords = $this->searchRepository->getNumberOfRecords();
         $entriesAdded = 0;
-        $currentId = 0;
 
-        do {
-            $startId = $currentId;
-            $endId = $currentId + self::BATCH_SIZE;
-            $entities = $this->searchRepository->findByIdRangeQuery($startId, $endId)->execute();
+        $query = $this->searchRepository->getAllQuery();
+        $iterableResult = $query->iterate();
 
-            /* @var Search $entity */
-            foreach ($entities as $entity) {
-                $params['body'][] = [
-                    'index' => [
-                        '_index' => $index,
-                        '_id' => $entity->getId(),
-                        '_type' => 'search',
-                    ],
-                ];
+        foreach ($iterableResult as $row) {
+            /* @var \App\Entity\Search $entity */
+            $entity = $row[0];
 
-                $params['body'][] = [
-                    'isIdentifier' => $entity->getIsIdentifier(),
-                    'isType' => $entity->getIsType(),
-                    'imageUrl' => $entity->getImageUrl(),
-                    'imageFormat' => $entity->getImageFormat(),
-                    'width' => $entity->getWidth(),
-                    'height' => $entity->getHeight(),
-                ];
+            $params['body'][] = [
+                'index' => [
+                    '_index' => $index,
+                    '_id' => $entity->getId(),
+                    '_type' => 'search',
+                ],
+            ];
 
-                ++$entriesAdded;
+            $params['body'][] = [
+                'isIdentifier' => $entity->getIsIdentifier(),
+                'isType' => $entity->getIsType(),
+                'imageUrl' => $entity->getImageUrl(),
+                'imageFormat' => $entity->getImageFormat(),
+                'width' => $entity->getWidth(),
+                'height' => $entity->getHeight(),
+            ];
+
+            ++$entriesAdded;
+
+            // Free memory when batch size is reached.
+            if (0 === ($entriesAdded % self::BATCH_SIZE)) {
+                // Send bulk.
+                $client->bulk($params);
+
+                // Cleanup.
+                $params = ['body' => []];
+                $this->entityManager->clear();
+                gc_collect_cycles();
+
+                // Update progress message.
+                $this->progressMessage(sprintf('%d of %d processed.', $entriesAdded, $numberOfRecords));
+                $this->progressAdvance();
             }
+        }
 
-            // Send bulk.
-            $responses = $client->bulk($params);
-
-            // Cleanup.
-            $params = ['body' => []];
-            unset($responses);
-            $this->entityManager->clear();
-            gc_collect_cycles();
-
-            // Update progress message.
-            $this->progressMessage(sprintf('%d of %d ids processed. %d entries added.', $endId, $lastId, $entriesAdded));
-
-            // Set next id to start from.
-            $currentId = $endId;
-
-            $this->progressAdvance();
-        } while ($currentId <= $lastId);
+        // Send the remaining entries.
+        $client->bulk($params);
+        $this->progressMessage(sprintf('%d of %d processed.', $entriesAdded, $numberOfRecords));
 
         $this->progressFinish();
     }

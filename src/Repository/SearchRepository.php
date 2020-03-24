@@ -19,37 +19,25 @@ class SearchRepository extends ServiceEntityRepository
         parent::__construct($registry, Search::class);
     }
 
-    /**
-     * Find the last id.
-     *
-     * @return int|null
-     */
-    public function findLastId()
+    public function getAllQuery()
     {
-        $lastEntity = $this->findOneBy([], ['id' => 'desc']);
-        return $lastEntity->getId();
+        return $this->createQueryBuilder('e')->getQuery();
     }
 
     /**
-     * Get a query from Search entities by range.
+     * Get number of records.
      *
-     * @param int $startId
-     *   Start index (inclusive)
-     * @param int $endId
-     *   End index (exclusive)
+     * @return int
      *
-     * @return \Doctrine\ORM\Query
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function findByIdRangeQuery(int $startId, int $endId)
+    public function getNumberOfRecords()
     {
-        $queryBuilder = $this->createQueryBuilder('e');
-        $queryBuilder
-            ->andWhere('e.id >= :startId')
-            ->andWhere('e.id < :endId')
-            ->setParameter('startId', $startId)
-            ->setParameter('endId', $endId)
-        ;
+        $query = $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->getQuery();
 
-        return $queryBuilder->getQuery();
+        return $query->getSingleScalarResult();
     }
 }
