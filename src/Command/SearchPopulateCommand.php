@@ -65,8 +65,6 @@ class SearchPopulateCommand extends Command
         $this->populateService->setProgressBar($progressBar);
         $this->populateService->populate($index);
 
-        $style->success('Successfully populated.');
-
         return 0;
     }
 }

@@ -27,6 +27,7 @@ class SearchRepository extends ServiceEntityRepository
     public function findLastId()
     {
         $lastEntity = $this->findOneBy([], ['id' => 'desc']);
+
         return $lastEntity->getId();
     }
 
