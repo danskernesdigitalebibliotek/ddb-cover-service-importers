@@ -20,7 +20,7 @@ class PopulateService
 {
     use ProgressBarTrait;
 
-    const BATCH_SIZE = 100;
+    const BATCH_SIZE = 1000;
 
     /* @var SearchRepository $searchRepository */
     private $searchRepository;
@@ -69,8 +69,15 @@ class PopulateService
         $lastId = $this->searchRepository->findLastId();
         $currentId = 0;
 
-        do {
-            $entities = $this->searchRepository->findBy([], ['id' => 'ASC'], self::BATCH_SIZE, $currentId);
+        while ($entriesAdded < $numberOfRecords) {
+            $entities = $this->searchRepository->findBy([], ['id' => 'ASC'], self::BATCH_SIZE, $entriesAdded);
+
+            // No more results.
+            if (0 === count($entities)) {
+                $this->progressMessage(sprintf('%d of %d processed. Id: %d. Last id: %d. No more results.', $entriesAdded, $numberOfRecords, $currentId, $lastId));
+                $this->progressAdvance();
+                break;
+            }
 
             /* @var Search $entity */
             foreach ($entities as $entity) {
@@ -92,16 +99,14 @@ class PopulateService
                 ];
 
                 ++$entriesAdded;
+                $currentId = $entity->getId();
             }
 
             // Send bulk.
             $client->bulk($params);
 
             // Update progress message.
-            $this->progressMessage(sprintf('%d of %d processed. Id: %d. Last id: %d.', $entriesAdded, $numberOfRecords, $currentId, $lastId));
-
-            // Set next id to start from.
-            $currentId = $entity->getId() + 1;
+            $this->progressMessage(sprintf('%d of %d added. Id: %d. Last id: %d.', $entriesAdded, $numberOfRecords, $currentId, $lastId));
 
             // Cleanup.
             $params = ['body' => []];
@@ -109,7 +114,7 @@ class PopulateService
             gc_collect_cycles();
 
             $this->progressAdvance();
-        } while ($currentId <= $lastId);
+        }
 
         $this->progressFinish();
     }
