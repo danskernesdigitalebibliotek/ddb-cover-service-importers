@@ -18,6 +18,7 @@ parameters:
     datawell.vendor.search_url: '%env(DATAWELL_VENDOR_SEARCH_URL)%'
     datawell.vendor.user: '%env(DATAWELL_VENDOR_USER)%'
     datawell.vendor.password: '%env(DATAWELL_VENDOR_PASSWORD)%'
+    elastic.url: '%env(ELASTIC_URL)%'
 
 services:
     # default configuration for services in *this* file
@@ -70,4 +71,3 @@ services:
             - '@doctrine'
         tags:
             - { name: 'enqueue.consumption.extension' }
-

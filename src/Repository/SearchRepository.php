@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Contains Search repository.
+ */
 
 namespace App\Repository;
 
@@ -14,8 +18,44 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class SearchRepository extends ServiceEntityRepository
 {
+    /**
+     * SearchRepository constructor.
+     *
+     * @param \Symfony\Bridge\Doctrine\RegistryInterface $registry
+     */
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Search::class);
+    }
+
+    /**
+     * Find the last id.
+     *
+     * @return int|null
+     *   The last id or null
+     */
+    public function findLastId(): ?int
+    {
+        $lastEntity = $this->findOneBy([], ['id' => 'DESC']);
+
+        return $lastEntity->getId() ?? null;
+    }
+
+    /**
+     * Get number of records.
+     *
+     * @return int
+     *   Number of records in the Search table
+     *
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function getNumberOfRecords(): int
+    {
+        $query = $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->getQuery();
+
+        return $query->getSingleScalarResult();
     }
 }
