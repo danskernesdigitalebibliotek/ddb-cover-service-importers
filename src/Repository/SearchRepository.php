@@ -34,7 +34,7 @@ class SearchRepository extends ServiceEntityRepository
      * @return int|null
      *   The last id or null
      */
-    public function findLastId()
+    public function findLastId(): ?int
     {
         $lastEntity = $this->findOneBy([], ['id' => 'DESC']);
 
@@ -50,7 +50,7 @@ class SearchRepository extends ServiceEntityRepository
      * @throws \Doctrine\ORM\NoResultException
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function getNumberOfRecords()
+    public function getNumberOfRecords(): int
     {
         $query = $this->createQueryBuilder('e')
             ->select('COUNT(e.id)')
