@@ -44,6 +44,8 @@ class PopulateService
         $this->searchRepository = $searchRepository;
         $this->entityManager = $entityManager;
         $this->elasticHost = $parameterBag->get('elastic.url');
+
+        // Make sure that the sql logger is not enabled to avoid memory issues.
         $entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
     }
 
@@ -64,9 +66,18 @@ class PopulateService
 
         $params = ['body' => []];
 
-        $entriesAdded = 0;
         $numberOfRecords = $this->searchRepository->getNumberOfRecords();
         $lastId = $this->searchRepository->findLastId();
+
+        // Make sure there are entries in the Search table to process.
+        if (0 === $numberOfRecords || null === $lastId) {
+            $this->progressMessage('No entries in Search table.');
+            $this->progressFinish();
+
+            return;
+        }
+
+        $entriesAdded = 0;
         $currentId = 0;
 
         while ($entriesAdded < $numberOfRecords) {
@@ -75,7 +86,6 @@ class PopulateService
             // No more results.
             if (0 === count($entities)) {
                 $this->progressMessage(sprintf('%d of %d processed. Id: %d. Last id: %d. No more results.', $entriesAdded, $numberOfRecords, $currentId, $lastId));
-                $this->progressAdvance();
                 break;
             }
 

@@ -32,18 +32,20 @@ class SearchRepository extends ServiceEntityRepository
      * Find the last id.
      *
      * @return int|null
+     *   The last id or null
      */
     public function findLastId()
     {
         $lastEntity = $this->findOneBy([], ['id' => 'DESC']);
 
-        return $lastEntity->getId();
+        return $lastEntity->getId() ?? null;
     }
 
     /**
      * Get number of records.
      *
      * @return int
+     *   Number of records in the Search table
      *
      * @throws \Doctrine\ORM\NoResultException
      * @throws \Doctrine\ORM\NonUniqueResultException
