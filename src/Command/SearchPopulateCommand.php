@@ -42,7 +42,6 @@ class SearchPopulateCommand extends Command
         $this
             ->setDescription('Populate the search index with data from the search table.')
             ->addOption('index', null, InputOption::VALUE_REQUIRED, 'The index to populate.')
-            ->addOption('run_id', null, InputOption::VALUE_OPTIONAL, 'The id of the run. Use this to continue an aborted run. Defaults to current timestamp.')
         ;
     }
 
@@ -51,8 +50,6 @@ class SearchPopulateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $style = new SymfonyStyle($input, $output);
-
         $index = $input->getOption('index');
 
         if (!$index) {

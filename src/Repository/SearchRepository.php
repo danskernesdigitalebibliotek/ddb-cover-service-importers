@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Contains Search repository.
+ */
 
 namespace App\Repository;
 
@@ -14,6 +18,11 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class SearchRepository extends ServiceEntityRepository
 {
+    /**
+     * SearchRepository constructor.
+     *
+     * @param \Symfony\Bridge\Doctrine\RegistryInterface $registry
+     */
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, Search::class);
@@ -26,31 +35,25 @@ class SearchRepository extends ServiceEntityRepository
      */
     public function findLastId()
     {
-        $lastEntity = $this->findOneBy([], ['id' => 'desc']);
+        $lastEntity = $this->findOneBy([], ['id' => 'DESC']);
 
         return $lastEntity->getId();
     }
 
     /**
-     * Get a query from Search entities by range.
+     * Get number of records.
      *
-     * @param int $startId
-     *   Start index (inclusive)
-     * @param int $endId
-     *   End index (exclusive)
+     * @return int
      *
-     * @return \Doctrine\ORM\Query
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function findByIdRangeQuery(int $startId, int $endId)
+    public function getNumberOfRecords()
     {
-        $queryBuilder = $this->createQueryBuilder('e');
-        $queryBuilder
-            ->andWhere('e.id >= :startId')
-            ->andWhere('e.id < :endId')
-            ->setParameter('startId', $startId)
-            ->setParameter('endId', $endId)
-        ;
+        $query = $this->createQueryBuilder('e')
+            ->select('COUNT(e.id)')
+            ->getQuery();
 
-        return $queryBuilder->getQuery();
+        return $query->getSingleScalarResult();
     }
 }

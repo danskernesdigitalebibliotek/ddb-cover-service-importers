@@ -52,6 +52,9 @@ class PopulateService
      *
      * @param string $index
      *   The index to populate
+     *
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     public function populate(string $index)
     {
@@ -61,14 +64,13 @@ class PopulateService
 
         $params = ['body' => []];
 
-        $lastId = $this->searchRepository->findLastId();
         $entriesAdded = 0;
+        $numberOfRecords = $this->searchRepository->getNumberOfRecords();
+        $lastId = $this->searchRepository->findLastId();
         $currentId = 0;
 
         do {
-            $startId = $currentId;
-            $endId = $currentId + self::BATCH_SIZE;
-            $entities = $this->searchRepository->findByIdRangeQuery($startId, $endId)->execute();
+            $entities = $this->searchRepository->findBy([], ['id' => 'ASC'], self::BATCH_SIZE, $currentId);
 
             /* @var Search $entity */
             foreach ($entities as $entity) {
@@ -93,19 +95,18 @@ class PopulateService
             }
 
             // Send bulk.
-            $responses = $client->bulk($params);
+            $client->bulk($params);
+
+            // Update progress message.
+            $this->progressMessage(sprintf('%d of %d processed. Id: %d. Last id: %d.', $entriesAdded, $numberOfRecords, $currentId, $lastId));
+
+            // Set next id to start from.
+            $currentId = $entity->getId() + 1;
 
             // Cleanup.
             $params = ['body' => []];
-            unset($responses);
             $this->entityManager->clear();
             gc_collect_cycles();
-
-            // Update progress message.
-            $this->progressMessage(sprintf('%d of %d ids processed. %d entries added.', $endId, $lastId, $entriesAdded));
-
-            // Set next id to start from.
-            $currentId = $endId;
 
             $this->progressAdvance();
         } while ($currentId <= $lastId);
