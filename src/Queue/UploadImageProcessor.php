@@ -10,11 +10,9 @@ namespace App\Queue;
 use App\Entity\Source;
 use App\Entity\Vendor;
 use App\Event\VendorEvent;
-use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\Message\CoverUploadProcessMessage;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
-use Enqueue\Client\ProducerInterface;
 use Enqueue\Client\TopicSubscriberInterface;
 use Interop\Queue\Context;
 use Interop\Queue\Message;
@@ -29,27 +27,21 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class UploadImageProcessor implements Processor, TopicSubscriberInterface
 {
     private $em;
-    private $imageValidator;
-    private $producer;
     private $dispatcher;
     private $statsLogger;
 
-    private const vendorId = 11;
+    private const VENDOR_ID = 11;
 
     /**
      * UploadImageProcessor constructor.
      *
      * @param EntityManagerInterface $entityManager
-     * @param VendorImageValidatorService $imageValidator
-     * @param ProducerInterface $producer
      * @param LoggerInterface $statsLogger
+     * @param EventDispatcherInterface $eventDispatcher
      */
-    public function __construct(EntityManagerInterface $entityManager, VendorImageValidatorService $imageValidator,
-                                ProducerInterface $producer, LoggerInterface $statsLogger, EventDispatcherInterface $eventDispatcher)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $statsLogger, EventDispatcherInterface $eventDispatcher)
     {
         $this->em = $entityManager;
-        $this->imageValidator = $imageValidator;
-        $this->producer = $producer;
         $this->statsLogger = $statsLogger;
         $this->dispatcher = $eventDispatcher;
     }
@@ -67,12 +59,15 @@ class UploadImageProcessor implements Processor, TopicSubscriberInterface
         // @TODO: Could this be optimized to only be loaded once!
         $vendorRepo = $this->em->getRepository(Vendor::class);
         /** @var Vendor $vendor */
-        $vendor = $vendorRepo->find(self::vendorId);
+        $vendor = $vendorRepo->find(self::VENDOR_ID);
 
         $sourceRepo = $this->em->getRepository(Source::class);
         /** @var Source[] $sources */
         $sources = $sourceRepo->findByMatchIdList($uploadProcessMessage->getIdentifierType(), [$identifier => ''], $vendor);
 
+        /**
+         * @TODO: Added support for delete $uploadProcessMessage->getOperation() === VendorState::DELETE
+         */
         $isNew = true;
         if (array_key_exists($identifier, $sources)) {
             $source = $sources[$identifier];
@@ -100,8 +95,7 @@ class UploadImageProcessor implements Processor, TopicSubscriberInterface
         if ($isNew) {
             $event = new VendorEvent(VendorState::INSERT, [$identifier], $uploadProcessMessage->getIdentifierType(), $vendor);
             $this->dispatcher->dispatch($event::NAME, $event);
-        }
-        if (!empty($updatedIdentifiers)) {
+        } else {
             $event = new VendorEvent(VendorState::UPDATE, [$identifier], $uploadProcessMessage->getIdentifierType(), $vendor);
             $this->dispatcher->dispatch($event::NAME, $event);
         }
