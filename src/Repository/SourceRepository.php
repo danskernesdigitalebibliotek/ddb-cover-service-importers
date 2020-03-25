@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Source;
 use App\Entity\Vendor;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query\QueryException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 class SourceRepository extends ServiceEntityRepository
@@ -29,9 +30,9 @@ class SourceRepository extends ServiceEntityRepository
      * @return mixed
      *  Array of sources indexed by match id
      *
-     * @throws \Doctrine\ORM\Query\QueryException
+     * @throws QueryException
      */
-    public function findByMatchIdList(string $matchType, array &$matchIdList, Vendor $vendor)
+    public function findByMatchIdList(string $matchType, array $matchIdList, Vendor $vendor)
     {
         if (key($matchIdList)) {
             $idList = array_keys($matchIdList);
@@ -60,7 +61,7 @@ class SourceRepository extends ServiceEntityRepository
      *
      * @return mixed
      */
-    public function removeIdsNotInList(array &$matchIdList, Vendor $vendor)
+    public function removeIdsNotInList(array $matchIdList, Vendor $vendor)
     {
         return $this->createQueryBuilder('s')
             ->delete('App:Source', 's')

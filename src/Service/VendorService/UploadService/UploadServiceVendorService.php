@@ -26,7 +26,7 @@ class UploadServiceVendorService extends AbstractBaseVendorService
     {
         $this->progressStart('This vendor has no work');
         $this->progressFinish();
+
         return VendorImportResultMessage::success(0, 0, 0, 0);
     }
-
 }
