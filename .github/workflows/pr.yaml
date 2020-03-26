@@ -113,7 +113,7 @@ jobs:
             - uses: azure/setup-helm@v1
               name: Install helm
               with:
-                  id: install
+                  version: v3.1.2
 
             - name: Lint helm
               run: helm lint infrastructure/cover-service-importers
