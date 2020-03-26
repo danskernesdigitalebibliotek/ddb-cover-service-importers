@@ -2,12 +2,15 @@
 
 /**
  * @file
+ * The cover upload messages class.
+ *
+ * Please note that this class is shared between this repository and the cover upload service repository.
  */
 
 namespace App\Utils\Message;
 
 /**
- * Class ProcessMessage.
+ * Class CoverUploadProcessMessage.
  */
 class CoverUploadProcessMessage implements \JsonSerializable
 {

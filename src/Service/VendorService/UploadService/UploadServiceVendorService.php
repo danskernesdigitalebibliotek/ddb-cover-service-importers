@@ -1,7 +1,7 @@
 <?php
 /**
  * @file
- * Service that don't do anything. It exists to enable an vendor for the upload service.
+ * Service that does not do anything. It exists to enable a vendor for the upload service.
  */
 
 namespace App\Service\VendorService\UploadService;
@@ -11,7 +11,7 @@ use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Message\VendorImportResultMessage;
 
 /**
- * Class BogPortalenVendorService.
+ * Class UploadServiceVendorService.
  */
 class UploadServiceVendorService extends AbstractBaseVendorService
 {

@@ -66,7 +66,7 @@ class CoverUploadProcessor implements Processor, TopicSubscriberInterface
         $sources = $sourceRepo->findByMatchIdList($uploadProcessMessage->getIdentifierType(), [$identifier => ''], $vendor);
 
         /**
-         * @TODO: Added support for delete $uploadProcessMessage->getOperation() === VendorState::DELETE
+         * @TODO: Add support for delete $uploadProcessMessage->getOperation() === VendorState::DELETE
          */
         $isNew = true;
         if (array_key_exists($identifier, $sources)) {
