@@ -30,7 +30,7 @@ class CoverUploadProcessor implements Processor, TopicSubscriberInterface
     private $dispatcher;
     private $statsLogger;
 
-    private const VENDOR_ID = 11;
+    private const VENDOR_ID = 12;
 
     /**
      * CoverUploadProcessor constructor.
