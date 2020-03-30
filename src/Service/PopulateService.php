@@ -45,7 +45,9 @@ class PopulateService
     {
         $this->searchRepository = $searchRepository;
         $this->entityManager = $entityManager;
-        $this->elasticHost = $parameterBag->get('elastic.url');
+
+        // @HACK to make the FOS elasticsearch URL work with elasticSearch library remove last '/'
+        $this->elasticHost = rtrim($parameterBag->get('elastic.url'), '/');
 
         // Make sure that the sql logger is not enabled to avoid memory issues.
         $entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
