@@ -10,6 +10,8 @@ use App\Entity\Search;
 use App\Repository\SearchRepository;
 use App\Service\VendorService\ProgressBarTrait;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Elasticsearch\ClientBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
@@ -32,11 +34,11 @@ class PopulateService
     /**
      * PopulateService constructor.
      *
-     * @param \Doctrine\ORM\EntityManagerInterface $entityManager
+     * @param EntityManagerInterface $entityManager
      *   The entity manager
-     * @param \App\Repository\SearchRepository $searchRepository
+     * @param SearchRepository $searchRepository
      *   The Search repository
-     * @param \Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface $parameterBag
+     * @param ParameterBagInterface $parameterBag
      *   The parameter bag
      */
     public function __construct(EntityManagerInterface $entityManager, SearchRepository $searchRepository, ParameterBagInterface $parameterBag)
@@ -55,14 +57,18 @@ class PopulateService
      * @param string $index
      *   The index to populate
      *
-     * @throws \Doctrine\ORM\NoResultException
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function populate(string $index)
     {
         $this->progressStart('Starting populate process');
 
         $client = ClientBuilder::create()->setHosts([$this->elasticHost])->build();
+
+        if (!$client->indices()->exists(['index' => $index])) {
+            throw new \RuntimeException('Index must be created before populating it.');
+        }
 
         $params = ['body' => []];
 
