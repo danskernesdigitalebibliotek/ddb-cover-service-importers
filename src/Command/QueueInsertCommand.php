@@ -60,7 +60,7 @@ class QueueInsertCommand extends Command
         $withTestMessage = $input->getOption('with-test-message');
 
         if ($withTestMessage) {
-            // Fallback message for easy testing.
+            // Test messages for easy testing.
             switch ($topic) {
                 case 'UploadImageTopic':
                     $processMessage = new CoverUploadProcessMessage();
@@ -83,7 +83,7 @@ class QueueInsertCommand extends Command
                     break;
 
                 default:
-                    throw new \RuntimeException('No default message exists to the topic');
+                    throw new \RuntimeException('No test message exists for the given topic');
             }
         } elseif (!isset($message)) {
             throw new \RuntimeException('Missing message');
