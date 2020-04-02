@@ -9,6 +9,7 @@ namespace App\Utils\CoverStore;
 
 class CoverStoreItem
 {
+    private $id;
     private $url;
     private $vendor;
     private $size;
@@ -24,6 +25,7 @@ class CoverStoreItem
         $output = [];
 
         $output[] = str_repeat('-', 42);
+        $output[] = 'ID: '.$this->getId();
         $output[] = 'URL: '.$this->getUrl();
         $output[] = 'Vendor: '.$this->getVendor();
         $output[] = 'Size: '.$this->getSize().' Bytes';
@@ -36,6 +38,26 @@ class CoverStoreItem
         $output[] = str_repeat('-', 42);
 
         return implode("\n", $output);
+    }
+
+    /**
+     * @return string
+     */
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param string $id
+     *
+     * @return CoverStoreItem
+     */
+    public function setId(string $id): self
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     /**

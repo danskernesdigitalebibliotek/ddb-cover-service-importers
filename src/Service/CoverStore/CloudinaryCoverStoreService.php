@@ -75,7 +75,8 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
         }
 
         $item = new CoverStoreItem();
-        $item->setUrl($image['secure_url'])
+        $item->setId($image['public_id'])
+            ->setUrl($image['secure_url'])
             ->setVendor($folder)
             ->setSize($image['bytes'])
             ->setWidth((int) $image['width'])
@@ -166,7 +167,8 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
         }
 
         $item = new CoverStoreItem();
-        $item->setUrl($image['secure_url'])
+        $item->setId($image['public_id'])
+            ->setUrl($image['secure_url'])
             ->setVendor($folder)
             ->setSize($image['bytes'])
             ->setWidth((int) $image['width'])
@@ -225,7 +227,8 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
         $items = [];
         foreach ($result['resources'] as $resources) {
             $item = new CoverStoreItem();
-            $item->setUrl($resources['secure_url'])
+            $item->setId($resources['public_id'])
+                ->setUrl($resources['secure_url'])
                 ->setVendor($folder)
                 ->setSize($resources['bytes'])
                 ->setWidth((int) $resources['width'])
@@ -248,7 +251,8 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
         $parts = explode('/', $destination);
 
         $item = new CoverStoreItem();
-        $item->setUrl($result['secure_url'])
+        $item->setId($result['public_id'])
+            ->setUrl($result['secure_url'])
             ->setVendor($parts[0])
             ->setSize($result['bytes'])
             ->setWidth((int) $result['width'])
