@@ -125,6 +125,7 @@ class UploadServiceVendorService extends AbstractBaseVendorService
         $this->progressFinish();
 
         $count = count($items);
+
         return VendorImportResultMessage::success($count, 0, $count, 0);
     }
 }
