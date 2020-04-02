@@ -90,4 +90,17 @@ interface CoverStoreInterface
      *   Array with the found items or empty if non found
      */
     public function search(string $folder, string $rawQuery = null): array;
+
+    /**
+     * Mover cover in the cover store.
+     *
+     * @param string $source
+     *   The source cover to move
+     * @param string $destination
+     *   The destination to move the cover into
+     *
+     * @return CoverStoreItem
+     *   The cover information after it have been moved
+     */
+    public function move(string $source, string $destination): CoverStoreItem;
 }
