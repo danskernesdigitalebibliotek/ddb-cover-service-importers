@@ -30,6 +30,9 @@ class UploadServiceVendorService extends AbstractBaseVendorService
 
     protected const VENDOR_ID = 12;
 
+    protected const SOURCE_FOLDER = 'BulkUpload';
+    protected const DESTINATION_FOLDER = 'UploadService';
+
     /** @var CoverStoreInterface $store */
     private $store;
 
@@ -61,24 +64,22 @@ class UploadServiceVendorService extends AbstractBaseVendorService
         $this->progressStart('Searching CoverStore BulkUpload folder for new images');
 
         // Search
-        $items = $this->store->search('BulkUpload');
-
-        // @TODO: This is an assumption?
-        $type = IdentifierType::PID;
+        $items = $this->store->search(self::SOURCE_FOLDER);
 
         $inserted = 0;
         foreach ($items as $item) {
-            list($folder, $filename) = explode('/', $item->getId());
+            $filename = $this->extractFilename($item->getId());
 
             try {
-                $item = $this->store->move($item->getId(), 'UploadService/'.$filename);
+                $item = $this->store->move($item->getId(), self::DESTINATION_FOLDER.'/'.$filename);
             } catch (\Exception $e) {
                 // @TODO: error logging. This could happen if the image have been removed - it might already be in the
                 // queue system.
             }
 
-            // Get identifier from the image id. Assumption that it's url-encoded.
-            $identifier = urldecode($filename);
+            // Get identifier from the image id.
+            $identifier = $this->filenameToIdentifier($filename);
+            $type = $this->identifierToType($filename);
 
             // Create image entity.
             $image = new Image();
@@ -127,5 +128,57 @@ class UploadServiceVendorService extends AbstractBaseVendorService
         $count = count($items);
 
         return VendorImportResultMessage::success($count, 0, $count, 0);
+    }
+
+    /**
+     * Get filename from item id.
+     *
+     * @param string $id
+     *
+     * @return mixed
+     */
+    private function extractFilename(string $id): string
+    {
+        $parts = explode('/', $id);
+
+        return array_pop($parts);
+    }
+
+    /**
+     * Try to figure out the identifier from the filename.
+     *
+     * NOTE: that we assumes right now that the filename is the identifier urlencoded.
+     *
+     * @param string $filename
+     *   The filename
+     *
+     * @return string
+     *   The identifier found
+     */
+    private function filenameToIdentifier(string $filename): string
+    {
+        return urldecode($filename);
+    }
+
+    /**
+     * Try to find the type of the identifier.
+     *
+     * Default to ISBN if PID type is not found.
+     *
+     * @param string $identifier
+     *   The identifier
+     *
+     * @return string
+     *   The type detected
+     */
+    private function identifierToType(string $identifier): string
+    {
+        $type = IdentifierType::ISBN;
+
+        if (false !== strpos($identifier, ':')) {
+            $type = IdentifierType::PID;
+        }
+
+        return $type;
     }
 }

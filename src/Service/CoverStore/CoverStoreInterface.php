@@ -92,7 +92,7 @@ interface CoverStoreInterface
     public function search(string $folder, string $rawQuery = null): array;
 
     /**
-     * Mover cover in the cover store.
+     * Mover item in the cover store.
      *
      * @param string $source
      *   The source cover to move

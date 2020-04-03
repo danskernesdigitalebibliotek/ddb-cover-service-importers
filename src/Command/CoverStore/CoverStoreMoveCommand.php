@@ -39,7 +39,7 @@ class CoverStoreMoveCommand extends Command
      */
     protected function configure()
     {
-        $this->setDescription('Search a folder in the cover store')
+        $this->setDescription('Move a cover in the cover store')
             ->addOption('source', null, InputOption::VALUE_REQUIRED, 'Resource id for the source "folder/image-name"')
             ->addOption('destination', null, InputOption::VALUE_REQUIRED, 'Resource id for the distination "folder/image-name"');
     }
