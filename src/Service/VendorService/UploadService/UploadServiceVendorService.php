@@ -73,8 +73,8 @@ class UploadServiceVendorService extends AbstractBaseVendorService
             try {
                 $item = $this->store->move($item->getId(), self::DESTINATION_FOLDER.'/'.$filename);
             } catch (\Exception $e) {
-                // @TODO: error logging. This could happen if the image have been removed - it might already be in the
-                // queue system.
+                // The image may have been moved to we ignore this error an goes to the next item.
+                continue;
             }
 
             // Get identifier from the image id.
