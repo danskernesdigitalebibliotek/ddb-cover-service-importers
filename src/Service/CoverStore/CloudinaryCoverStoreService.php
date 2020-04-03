@@ -212,7 +212,6 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
      */
     public function search(string $folder, string $rawQuery = null): array
     {
-        // TODO: Implement search() method.
         $search = new \Cloudinary\Search();
         $search
             ->expression('folder='.$folder)
