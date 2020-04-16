@@ -3,7 +3,7 @@ apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
   namespace: {{ .Release.Namespace }}
-  name: {{ .Release.Namespace }}-cronjob
+  name: {{ .Release.Name }}-cronjob
 spec:
   schedule: {{ .Values.cron.runAt }}
   concurrencyPolicy: Forbid
