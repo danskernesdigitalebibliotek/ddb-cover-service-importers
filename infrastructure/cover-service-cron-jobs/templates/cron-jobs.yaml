@@ -18,7 +18,7 @@ spec:
         spec:
           containers:
             - name: cronjob
-              image: danskernesdigitalebibliotek/cover-service-importers::{{ .Values.app.image.version }}
+              image: danskernesdigitalebibliotek/cover-service-importers:{{ .Values.app.image.version }}
               imagePullPolicy: {{ .Values.app.image.imagePullPolicy }}
               args:
                 - "bin/console"

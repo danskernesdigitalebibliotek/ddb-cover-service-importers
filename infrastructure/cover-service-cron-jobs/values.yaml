@@ -20,7 +20,7 @@ app:
     port: "6379"
     cache_db: "11"
   php:
-    memory_limit: "512"
+    memory_limit: "512M"
   db:
     server: "cover-service-prod-database.mariadb.database.azure.com"
     port: "3306"
