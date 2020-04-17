@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
   name: {{ .Release.Name }}-cronjob
 spec:
-  schedule: {{ .Values.cron.runAt }}
+  schedule: {{ .Values.cron.runAt | quote }}
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: {{ .Values.cron.successfulLimit }}
   failedJobsHistoryLimit: {{ .Values.cron.failedLimit }}
