@@ -30,7 +30,7 @@ class UploadServiceVendorServiceTest extends TestCase
     {
         $service = $this->getUploadServiceVendorService();
 
-        // Have to use full namespace in reaction class or it will fail.
+        // Have to use full namespace in reflection class or it will fail.
         $ref = new \ReflectionClass('\App\Service\VendorService\UploadService\UploadServiceVendorService');
         $method = $ref->getMethod('extractFilename');
         $method->setAccessible(true);
@@ -48,7 +48,7 @@ class UploadServiceVendorServiceTest extends TestCase
     {
         $service = $this->getUploadServiceVendorService();
 
-        // Have to use full namespace in reaction class or it will fail.
+        // Have to use full namespace in reflection class or it will fail.
         $ref = new \ReflectionClass('\App\Service\VendorService\UploadService\UploadServiceVendorService');
         $method = $ref->getMethod('filenameToIdentifier');
         $method->setAccessible(true);
@@ -67,7 +67,7 @@ class UploadServiceVendorServiceTest extends TestCase
     {
         $service = $this->getUploadServiceVendorService();
 
-        // Have to use full namespace in reaction class or it will fail.
+        // Have to use full namespace in reflection class or it will fail.
         $ref = new \ReflectionClass('\App\Service\VendorService\UploadService\UploadServiceVendorService');
         $method = $ref->getMethod('identifierToType');
         $method->setAccessible(true);
@@ -79,7 +79,7 @@ class UploadServiceVendorServiceTest extends TestCase
     /**
      * Helper class to mock service for UploadService.
      *
-     * @return uploadServiceVendorService
+     * @return UploadServiceVendorService
      *   The mocked UploadService vendor object
      */
     private function getUploadServiceVendorService(): UploadServiceVendorService
