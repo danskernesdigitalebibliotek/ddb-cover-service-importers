@@ -46,12 +46,12 @@ class VendorEvent extends Event
     /**
      * Change the current state.
      *
-     * @param $newVendorState
-     *   Change the state to this state. Please use the static properties found in the VendorState class
+     * @param string $newType
+     *   Change the type to. Please use the static properties found in the VendorState class
      */
-    public function changeVendorState($newVendorState): void
+    public function changeType(string $newType): void
     {
-        $this->type = $newVendorState;
+        $this->type = $newType;
     }
 
     /**

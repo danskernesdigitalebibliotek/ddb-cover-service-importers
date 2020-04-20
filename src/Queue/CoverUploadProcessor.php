@@ -76,14 +76,14 @@ class CoverUploadProcessor implements Processor, TopicSubscriberInterface
         switch ($uploadProcessMessage->getOperation()) {
             case VendorState::UPDATE:
             case VendorState::INSERT:
-                $event->changeVendorState(VendorState::UPDATE);
+                $event->changeType(VendorState::UPDATE);
                 if ($this->createUpdateSource($identifier, $sources, $uploadProcessMessage)) {
-                    $event->changeVendorState(VendorState::INSERT);
+                    $event->changeType(VendorState::INSERT);
                 }
                 break;
 
             case VendorState::DELETE:
-                $event->changeVendorState(VendorState::DELETE);
+                $event->changeType(VendorState::DELETE);
                 break;
         }
 
