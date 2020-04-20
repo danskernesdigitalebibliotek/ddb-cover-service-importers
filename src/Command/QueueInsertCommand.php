@@ -47,7 +47,8 @@ class QueueInsertCommand extends Command
             ->setDescription('Insert')
             ->addOption('topic', null, InputOption::VALUE_REQUIRED, 'Topic to send into queue system.')
             ->addOption('message', null, InputOption::VALUE_OPTIONAL, 'String encode json message')
-            ->addOption('with-test-message', null, InputOption::VALUE_NONE, 'Use default test message with given topic');
+            ->addOption('with-test-message', null, InputOption::VALUE_NONE, 'Use default test message with given topic')
+            ->addOption('vendorState', null, InputOption::VALUE_OPTIONAL, 'The vendor state to set: \'insert\', \'update\', \'delete\'');
     }
 
     /**
@@ -58,6 +59,8 @@ class QueueInsertCommand extends Command
         $topic = $input->getOption('topic');
         $message = $input->getOption('message');
         $withTestMessage = $input->getOption('with-test-message');
+        $vendorState = $input->getOption('vendorState');
+
 
         if ($withTestMessage) {
             // Test messages for easy testing.
@@ -68,14 +71,14 @@ class QueueInsertCommand extends Command
                     $processMessage->setIdentifier('1234567890');
                     $processMessage->setVendorId('12');
                     $processMessage->setImageUrl('https://www.danskernesdigitalebibliotek.dk/fileadmin/_kulturstyrelsen/images/ddb/logo.png');
-                    $processMessage->setOperation(VendorState::INSERT);
+                    $processMessage->setOperation($vendorState ?? VendorState::INSERT);
                     $message = JSON::encode($processMessage);
                     break;
 
                 case 'SearchTopic':
                     $processMessage = new ProcessMessage();
                     $processMessage->setIdentifier('9788799239535')
-                        ->setOperation(VendorState::UPDATE)
+                        ->setOperation($vendorState ?? VendorState::UPDATE)
                         ->setIdentifierType(IdentifierType::ISBN)
                         ->setVendorId(1)
                         ->setImageId(1);
