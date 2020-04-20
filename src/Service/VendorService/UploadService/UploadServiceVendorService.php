@@ -79,7 +79,7 @@ class UploadServiceVendorService extends AbstractBaseVendorService
 
             // Get identifier from the image id.
             $identifier = $this->filenameToIdentifier($filename);
-            $type = $this->identifierToType($filename);
+            $type = $this->identifierToType($identifier);
 
             // Create image entity.
             $image = new Image();
@@ -157,7 +157,13 @@ class UploadServiceVendorService extends AbstractBaseVendorService
      */
     private function filenameToIdentifier(string $filename): string
     {
-        return urldecode($filename);
+        $filename = urldecode($filename);
+        if (false !== strpos($filename, '.')) {
+            $filename = explode('.', $filename);
+            $filename = array_shift($filename);
+        }
+
+        return $filename;
     }
 
     /**
