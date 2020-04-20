@@ -6,6 +6,7 @@
 
 namespace App\Event;
 
+use App\Utils\Types\VendorState;
 use Symfony\Component\EventDispatcher\Event;
 
 /**
@@ -40,6 +41,17 @@ class VendorEvent extends Event
         $this->identifiers = $identifiers;
         $this->identifierType = $identifierType;
         $this->vendorId = $vendorId;
+    }
+
+    /**
+     * Change the current state.
+     *
+     * @param $newVendorState
+     *   Change the state to this state. Please use the static properties found in the VendorState class
+     */
+    public function changeVendorState($newVendorState): void
+    {
+        $this->type = $newVendorState;
     }
 
     /**

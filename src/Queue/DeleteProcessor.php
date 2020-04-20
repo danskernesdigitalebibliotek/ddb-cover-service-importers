@@ -8,6 +8,8 @@ namespace App\Queue;
 
 use App\Entity\Source;
 use App\Entity\Vendor;
+use App\Exception\CoverStoreException;
+use App\Exception\CoverStoreNotFoundException;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Utils\Message\ProcessMessage;
 use Doctrine\DBAL\ConnectionException;
@@ -18,7 +20,6 @@ use Interop\Queue\Message;
 use Interop\Queue\Processor;
 use Karriere\JsonDecoder\JsonDecoder;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Config\Definition\Exception\Exception;
 
 /**
  * Class SearchProcessor.
@@ -115,7 +116,16 @@ class DeleteProcessor implements Processor, TopicSubscriberInterface
         // Delete image in cover store.
         try {
             $this->coverStore->remove($vendor->getName(), $processMessage->getIdentifier());
-        } catch (Exception $exception) {
+        } catch (CoverStoreNotFoundException $exception) {
+            $this->statsLogger->error('Error removing cover store image - not found', [
+                'service' => 'DeleteProcessor',
+                'message' => $exception->getMessage(),
+                'identifier' => $processMessage->getIdentifier(),
+                'imageId' => $processMessage->getImageId(),
+            ]);
+
+            return self::REJECT;
+        } catch (CoverStoreException $exception) {
             $this->statsLogger->error('Error removing cover store image', [
                 'service' => 'DeleteProcessor',
                 'message' => $exception->getMessage(),

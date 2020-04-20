@@ -71,9 +71,57 @@ class CoverUploadProcessor implements Processor, TopicSubscriberInterface
         /** @var Source[] $sources */
         $sources = $this->sourceRepo->findByMatchIdList($uploadProcessMessage->getIdentifierType(), [$identifier => ''], $this->vendor);
 
-        /**
-         * @TODO: Add support for delete $uploadProcessMessage->getOperation() === VendorState::DELETE
-         */
+        $event = new VendorEvent(VendorState::UNKNOWN, [$identifier], $uploadProcessMessage->getIdentifierType(), $this->vendor->getId());
+
+        switch ($uploadProcessMessage->getOperation()) {
+            case VendorState::UPDATE:
+            case VendorState::INSERT:
+                $event->changeVendorState(VendorState::UPDATE);
+                if ($this->createUpdateSource($identifier, $sources, $uploadProcessMessage)) {
+                    $event->changeVendorState(VendorState::INSERT);
+                }
+                break;
+
+            case VendorState::DELETE:
+                $event->changeVendorState(VendorState::DELETE);
+                break;
+        }
+
+        $this->dispatcher->dispatch($event::NAME, $event);
+
+        return self::ACK;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getSubscribedTopics(): array
+    {
+        return [
+            'UploadImageTopic' => [
+                'processorName' => 'UploadImageProcessor',
+                'queueName' => 'CoverStoreQueue',
+            ],
+        ];
+    }
+
+    /**
+     * Create or update existing source entity in the database.
+     *
+     * @param string $identifier
+     *   Material identifier (matchId)
+     * @param Source[] $sources
+     *   The sources found based on the identifier in the database
+     * @param CoverUploadProcessMessage $uploadProcessMessage
+     *   The process message to build for the event producer
+     *
+     * @return bool
+     *   true on insert and false on update
+     *
+     * @throws \Exception
+     */
+    private function createUpdateSource(string $identifier, array $sources, CoverUploadProcessMessage $uploadProcessMessage): bool
+    {
         $isNew = true;
         if (array_key_exists($identifier, $sources)) {
             $source = $sources[$identifier];
@@ -93,32 +141,13 @@ class CoverUploadProcessor implements Processor, TopicSubscriberInterface
             $this->em->persist($source);
         }
 
-        // Make it stick and clean up memory.
+        // Make it stick.
         $this->em->flush();
         $this->em->clear(Source::class);
+
+        // Clean up memory (as this class lives in the queue system and may process more than one queue element).
         gc_collect_cycles();
 
-        if ($isNew) {
-            $event = new VendorEvent(VendorState::INSERT, [$identifier], $uploadProcessMessage->getIdentifierType(), $this->vendor->getId());
-            $this->dispatcher->dispatch($event::NAME, $event);
-        } else {
-            $event = new VendorEvent(VendorState::UPDATE, [$identifier], $uploadProcessMessage->getIdentifierType(), $this->vendor->getId());
-            $this->dispatcher->dispatch($event::NAME, $event);
-        }
-
-        return self::ACK;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedTopics(): array
-    {
-        return [
-            'UploadImageTopic' => [
-                'processorName' => 'UploadImageProcessor',
-                'queueName' => 'CoverStoreQueue',
-            ],
-        ];
+        return $isNew;
     }
 }

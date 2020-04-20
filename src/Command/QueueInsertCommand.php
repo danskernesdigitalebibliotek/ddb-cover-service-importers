@@ -61,7 +61,6 @@ class QueueInsertCommand extends Command
         $withTestMessage = $input->getOption('with-test-message');
         $vendorState = $input->getOption('vendorState');
 
-
         if ($withTestMessage) {
             // Test messages for easy testing.
             switch ($topic) {
