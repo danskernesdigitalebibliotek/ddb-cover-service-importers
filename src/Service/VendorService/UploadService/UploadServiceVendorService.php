@@ -69,6 +69,9 @@ class UploadServiceVendorService extends AbstractBaseVendorService
         $inserted = 0;
         foreach ($items as $item) {
             $filename = $this->extractFilename($item->getId());
+            if (!$this->isValidFilename($filename)) {
+                continue;
+            }
 
             try {
                 $item = $this->store->move($item->getId(), self::DESTINATION_FOLDER.'/'.$filename);
@@ -131,6 +134,32 @@ class UploadServiceVendorService extends AbstractBaseVendorService
     }
 
     /**
+     * Validate that the filename is an identifier.
+     *
+     * @param string $filename
+     *   The filename to validate
+     *
+     * @return bool
+     *   True if validated else false
+     */
+    private function isValidFilename($filename): bool
+    {
+        $identifier = $this->filenameToIdentifier($filename);
+
+        // Basic test for isbn 10/13
+        if (1 === preg_match('/^(\d{13}|\d{10})$/', $identifier, $matches)) {
+            return true;
+        }
+
+        // Test for pid (eg. 870970-basis:47547946 or 150061-ebog:ODN0004246103).
+        if (1 === preg_match('/^\d{6}-[a-zA-Z]+:[a-zA-Z0-9]+$/', $identifier, $matches)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Get filename from item id.
      *
      * @param string $id
@@ -161,6 +190,11 @@ class UploadServiceVendorService extends AbstractBaseVendorService
         if (false !== strpos($filename, '.')) {
             $filename = explode('.', $filename);
             $filename = array_shift($filename);
+        }
+
+        // When dragging files into cover store UI it will transform '%' into '_'.
+        if (false !== strpos($filename, '_')) {
+            $filename = preg_replace('/(_3A)|(_)/', ':', $filename);
         }
 
         return $filename;
