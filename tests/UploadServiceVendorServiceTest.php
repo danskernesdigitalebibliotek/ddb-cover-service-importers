@@ -40,6 +40,32 @@ class UploadServiceVendorServiceTest extends TestCase
     }
 
     /**
+     * Test filename validation.
+     *
+     * @throws \ReflectionException
+     */
+    public function testValidateFilename()
+    {
+        $service = $this->getUploadServiceVendorService();
+
+        // Have to use full namespace in reflection class or it will fail.
+        $ref = new \ReflectionClass('\App\Service\VendorService\UploadService\UploadServiceVendorService');
+        $method = $ref->getMethod('isValidFilename');
+        $method->setAccessible(true);
+
+        $this->assertTrue($method->invoke($service, '870970-basis%3A06390072'));
+        $this->assertTrue($method->invoke($service, '150061-ebog:ODN0004246103'));
+        $this->assertTrue($method->invoke($service, '9788775145454'));
+
+        $this->assertFalse($method->invoke($service, '870970-basis%3A0639_0072'));
+        $this->assertFalse($method->invoke($service, '870970-ba1234%3A06390072'));
+        $this->assertFalse($method->invoke($service, '150061ebog:ODN0004246103'));
+        $this->assertFalse($method->invoke($service, 'basic-9788775145454'));
+        $this->assertFalse($method->invoke($service, '978877Test:5145454'));
+        $this->assertFalse($method->invoke($service, '978877Test5145454'));
+    }
+
+    /**
      * Test filename to identifier.
      *
      * @throws \ReflectionException
@@ -56,6 +82,9 @@ class UploadServiceVendorServiceTest extends TestCase
         $this->assertEquals($method->invoke($service, '870970-basis%3A06390072'), '870970-basis:06390072');
         $this->assertEquals($method->invoke($service, '870970-basis%3A06390072.jpg'), '870970-basis:06390072');
         $this->assertEquals($method->invoke($service, '870970-basis%3A06390072.png'), '870970-basis:06390072');
+        $this->assertEquals($method->invoke($service, '870970-basis_3A06390072'), '870970-basis:06390072');
+        $this->assertEquals($method->invoke($service, '870970-basis_06390072'), '870970-basis:06390072');
+        $this->assertEquals($method->invoke($service, '150061-ebog%3AODN0004246103'), '150061-ebog:ODN0004246103');
     }
 
     /**
