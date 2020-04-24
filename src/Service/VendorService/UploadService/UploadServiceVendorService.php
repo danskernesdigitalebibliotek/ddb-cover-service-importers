@@ -73,16 +73,16 @@ class UploadServiceVendorService extends AbstractBaseVendorService
                 continue;
             }
 
+            // Get identifier from the image id.
+            $identifier = $this->filenameToIdentifier($filename);
+            $type = $this->identifierToType($identifier);
+
             try {
-                $item = $this->store->move($item->getId(), self::DESTINATION_FOLDER.'/'.$filename);
+                $item = $this->store->move($item->getId(), self::DESTINATION_FOLDER.'/'.$identifier);
             } catch (\Exception $e) {
                 // The image may have been moved to we ignore this error an goes to the next item.
                 continue;
             }
-
-            // Get identifier from the image id.
-            $identifier = $this->filenameToIdentifier($filename);
-            $type = $this->identifierToType($identifier);
 
             // Create image entity.
             $image = new Image();
