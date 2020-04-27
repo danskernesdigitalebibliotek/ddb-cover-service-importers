@@ -1,48 +1,68 @@
 ---
-on: [create]
-name: Release
+on:
+  push:
+    branches-ignore:
+      - '*'
+    tags:
+      - '*'
+name: Production release
 
 env:
   ORG_NAME: danskernesdigitalebibliotek
-  APP_VERSION: ${{ github.event.ref }}
   NAMESPACE: cover-service
+  RSG: CoverService
+  CNAME: ddb-cover-service
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.event.ref_type == 'tag' && github.ref == 'refs/heads/master'
     steps:
       - uses: actions/checkout@master
       - name: Login to github package registry
         run: docker login --username secrets.DOCKER_USERNAME --password "${{ secrets.DOCKER_PASSWORD }}"
 
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+
       - name: Build CoverService image
-        run: docker build --build-arg APP_VERSION=${{ env.APP_VERSION }} --tag="danskernesdigitalebibliotek/cover-service-importers:${{ env.APP_VERSION }}" --file="infrastructure/docker/cover-service-importers/Dockerfile" infrastructure/docker/cover-service-importers
+        env:
+          RELEASE_VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run: docker build --build-arg APP_VERSION=${{ RELEASE_VERSION }} --tag="danskernesdigitalebibliotek/cover-service-importers:${{ RELEASE_VERSION }}" --file="infrastructure/docker/cover-service-importers/Dockerfile" infrastructure/docker/cover-service-importers
 
       - name: Build nginx side-car image
-        run: docker build --build-arg VERSION=${{ env.APP_VERSION }} --tag="danskernesdigitalebibliotek/cover-service-jobs:${{ env.APP_VERSION }}" --file="infrastructure/docker/cover-service-jobs/Dockerfile" infrastructure/docker/cover-service-jobs
+        env:
+          RELEASE_VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run: docker build --build-arg VERSION=${{ RELEASE_VERSION }} --tag="danskernesdigitalebibliotek/cover-service-jobs:${{ RELEASE_VERSION }}" --file="infrastructure/docker/cover-service-jobs/Dockerfile" infrastructure/docker/cover-service-jobs
 
       - name: Push CoverService image
-        run: docker push danskernesdigitalebibliotek/cover-service-importers:${{ env.APP_VERSION }}
+        env:
+          RELEASE_VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run: docker push danskernesdigitalebibliotek/cover-service-importers:${{ RELEASE_VERSION }}
 
       - name: Push CoverService Nginx image
-        run: docker push danskernesdigitalebibliotek/cover-service-jobs:${{ env.APP_VERSION }}
+        env:
+          RELEASE_VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run: docker push danskernesdigitalebibliotek/cover-service-jobs:${{ RELEASE_VERSION }}
 
   deploy:
     runs-on: ubuntu-latest
-    if: github.event.ref_type == 'tag' && github.ref == 'refs/heads/master'
     needs:
       build
     steps:
       - uses: actions/checkout@master
+
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
 
       # Set the target Azure Kubernetes Service (AKS) cluster.
       - name: Set AKS Context (Prod)
         uses: azure/aks-set-context@v1
         with:
           creds: '${{ secrets.AZURE_CREDENTIALS_PROD }}'
-          cluster-name: ddb-cover-service
-          resource-group: CoverService
+          cluster-name: ${{ env.CNAME }}
+          resource-group: ${{ env.RSG }}
 
       - uses: azure/setup-helm@v1
         name: Install helm
@@ -50,5 +70,7 @@ jobs:
           id: install
 
       - name: Deploy cover service (importers and job queues)
-        run: helm upgrade --install cover-service-imports infrastructure/cover-service-importers --namespace ${{ env.NAMESPACE }} --set app.image.version=${{ env.APP_VERSION }}
+        env:
+          RELEASE_VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run: helm upgrade --install cover-service-imports infrastructure/cover-service-importers --namespace ${{ env.NAMESPACE }} --set app.image.version=${{ RELEASE_VERSION }}
 
