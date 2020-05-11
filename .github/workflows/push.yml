@@ -19,16 +19,33 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - name: Login to github package registry
-        run: docker login docker.pkg.github.com -u publisher -p "${{ secrets.GITHUB_TOKEN }}"
+        run: docker login --username secrets.DOCKER_USERNAME --password "${{ secrets.DOCKER_PASSWORD }}"
 
       - name: Build CoverService imports image
-        run: docker build --build-arg APP_VERSION=${{ env.APP_VERSION }} --tag="docker.pkg.github.com/${{ env.ORG_NAME }}/ddb-cover-service-importers/cover-service-importers:latest" --file="infrastructure/docker/cover-service-importers/Dockerfile" infrastructure/docker/cover-service-importers
+        run: docker build --build-arg APP_VERSION=${{ env.APP_VERSION }} --tag="danskernesdigitalebibliotek/cover-service-importers:latest" --file="infrastructure/docker/cover-service-importers/Dockerfile" infrastructure/docker/cover-service-importers
 
       - name: Build CoverService jobs image
-        run: docker build --build-arg APP_VERSION=${{ env.APP_VERSION }} --tag="docker.pkg.github.com/${{ env.ORG_NAME }}/ddb-cover-service/cover-service-jobs:latest" --file="infrastructure/docker/cover-service-jobs/Dockerfile" infrastructure/docker/cover-service-jobs
+        run: docker build --build-arg APP_VERSION=${{ env.APP_VERSION }} --tag="danskernesdigitalebibliotek/cover-service-jobs:latest" --file="infrastructure/docker/cover-service-jobs/Dockerfile" infrastructure/docker/cover-service-jobs
 
       - name: Push CoverService importers image
-        run: docker push docker.pkg.github.com/${{ env.ORG_NAME }}/ddb-cover-service-importers/cover-service-importers:latest
+        run: docker push danskernesdigitalebibliotek/cover-service-importers:latest
 
       - name: Push CoverService jobs image
-        run: docker push docker.pkg.github.com/${{ env.ORG_NAME }}/ddb-cover-service/cover-service-jobs:latest
+        run: docker push danskernesdigitalebibliotek/cover-service-jobs:latest
+
+      # Set the target Azure Kubernetes Service (AKS) cluster.
+      - uses: azure/aks-set-context@v1
+        name: Set AKS Context (stg)
+        if: github.ref == 'refs/heads/release'
+        with:
+          creds: '${{ secrets.AZURE_CREDENTIALS }}'
+          cluster-name: ddb-cover-service-stg
+          resource-group: CoverServiceStg
+
+      - uses: azure/setup-helm@v1
+        name: Install helm
+        with:
+          id: install
+
+      - name: Deploy cover service (importers and job queues)
+        run: helm upgrade --install cover-service-imports infrastructure/cover-service-importers --namespace ${{ env.NAMESPACE }} --set app.image.version=latest

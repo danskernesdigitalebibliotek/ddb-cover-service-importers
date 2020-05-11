@@ -1,0 +1,7 @@
+apiVersion: v2
+name: cover-service-importers
+description: Vendor imports for DDB Cover Service
+
+type: application
+
+version: 0.1.0

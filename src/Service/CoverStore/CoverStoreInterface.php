@@ -77,4 +77,30 @@ interface CoverStoreInterface
      * @throws CoverStoreException
      */
     public function remove(string $folder, string $identifier): void;
+
+    /**
+     * Search in the cover store.
+     *
+     * @param string $folder
+     *   The folder (vendor) to search in
+     * @param string|null $rawQuery
+     *   Raw search query. If not defined wildcard search is preformed
+     *
+     * @return CoverStoreItem[]
+     *   Array with the found items or empty if non found
+     */
+    public function search(string $folder, string $rawQuery = null): array;
+
+    /**
+     * Mover item in the cover store.
+     *
+     * @param string $source
+     *   The source cover to move
+     * @param string $destination
+     *   The destination to move the cover into
+     *
+     * @return CoverStoreItem
+     *   The cover information after it have been moved
+     */
+    public function move(string $source, string $destination): CoverStoreItem;
 }
