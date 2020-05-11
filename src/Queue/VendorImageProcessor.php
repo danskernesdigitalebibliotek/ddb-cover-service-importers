@@ -16,6 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Enqueue\Client\ProducerInterface;
 use Enqueue\Client\TopicSubscriberInterface;
 use Enqueue\Util\JSON;
+use GuzzleHttp\Exception\GuzzleException;
 use Interop\Queue\Context;
 use Interop\Queue\Message;
 use Interop\Queue\Processor;
@@ -63,6 +64,7 @@ class VendorImageProcessor implements Processor, TopicSubscriberInterface
 
         // Look up source to get source url and link it to the image.
         $sourceRepos = $this->em->getRepository(Source::class);
+        /** @var Source $source */
         $source = $sourceRepos->findOneBy([
             'matchId' => $processMessage->getIdentifier(),
             'vendor' => $vendor,
@@ -96,7 +98,7 @@ class VendorImageProcessor implements Processor, TopicSubscriberInterface
      *
      * @return string
      *
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     private function processInsert(ProcessMessage $processMessage, Source $source): string
     {
@@ -140,7 +142,7 @@ class VendorImageProcessor implements Processor, TopicSubscriberInterface
      *
      * @return string
      *
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     private function processUpdate(ProcessMessage $processMessage, Source $source): string
     {

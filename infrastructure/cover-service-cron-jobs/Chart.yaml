@@ -1,0 +1,7 @@
+apiVersion: v2
+name: cover-service-cron-jobs
+description: Cover service vendors cron jobs
+
+type: application
+
+version: 0.1.0
