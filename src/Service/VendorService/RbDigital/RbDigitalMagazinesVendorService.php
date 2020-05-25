@@ -73,7 +73,7 @@ class RbDigitalMagazinesVendorService extends AbstractBaseVendorService
                 $pidArray = $this->getImageUrls($pidArray);
 
                 // Get the redirect target for the image urls
-                $pidArray = $this->getRedirectedUls($pidArray, $offset - SearchService::SEARCH_LIMIT);
+                $pidArray = $this->getRedirectedUrls($pidArray, $offset - SearchService::SEARCH_LIMIT);
 
                 // Remove 'format' parameter from image urls
                 RbDigitalMagazinesPublicUrlConverter::convertArrayValues($pidArray);
@@ -146,7 +146,7 @@ class RbDigitalMagazinesVendorService extends AbstractBaseVendorService
      *
      * @throws GuzzleException
      */
-    private function getRedirectedUls(array $pidArray, int $offset): array
+    private function getRedirectedUrls(array $pidArray, int $offset): array
     {
         $result = [];
         foreach ($pidArray as $pid => $url) {
