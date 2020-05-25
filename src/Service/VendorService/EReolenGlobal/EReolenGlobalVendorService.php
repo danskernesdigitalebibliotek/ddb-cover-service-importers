@@ -37,10 +37,14 @@ class EReolenGlobalVendorService extends AbstractBaseVendorService
     /**
      * EReolenGlobalVendorService constructor.
      *
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $statsLogger
+     * @param eventDispatcherInterface $eventDispatcher
+     *   Dispatcher to trigger async jobs on import
+     * @param entityManagerInterface $entityManager
+     *   Doctrine entity manager
+     * @param loggerInterface $statsLogger
+     *   Logger object to send stats to ES
      * @param ClientInterface $httpClient
+     *   Http client to send api requests
      */
     public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, ClientInterface $httpClient)
     {
@@ -100,13 +104,17 @@ class EReolenGlobalVendorService extends AbstractBaseVendorService
     }
 
     /**
-     * Get products from api.
+     * Get products from the overdrive api.
      *
      * @param string $productsUrl
+     *   The URL to fetch product from
      * @param int $limit
+     *   The number of products to fetch
      * @param int $offset
+     *   The offset to fetch from
      *
      * @return array
+     *   Array of 'products' serialized as stdClass
      *
      * @throws IllegalVendorServiceException
      * @throws UnknownVendorServiceException
@@ -129,11 +137,12 @@ class EReolenGlobalVendorService extends AbstractBaseVendorService
     }
 
     /**
-     * Get the total number of products from api.
+     * Get the total number of products from the overdrive api ('totalItems' field in the response).
      *
      * @param string $productsUrl
      *
      * @return int
+     *   The total number of products
      *
      * @throws GuzzleException
      * @throws IllegalVendorServiceException
@@ -155,11 +164,12 @@ class EReolenGlobalVendorService extends AbstractBaseVendorService
     }
 
     /**
-     * Get Overdrive auth token.
+     * Get auth token from the overdrive api.
      *
      * @see https://developer.overdrive.com/apis/client-auth
      *
      * @return string
+     *   The auth token supplied by the service
      *
      * @throws GuzzleException
      * @throws IllegalVendorServiceException
@@ -180,11 +190,12 @@ class EReolenGlobalVendorService extends AbstractBaseVendorService
     }
 
     /**
-     * Get the products url for the library user.
+     * Get the products url for the library user from the overdrive api.
      *
      * @see https://developer.overdrive.com/docs/products-link
      *
      * @return string
+     *   The url to retrieve products from
      *
      * @throws GuzzleException
      * @throws IllegalVendorServiceException
