@@ -53,7 +53,9 @@ class EReolenGlobalVendorService extends AbstractBaseVendorService
         $this->httpClient = $httpClient;
     }
 
-    /** {@inheritdoc} */
+    /**
+     * {@inheritdoc}
+     */
     public function load(): VendorImportResultMessage
     {
         if (!$this->acquireLock()) {
