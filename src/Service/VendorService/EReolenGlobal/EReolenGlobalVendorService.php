@@ -171,7 +171,7 @@ class EReolenGlobalVendorService extends AbstractBaseVendorService
                 'auth' => [$this->getVendor()->getDataServerUser(), $this->getVendor()->getDataServerPassword()],
                 'headers' => ['Content-Type' => 'application/x-www-form-urlencoded;charset=UTF-8'],
                 'body' => self::AUTH_GRANT_TYPE,
-            ]);
+        ]);
 
         $content = $response->getBody()->getContents();
         $content = json_decode($content);
