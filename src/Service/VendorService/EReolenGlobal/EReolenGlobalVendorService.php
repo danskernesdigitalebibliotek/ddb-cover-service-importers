@@ -66,9 +66,10 @@ class EReolenGlobalVendorService extends AbstractBaseVendorService
             $this->progressStart('Starting eReolen Global import from overdrive API');
 
             $productsUrl = $this->getProductsUrl();
-            $totalCount = $this->limit ?? $this->getTotalItems($productsUrl);
 
-            $batchSize = ($this->limit && $this->limit < self::BATCH_SIZE) ? $this->limit : self::BATCH_SIZE;
+            $totalCount = (0 !== $this->limit) ? $this->limit : $this->getTotalItems($productsUrl);
+
+            $batchSize = ($this->limit > 0 && $this->limit < self::BATCH_SIZE) ? $this->limit : self::BATCH_SIZE;
             $offset = 0;
 
             do {
