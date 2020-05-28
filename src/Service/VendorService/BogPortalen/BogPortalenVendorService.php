@@ -84,7 +84,7 @@ class BogPortalenVendorService extends AbstractBaseVendorService
                     $this->updateArchive($archive);
                 }
 
-                $this->progressMessage('Getting filenames from archive....');
+                $this->progressMessage('Getting filenames from archive: "'.$archive.'"');
                 $this->progressAdvance();
 
                 $localArchivePath = $this->local->getAdapter()->getPathPrefix().$archive;
@@ -259,18 +259,22 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     }
 
     /**
-     * Get valid and unique ISBN numbers from list of filenames.
+     * Get valid and unique ISBN numbers from list of paths.
      *
-     * @param array $fileNames
+     * @param array $filePaths
      *
      * @return array
      */
-    private function getIsbnNumbers(array &$fileNames): array
+    private function getIsbnNumbers(array &$filePaths): array
     {
         $isbnList = [];
 
-        foreach ($fileNames as $fileName) {
-            $isbn = substr($fileName, -17, 13);
+        foreach ($filePaths as $filePath) {
+            // Example path: 'Archive/DBK-7003718/DBK-7003718-9788799933815.xml'
+            $pathParts = pathinfo($filePath);
+            $fileName = $pathParts['filename'];
+            $nameParts = explode('-', $fileName);
+            $isbn = array_pop($nameParts);
 
             // Ensure that the found string is a number to filter out
             // files with wrong or incomplete isbn numbers.
