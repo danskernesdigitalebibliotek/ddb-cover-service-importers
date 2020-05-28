@@ -243,9 +243,15 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
     /**
      * {@inheritdoc}
      */
-    public function move(string $source, string $destination): CoverStoreItem
+    public function move(string $source, string $destination, bool $overwrite = false): CoverStoreItem
     {
-        $result = \Cloudinary\Uploader::rename($source, $destination, ['invalidate' => true]);
+        // This is done like this with overwrite because you get an "Invalid Signature" error if you send overwrite
+        // false in the request.
+        if (true === $overwrite) {
+            $result = \Cloudinary\Uploader::rename($source, $destination, ['invalidate' => true, 'overwrite' => $overwrite]);
+        } else {
+            $result = \Cloudinary\Uploader::rename($source, $destination, ['invalidate' => true]);
+        }
 
         $parts = explode('/', $destination);
 

@@ -28,7 +28,7 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     use ProgressBarTrait;
 
     protected const VENDOR_ID = 1;
-    private const VENDOR_ARCHIVE_NAMES = ['BOP-ProductAll.zip', 'BOP-Actual-EXT.zip'];
+    private const VENDOR_ARCHIVE_NAMES = ['BOP-ProductAll.zip', 'BOP-ProductAll-EXT.zip', 'BOP-Actual.zip', 'BOP-Actual-EXT.zip'];
 
     private $local;
     private $ftp;
@@ -84,7 +84,7 @@ class BogPortalenVendorService extends AbstractBaseVendorService
                     $this->updateArchive($archive);
                 }
 
-                $this->progressMessage('Getting filenames from archive....');
+                $this->progressMessage('Getting filenames from archive: "'.$archive.'"');
                 $this->progressAdvance();
 
                 $localArchivePath = $this->local->getAdapter()->getPathPrefix().$archive;
@@ -259,18 +259,22 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     }
 
     /**
-     * Get valid and unique ISBN numbers from list of filenames.
+     * Get valid and unique ISBN numbers from list of paths.
      *
-     * @param array $fileNames
+     * @param array $filePaths
      *
      * @return array
      */
-    private function getIsbnNumbers(array &$fileNames): array
+    private function getIsbnNumbers(array &$filePaths): array
     {
         $isbnList = [];
 
-        foreach ($fileNames as $fileName) {
-            $isbn = substr($fileName, -17, 13);
+        foreach ($filePaths as $filePath) {
+            // Example path: 'Archive/DBK-7003718/DBK-7003718-9788799933815.xml'
+            $pathParts = pathinfo($filePath);
+            $fileName = $pathParts['filename'];
+            $nameParts = explode('-', $fileName);
+            $isbn = array_pop($nameParts);
 
             // Ensure that the found string is a number to filter out
             // files with wrong or incomplete isbn numbers.
@@ -278,6 +282,8 @@ class BogPortalenVendorService extends AbstractBaseVendorService
             $temp = (string) $temp;
             if (($isbn === $temp) && (13 === strlen($isbn))) {
                 $isbnList[] = $isbn;
+            } else {
+                // @TODO: Should we log invalid ISBNs here?
             }
         }
 
