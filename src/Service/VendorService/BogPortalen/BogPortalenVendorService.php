@@ -28,7 +28,7 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     use ProgressBarTrait;
 
     protected const VENDOR_ID = 1;
-    private const VENDOR_ARCHIVE_NAMES = ['BOP-ProductAll.zip', 'BOP-Actual-EXT.zip'];
+    private const VENDOR_ARCHIVE_NAMES = ['BOP-ProductAll.zip', 'BOP-ProductAll-EXT.zip', 'BOP-Actual.zip', 'BOP-Actual-EXT.zip'];
 
     private $local;
     private $ftp;
@@ -278,6 +278,8 @@ class BogPortalenVendorService extends AbstractBaseVendorService
             $temp = (string) $temp;
             if (($isbn === $temp) && (13 === strlen($isbn))) {
                 $isbnList[] = $isbn;
+            } else {
+                // @TODO: Should we log invalid ISBNs here?
             }
         }
 
