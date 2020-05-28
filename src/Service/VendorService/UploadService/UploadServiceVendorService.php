@@ -85,13 +85,31 @@ class UploadServiceVendorService extends AbstractBaseVendorService
             try {
                 $item = $this->store->move($item->getId(), self::DESTINATION_FOLDER.'/'.$identifier);
                 $state = VendorState::INSERT;
+                $this->statsLogger->info($this->getVendorName().' image moved', [
+                    'service' => self::class,
+                    'type' => $type,
+                    'identifier' => $identifier,
+                    'url' => $item->getUrl(),
+                ]);
             } catch (\Exception $e) {
                 if (preg_match('/^to_public_id(.+)already exists$/', $e->getMessage())) {
                     $item = $this->store->move($item->getId(), self::DESTINATION_FOLDER.'/'.$identifier, true);
                     $state = VendorState::UPDATE;
+                    $this->statsLogger->info($this->getVendorName().' image updated', [
+                        'service' => self::class,
+                        'type' => $type,
+                        'identifier' => $identifier,
+                        'url' => $item->getUrl(),
+                    ]);
                 }
                 else {
                     // The image may have been moved to we ignore this error an goes to the next item.
+                    $this->statsLogger->info($this->getVendorName().' error moving image', [
+                        'service' => self::class,
+                        'type' => $type,
+                        'identifier' => $identifier,
+                        'filename' => $filename,
+                    ]);
                     continue;
                 }
             }
@@ -109,6 +127,11 @@ class UploadServiceVendorService extends AbstractBaseVendorService
                 }
                 else {
                     // Something un-expected happen here.
+                    $this->statsLogger->info($this->getVendorName().' error loading source', [
+                        'service' => self::class,
+                        'type' => $type,
+                        'identifier' => $identifier,
+                    ]);
                     continue;
                 }
             }
