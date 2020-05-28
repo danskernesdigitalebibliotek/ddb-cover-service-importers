@@ -98,9 +98,11 @@ interface CoverStoreInterface
      *   The source cover to move
      * @param string $destination
      *   The destination to move the cover into
+     * @param bool $overwrite
+     *   Should the source overwritten.
      *
      * @return CoverStoreItem
      *   The cover information after it have been moved
      */
-    public function move(string $source, string $destination): CoverStoreItem;
+    public function move(string $source, string $destination, bool $overwrite = false): CoverStoreItem;
 }
