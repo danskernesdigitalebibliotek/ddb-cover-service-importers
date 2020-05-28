@@ -119,7 +119,11 @@ class UploadServiceVendorService extends AbstractBaseVendorService
                 $source = new Source();
             } else {
                 /** @var Source $source */
-                $source = $this->sourceRepository->findOneBy(['matchType' => $type, 'matchId' => $identifier]);
+                $source = $this->sourceRepository->findOneBy([
+                    'matchType' => $type,
+                    'matchId' => $identifier,
+                    'vendor' => $this->getVendor(),
+                ]);
                 if (false !== $source) {
                     $image = $source->getImage();
                 } else {
