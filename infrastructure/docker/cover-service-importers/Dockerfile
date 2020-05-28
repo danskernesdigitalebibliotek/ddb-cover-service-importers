@@ -26,11 +26,9 @@ RUN apk --update add --no-cache --virtual .build-deps autoconf g++ make \
     && apk del .build-deps
 
 ## Install assets, which requires a HACK as redis is not available (should be removed later on).
-RUN APP_ENV=prod composer install --no-dev -o --no-scripts --classmap-authoritative \
-    && cp config/packages/framework.yaml /tmp \
-    && awk '!/system: cache.adapter.redis/' config/packages/framework.yaml > temp && mv temp config/packages/framework.yaml \
-    && APP_ENV=prod REDIS_CACHE_SYSTEM_BACKEND=cache.adapter.system composer docker-build \
-    && cp -f /tmp/framework.yaml config/packages/framework.yaml \
+RUN APP_ENV=github_actions composer install --no-dev -o --no-scripts --classmap-authoritative \
+    && APP_ENV=github_actions composer docker-build \
+    && rm -rf infrastructure \
     && composer clear-cache
 
 ####
@@ -45,7 +43,8 @@ ENV APP_PATH=/var/www/html
 COPY --from=APP_BUILDER ${APP_PATH} ${APP_PATH}
 RUN chown -R www-data:www-data ${APP_PATH}/var \
     && mkdir -p ${APP_PATH}/config/secrets \
-    && chown -R www-data:www-data ${APP_PATH}/config/secrets
+    && chown -R www-data:www-data ${APP_PATH}/config/secrets \
+    && chown -R www-data:www-data ${APP_PATH}/public
 
 # Download prometheus php-fpm export.
 COPY --from=hipages/php-fpm_exporter /php-fpm_exporter /usr/local/bin/php-fpm_exporter
