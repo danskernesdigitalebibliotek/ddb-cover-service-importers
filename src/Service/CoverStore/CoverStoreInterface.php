@@ -99,7 +99,7 @@ interface CoverStoreInterface
      * @param string $destination
      *   The destination to move the cover into
      * @param bool $overwrite
-     *   Should the source overwritten.
+     *   Should the source overwritten
      *
      * @return CoverStoreItem
      *   The cover information after it have been moved

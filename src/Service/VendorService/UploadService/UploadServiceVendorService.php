@@ -101,8 +101,7 @@ class UploadServiceVendorService extends AbstractBaseVendorService
                         'identifier' => $identifier,
                         'url' => $item->getUrl(),
                     ]);
-                }
-                else {
+                } else {
                     // The image may have been moved to we ignore this error an goes to the next item.
                     $this->statsLogger->info($this->getVendorName().' error moving image', [
                         'service' => self::class,
@@ -118,14 +117,12 @@ class UploadServiceVendorService extends AbstractBaseVendorService
                 // Create new entity.
                 $image = new Image();
                 $source = new Source();
-            }
-            else {
+            } else {
                 /** @var Source $source */
                 $source = $this->sourceRepository->findOneBy(['matchType' => $type, 'matchId' => $identifier]);
                 if (false === $source) {
                     $image = $source->getImage();
-                }
-                else {
+                } else {
                     // Something un-expected happen here.
                     $this->statsLogger->info($this->getVendorName().' error loading source', [
                         'service' => self::class,

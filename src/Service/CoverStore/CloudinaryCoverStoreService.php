@@ -249,8 +249,7 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
         // false in the request.
         if (true === $overwrite) {
             $result = \Cloudinary\Uploader::rename($source, $destination, ['invalidate' => true, 'overwrite' => $overwrite]);
-        }
-        else {
+        } else {
             $result = \Cloudinary\Uploader::rename($source, $destination, ['invalidate' => true]);
         }
 
