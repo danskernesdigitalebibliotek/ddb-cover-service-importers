@@ -27,6 +27,7 @@
         "guzzlehttp/guzzle": "^6.3",
         "karriere/json-decoder": "^2.1",
         "league/flysystem-ziparchive": "^1.0",
+        "nicebooks/isbn": "^0.2.56",
         "oneup/flysystem-bundle": "^3.0",
         "predis/predis": "^1.1",
         "ruflin/elastica": "^6.0",
