@@ -13,6 +13,7 @@ use App\Utils\Types\IdentifierType;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
+use Nicebooks\Isbn\IsbnTools;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -250,7 +251,26 @@ class SearchService
                 break;
 
             case IdentifierType::ISBN:
-                $query = 'term.isbn='.$identifier;
+                $tools = new IsbnTools();
+
+                // Try to get both ISBN-10 and ISBN-13 into query to match wider.
+                try {
+                    if ($tools->isValidIsbn13($identifier)) {
+                        // Only ISBN-13 numbers starting with 978 can be converted to an ISBN-10.
+                        $extraISBN = $tools->convertIsbn13to10($identifier);
+                    } elseif ($tools->isValidIsbn10($identifier)) {
+                        $extraISBN = $tools->convertIsbn10to13($identifier);
+                    }
+                } catch (\Exception $exception) {
+                    // Exception is thrown if the ISBN conversion fail.
+                    $extraISBN = false;
+                }
+
+                $query = '';
+                if (false !== $extraISBN) {
+                    $query = 'term.isbn='.$extraISBN.' OR ';
+                }
+                $query .= 'term.isbn='.$identifier;
                 break;
 
             default:
