@@ -81,7 +81,7 @@ abstract class AbstractTsvVendorService extends AbstractBaseVendorService
                         if (!empty($fields)) {
                             $basisPid = $cellsArray[$fields['ppid']]->getValue();
                             $imageUrl = $cellsArray[$fields['url']]->getValue();
-                            if (!empty($basisPid && !empty($imageUrl))) {
+                            if (!empty($basisPid) && !empty($imageUrl) && filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                                 $pidArray[$basisPid] = $imageUrl;
                             }
                         } else {
