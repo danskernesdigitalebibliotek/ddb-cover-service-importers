@@ -45,7 +45,12 @@ class VendorImageValidatorService
             $lastModifiedArray = $head->getHeader('Last-Modified');
 
             $timezone = new \DateTimeZone('UTC');
-            $lastModified = \DateTime::createFromFormat('D, d M Y H:i:s \G\M\T', array_shift($lastModifiedArray), $timezone);
+            if (empty($lastModifiedArray)) {
+                // Not all server send last modified headers so fallback to now.
+                $lastModified = new \DateTime('now', $timezone);
+            } else {
+                $lastModified = \DateTime::createFromFormat('D, d M Y H:i:s \G\M\T', time(), $timezone);
+            }
 
             $item->setOriginalContentLength(array_shift($contentLengthArray));
             $item->setOriginalLastModified($lastModified);
