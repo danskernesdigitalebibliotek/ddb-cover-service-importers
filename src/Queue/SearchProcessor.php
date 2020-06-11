@@ -95,6 +95,8 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
         } catch (PlatformSearchException $e) {
             $this->statsLogger->error('Search request exception', [
                 'service' => 'SearchProcessor',
+                'identifier' => $processMessage->getIdentifier(),
+                'type' => $processMessage->getIdentifierType(),
                 'message' => $e->getMessage(),
             ]);
 
@@ -104,6 +106,7 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
                 'service' => 'SearchProcessor',
                 'message' => $e->getMessage(),
                 'identifier' => $processMessage->getIdentifier(),
+                'type' => $processMessage->getIdentifierType(),
                 'imageId' => $processMessage->getImageId(),
             ]);
 
@@ -115,6 +118,7 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
             $this->statsLogger->info('Search zero-hit', [
                 'service' => 'SearchProcessor',
                 'identifier' => $processMessage->getIdentifier(),
+                'type' => $processMessage->getIdentifierType(),
                 'imageId' => $processMessage->getImageId(),
             ]);
 
