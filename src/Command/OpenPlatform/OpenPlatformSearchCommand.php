@@ -45,7 +45,7 @@ class OpenPlatformSearchCommand extends Command
             ->setHelp('Try search request against the open platform')
             ->addArgument('is', InputArgument::REQUIRED, 'The material id (isbn, faust, pid)')
             ->addArgument('type', InputArgument::REQUIRED, 'Identifier type e.g. ISBN.')
-            ->addArgument('refresh', InputArgument::OPTIONAL, 'Refresh the access token');
+            ->addArgument('refresh', InputArgument::OPTIONAL, 'By-pass cache layer');
     }
 
     /**
