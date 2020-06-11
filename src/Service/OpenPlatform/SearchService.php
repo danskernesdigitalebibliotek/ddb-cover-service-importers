@@ -260,6 +260,9 @@ class SearchService
                         $extraISBN = $tools->convertIsbn13to10($identifier);
                     } elseif ($tools->isValidIsbn10($identifier)) {
                         $extraISBN = $tools->convertIsbn10to13($identifier);
+                    } else {
+                        // The ISBN was not found to be valid by the tool, so we can't convert it.
+                        $extraISBN = false;
                     }
                 } catch (\Exception $exception) {
                     // Exception is thrown if the ISBN conversion fail.
