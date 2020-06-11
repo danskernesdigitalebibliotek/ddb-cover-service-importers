@@ -2,11 +2,11 @@
 
 /**
  * @file
+ * Search processor
  */
 
 namespace App\Queue;
 
-use App\Entity\Search;
 use App\Entity\Source;
 use App\Event\IndexReadyEvent;
 use App\Exception\MaterialTypeException;
@@ -58,14 +58,14 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
     public function process(Message $message, Context $session)
     {
         $jsonDecoder = new JsonDecoder(true);
-        /* @var ProcessMessage $processMessage */
+        /** @var ProcessMessage $processMessage */
         $processMessage = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
 
         // Clean up: find all search that links back to a give source and remove them before sending new index event.
         // This is done even if the search below is a zero-hit.
         if (VendorState::DELETE_AND_UPDATE === $processMessage->getOperation()) {
             $sourceRepos = $this->em->getRepository(Source::class);
-            /* @var Source $source */
+            /** @var Source $source */
             $source = $sourceRepos->findOneBy([
                 'matchId' => $processMessage->getIdentifier(),
                 'matchType' => $processMessage->getIdentifierType(),
@@ -95,6 +95,8 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
         } catch (PlatformSearchException $e) {
             $this->statsLogger->error('Search request exception', [
                 'service' => 'SearchProcessor',
+                'identifier' => $processMessage->getIdentifier(),
+                'type' => $processMessage->getIdentifierType(),
                 'message' => $e->getMessage(),
             ]);
 
@@ -104,6 +106,7 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
                 'service' => 'SearchProcessor',
                 'message' => $e->getMessage(),
                 'identifier' => $processMessage->getIdentifier(),
+                'type' => $processMessage->getIdentifierType(),
                 'imageId' => $processMessage->getImageId(),
             ]);
 
@@ -115,6 +118,7 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
             $this->statsLogger->info('Search zero-hit', [
                 'service' => 'SearchProcessor',
                 'identifier' => $processMessage->getIdentifier(),
+                'type' => $processMessage->getIdentifierType(),
                 'imageId' => $processMessage->getImageId(),
             ]);
 

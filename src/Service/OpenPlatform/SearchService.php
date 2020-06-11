@@ -253,6 +253,9 @@ class SearchService
             case IdentifierType::ISBN:
                 $tools = new IsbnTools();
 
+                // Set it to false as default if the ISBN is not found to be valid by the tool.
+                $extraISBN = false;
+
                 // Try to get both ISBN-10 and ISBN-13 into query to match wider.
                 try {
                     if ($tools->isValidIsbn13($identifier)) {
@@ -262,8 +265,7 @@ class SearchService
                         $extraISBN = $tools->convertIsbn10to13($identifier);
                     }
                 } catch (\Exception $exception) {
-                    // Exception is thrown if the ISBN conversion fail.
-                    $extraISBN = false;
+                    // Exception is thrown if the ISBN conversion fail. Fallback to setting extra ISBN to false.
                 }
 
                 $query = '';
