@@ -13,7 +13,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Elasticsearch\ClientBuilder;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 /**
  * Class PopulateService.
@@ -38,16 +37,15 @@ class PopulateService
      *   The entity manager
      * @param SearchRepository $searchRepository
      *   The Search repository
-     * @param ParameterBagInterface $parameterBag
-     *   The parameter bag
+     * @param string $bindElasticSearchUrl
+     *   The ElasticSearch endpoint url
      */
-    public function __construct(EntityManagerInterface $entityManager, SearchRepository $searchRepository, ParameterBagInterface $parameterBag)
+    public function __construct(EntityManagerInterface $entityManager, SearchRepository $searchRepository, string $bindElasticSearchUrl)
     {
         $this->searchRepository = $searchRepository;
         $this->entityManager = $entityManager;
 
-        // @HACK to make the FOS elasticsearch URL work with elasticSearch library remove last '/'
-        $this->elasticHost = rtrim($parameterBag->get('elastic.url'), '/');
+        $this->elasticHost = $bindElasticSearchUrl;
 
         // Make sure that the sql logger is not enabled to avoid memory issues.
         $entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
