@@ -6,7 +6,7 @@
 
 namespace App\Command\Elastic;
 
-use Elasticsearch\Client;
+use Elasticsearch\ClientBuilder;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -17,21 +17,22 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 class CreateDynamicStatsTemplateCommand extends Command
 {
-    private $client;
+    /* @var string $elasticHost */
+    private $elasticHost;
 
     protected static $defaultName = 'app:elastic:create-stats-template';
 
     /**
-     * ElasticStatsTemplateCommand constructor.
+     * CreateDynamicStatsTemplateCommand constructor.
      *
-     * @param Client $client
-     *   ElasticSearch Client
+     * @param string $bindElasticSearchUrl
+     *   The ElasticSearch endpoint url
      */
-    public function __construct(Client $client)
+    public function __construct(string $bindElasticSearchUrl)
     {
         parent::__construct();
 
-        $this->client = $client;
+        $this->elasticHost = $bindElasticSearchUrl;
     }
 
     /** {@inheritdoc} */
@@ -48,7 +49,7 @@ class CreateDynamicStatsTemplateCommand extends Command
         try {
             $result = $this->createStatsTemplate();
 
-            if ($result['acknowledged']) {
+            if ($result) {
                 $io->success('Dynamic index template created.');
 
                 return 0;
@@ -70,10 +71,13 @@ class CreateDynamicStatsTemplateCommand extends Command
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/6.8/indices-templates.html
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/6.8/dynamic-templates.html
      *
-     * @return array
+     * @return bool
+     *    Return true on success, false on failure
      */
-    private function createStatsTemplate(): array
+    private function createStatsTemplate(): bool
     {
+        $client = ClientBuilder::create()->setHosts([$this->elasticHost])->build();
+
         $params = [
             'name' => 'statistics_index_template',
             'body' => [
@@ -124,6 +128,8 @@ class CreateDynamicStatsTemplateCommand extends Command
             'create' => false,
         ];
 
-        return $this->client->indices()->putTemplate($params);
+        $result = $client->indices()->putTemplate($params);
+
+        return array_key_exists('acknowledged', $result) && true === $result['acknowledged'];
     }
 }
