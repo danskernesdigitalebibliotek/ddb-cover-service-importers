@@ -85,6 +85,12 @@ imports and images. These are mapped to and persisted in the database through
 doctrine. Further a 'search' entity is defined with the fields exposed by the
 REST API. This entity is mapped one-to-one to an index in ElasticSearch.
 
+### Logging and Statistics
+The application logs to ElasticSearch to allow debugging and monitoring. A 
+`stats_dd-mm-yyyy` is created daily. To ensure that Elastic chooses the right 
+type for the index fields a dynamic index template must be added to Elastic.
+This can be done with the `app:elastic:create-stats-template` command. 
+
 ## Implementation Overview
 
 ### Import/Index/Upload Engine
