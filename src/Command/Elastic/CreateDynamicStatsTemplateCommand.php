@@ -19,6 +19,7 @@ class CreateDynamicStatsTemplateCommand extends Command
 {
     /* @var string $elasticHost */
     private $elasticHost;
+    private $elasticStatsIndexPrefix;
 
     protected static $defaultName = 'app:elastic:create-stats-template';
 
@@ -27,12 +28,15 @@ class CreateDynamicStatsTemplateCommand extends Command
      *
      * @param string $bindElasticSearchUrl
      *   The ElasticSearch endpoint url
+     * @param string $bindElasticStatsIndexPrefix
+     *   The prefix for statistics indices
      */
-    public function __construct(string $bindElasticSearchUrl)
+    public function __construct(string $bindElasticSearchUrl, string $bindElasticStatsIndexPrefix)
     {
         parent::__construct();
 
         $this->elasticHost = $bindElasticSearchUrl;
+        $this->elasticStatsIndexPrefix = $bindElasticStatsIndexPrefix;
     }
 
     /** {@inheritdoc} */
@@ -82,7 +86,7 @@ class CreateDynamicStatsTemplateCommand extends Command
             'name' => 'statistics_index_template',
             'body' => [
                 'index_patterns' => [
-                    'stats_*',
+                    $this->elasticStatsIndexPrefix.'*',
                 ],
                 'mappings' => [
                     'logs' => [

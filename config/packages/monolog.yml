@@ -15,5 +15,5 @@ monolog:
       type: elasticsearch
       elasticsearch:
         id: monolog.elastica.client
-      index: '%env(ELASTIC_STATS_INDEX)%'
+      index: '%env(ELASTIC_STATS_INDEX_PREFIX)%_%env(ELASTIC_STATS_INDEX)%'
       channels: ["statistics"]
