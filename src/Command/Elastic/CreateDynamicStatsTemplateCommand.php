@@ -4,7 +4,7 @@
  * Command to create an dynamic index template elasticsearch.
  */
 
-namespace App\Elastic\Command;
+namespace App\Command\Elastic;
 
 use Elasticsearch\Client;
 use Symfony\Component\Console\Command\Command;
