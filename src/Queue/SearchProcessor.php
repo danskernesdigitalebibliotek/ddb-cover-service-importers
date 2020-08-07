@@ -91,7 +91,7 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
         }
 
         try {
-            $material = $this->searchService->search($processMessage->getIdentifier(), $processMessage->getIdentifierType());
+            $material = $this->searchService->search($processMessage->getIdentifier(), $processMessage->getIdentifierType(), !$processMessage->useSearchCache());
         } catch (PlatformSearchException $e) {
             $this->statsLogger->error('Search request exception', [
                 'service' => 'SearchProcessor',

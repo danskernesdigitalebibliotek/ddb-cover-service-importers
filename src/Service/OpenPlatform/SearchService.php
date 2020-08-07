@@ -105,11 +105,10 @@ class SearchService
         // prevents proper testing of the service.
         $material = null;
 
-        // Check if the access token is located in local file cache to speed up the
-        // process.
+        // Check if cache should be used if item have been located.
         if ($refresh || !$item->isHit()) {
             try {
-                $token = $this->authenticationService->getAccessToken($refresh);
+                $token = $this->authenticationService->getAccessToken();
                 $res = $this->recursiveSearch($token, $identifier, $type);
             } catch (GuzzleException $exception) {
                 throw new PlatformSearchException($exception->getMessage(), $exception->getCode());
