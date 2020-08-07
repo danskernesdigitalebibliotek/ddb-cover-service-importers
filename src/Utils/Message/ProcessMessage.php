@@ -16,6 +16,7 @@ class ProcessMessage implements \JsonSerializable
     private $identifier;
     private $vendorId;
     private $imageId;
+    private $useSearchCache = true;
 
     /**
      * {@inheritdoc}
@@ -128,6 +129,32 @@ class ProcessMessage implements \JsonSerializable
     public function setImageId($imageId): self
     {
         $this->imageId = $imageId;
+
+        return $this;
+    }
+
+    /**
+     * Use search cache.
+     *
+     * @return bool|null
+     *   Defaults to true if not set
+     */
+    public function useSearchCache(): ?bool
+    {
+        return $this->useSearchCache;
+    }
+
+    /**
+     * Should the search cache be used when processing the message.
+     *
+     * @param bool $useIt
+     *   True to use or false to by-pass search cache
+     *
+     * @return ProcessMessage
+     */
+    public function setUseSearchCache(bool $useIt): self
+    {
+        $this->useSearchCache = $useIt;
 
         return $this;
     }
