@@ -111,7 +111,7 @@ class VendorImageItem
     /**
      * @return mixed
      */
-    public function getOriginalLastModified(): \DateTime
+    public function getOriginalLastModified(): ?\DateTime
     {
         return $this->originalLastModified;
     }
@@ -121,7 +121,7 @@ class VendorImageItem
      *
      * @return VendorImageItem
      */
-    public function setOriginalLastModified(\DateTime $originalLastModified): self
+    public function setOriginalLastModified(?\DateTime $originalLastModified): self
     {
         $this->originalLastModified = $originalLastModified;
 
@@ -131,7 +131,7 @@ class VendorImageItem
     /**
      * @return mixed
      */
-    public function getOriginalContentLength(): int
+    public function getOriginalContentLength(): ?int
     {
         return $this->originalContentLength;
     }
@@ -141,7 +141,7 @@ class VendorImageItem
      *
      * @return VendorImageItem
      */
-    public function setOriginalContentLength(int $originalContentLength): self
+    public function setOriginalContentLength(?int $originalContentLength): self
     {
         $this->originalContentLength = $originalContentLength;
 

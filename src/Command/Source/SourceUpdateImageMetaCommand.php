@@ -11,6 +11,7 @@ use App\Utils\CoverVendor\VendorImageItem;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class SourceUpdateImageMetaCommand extends Command
@@ -33,7 +34,8 @@ class SourceUpdateImageMetaCommand extends Command
      */
     protected function configure()
     {
-        $this->setDescription('Reindex search table');
+        $this->setDescription('Reindex search table')
+            ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'Only for this identifier');
     }
 
     /**
@@ -41,11 +43,16 @@ class SourceUpdateImageMetaCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $identifier = $input->getOption('identifier');
         $batchSize = 50;
         $i = 0;
 
         // @TODO: Move into repository and use query builder.
-        $query = $this->em->createQuery('SELECT s FROM App\Entity\Source s WHERE s.originalFile IS NOT NULL AND s.originalContentLength IS NULL AND s.originalLastModified IS NULL');
+        $queryStr = 'SELECT s FROM App\Entity\Source s WHERE s.originalFile IS NOT NULL AND s.originalContentLength IS NULL AND s.originalLastModified IS NULL';
+        if (!is_null($identifier)) {
+            $queryStr = 'SELECT s FROM App\Entity\Source s WHERE s.matchId='.$identifier;
+        }
+        $query = $this->em->createQuery($queryStr);
         $iterableResult = $query->iterate();
         foreach ($iterableResult as $row) {
             $source = $row[0];
@@ -67,5 +74,8 @@ class SourceUpdateImageMetaCommand extends Command
 
             ++$i;
         }
+
+        $this->em->flush();
+        $this->em->clear();
     }
 }

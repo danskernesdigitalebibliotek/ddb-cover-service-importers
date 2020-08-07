@@ -2,6 +2,7 @@
 
 /**
  * @file
+ * Reindex data in the search table base on vendor.
  */
 
 namespace App\Command\Search;
@@ -15,7 +16,6 @@ use Enqueue\Client\ProducerInterface;
 use Enqueue\Util\JSON;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -43,8 +43,10 @@ class SearchReindexCommand extends Command
     protected function configure()
     {
         $this->setDescription('Reindex search table')
-            ->addArgument('vendorid', InputArgument::OPTIONAL, 'Limit the re-index to vendor with this id number')
-            ->addOption('clean-up', null, InputOption::VALUE_NONE, 'Remove all rows from the search table related to a given source before insert');
+            ->addOption('vendor-id', null, InputOption::VALUE_OPTIONAL, 'Limit the re-index to vendor with this id number')
+            ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'If set only this identifier will be re-index (requires that you set vendor id)')
+            ->addOption('clean-up', null, InputOption::VALUE_NONE, 'Remove all rows from the search table related to a given source before insert')
+            ->addOption('without-search-cache', null, InputOption::VALUE_NONE, 'If set do not use search cache during re-index');
     }
 
     /**
@@ -52,23 +54,36 @@ class SearchReindexCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $vendorId = $input->getArgument('vendorid');
+        $vendorId = $input->getOption('vendor-id');
         $cleanUp = $input->getOption('clean-up');
+        $identifier = $input->getOption('identifier');
+        $withOutSearchCache = $input->getOption('without-search-cache');
 
         $batchSize = 200;
         $i = 0;
 
+        // @TODO: Move into repository and use query builder.
+        $query = 'SELECT s FROM App\Entity\Source s WHERE s.image IS NOT NULL';
+        if (!is_null($identifier)) {
+            if (!is_null($vendorId)) {
+                $query .= ' AND s.matchId = '.$identifier;
+            } else {
+                $output->writeln('<error>Missing vendor id required in combination with identifier</error>');
+
+                return 1;
+            }
+        }
+        if (!is_null($vendorId)) {
+            $query .= ' AND s.vendor = '.$vendorId;
+        }
+
+        // Progress bar setup.
         $section = $output->section('Sheet');
         $progressBarSheet = new ProgressBar($section);
         $progressBarSheet->setFormat('[%bar%] %elapsed% (%memory%) - %message%');
         $this->setProgressBar($progressBarSheet);
         $this->progressStart('Loading database source table in batches of '.$batchSize.' records');
 
-        // @TODO: Move into repository and use query builder.
-        $query = 'SELECT s FROM App\Entity\Source s WHERE s.image IS NOT NULL';
-        if ($vendorId) {
-            $query .= ' AND s.vendor = '.$vendorId;
-        }
         $query = $this->em->createQuery($query);
         $iterableResult = $query->iterate();
         foreach ($iterableResult as $row) {
@@ -81,7 +96,8 @@ class SearchReindexCommand extends Command
                 ->setOperation(true === $cleanUp ? VendorState::DELETE_AND_UPDATE : VendorState::UPDATE)
                 ->setIdentifierType($source->getMatchType())
                 ->setVendorId($source->getVendor()->getId())
-                ->setImageId($source->getImage()->getId());
+                ->setImageId($source->getImage()->getId())
+                ->setUseSearchCache(!$withOutSearchCache);
             $this->producer->sendEvent('SearchTopic', JSON::encode($processMessage));
 
             // Free memory when batch size is reached.
