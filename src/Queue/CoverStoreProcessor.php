@@ -124,8 +124,8 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
                 'identifier' => $processMessage->getIdentifier(),
             ]);
 
-            // Service issues, retry the job.
-            return self::REQUEUE;
+            // Service issues, retry the job once. If this a redelivered message reject.
+            return $message->isRedelivered() ? self::REJECT : self::REQUEUE;
         }
 
         // Log information about the image uploaded.
