@@ -8,6 +8,13 @@ namespace App\Service\VendorService\UploadService;
 
 use App\Entity\Image;
 use App\Entity\Source;
+use App\Exception\CoverStoreAlreadyExistsException;
+use App\Exception\CoverStoreCredentialException;
+use App\Exception\CoverStoreException;
+use App\Exception\CoverStoreInvalidResourceException;
+use App\Exception\CoverStoreNotFoundException;
+use App\Exception\CoverStoreTooLargeFileException;
+use App\Exception\CoverStoreUnexpectedException;
 use App\Repository\SourceRepository;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\VendorService\AbstractBaseVendorService;
@@ -91,8 +98,9 @@ class UploadServiceVendorService extends AbstractBaseVendorService
                     'identifier' => $identifier,
                     'url' => $item->getUrl(),
                 ]);
-            } catch (\Exception $e) {
-                if (preg_match('/^to_public_id(.+)already exists$/', $e->getMessage())) {
+            } catch (CoverStoreAlreadyExistsException $exception) {
+                try {
+                    // Update the image as it already exists.
                     $item = $this->store->move($item->getId(), self::DESTINATION_FOLDER.'/'.$identifier, true);
                     $state = VendorState::UPDATE;
                     $this->statsLogger->info($this->getVendorName().' image updated', [
@@ -101,16 +109,59 @@ class UploadServiceVendorService extends AbstractBaseVendorService
                         'identifier' => $identifier,
                         'url' => $item->getUrl(),
                     ]);
-                } else {
-                    // The image may have been moved to we ignore this error an goes to the next item.
-                    $this->statsLogger->warning($this->getVendorName().' error moving image', [
+                } catch (CoverStoreException $exception) {
+                    $this->statsLogger->error('Error moving image', [
                         'service' => self::class,
-                        'type' => $type,
+                        'message' => $exception->getMessage(),
                         'identifier' => $identifier,
-                        'filename' => $filename,
                     ]);
+                    // The image may have been moved so we ignore this error an goes to the next item.
                     continue;
                 }
+            } catch (CoverStoreCredentialException $exception) {
+                // Access issues.
+                $this->statsLogger->error('Access denied to cover store', [
+                    'service' => self::class,
+                    'message' => $exception->getMessage(),
+                    'identifier' => $identifier,
+                ]);
+                continue;
+            } catch (CoverStoreNotFoundException $exception) {
+                // Log that the image did not exists.
+                $this->statsLogger->error('Cover store error - not found', [
+                    'service' => self::class,
+                    'message' => $exception->getMessage(),
+                    'identifier' => $identifier,
+                ]);
+                continue;
+            } catch (CoverStoreTooLargeFileException $exception) {
+                $this->statsLogger->error('Cover was to large', [
+                    'service' => self::class,
+                    'message' => $exception->getMessage(),
+                    'identifier' => $identifier,
+                ]);
+                continue;
+            } catch (CoverStoreUnexpectedException $exception) {
+                $this->statsLogger->error('Cover store unexpected error', [
+                    'service' => self::class,
+                    'message' => $exception->getMessage(),
+                    'identifier' => $identifier,
+                ]);
+                continue;
+            } catch (CoverStoreInvalidResourceException $exception) {
+                $this->statsLogger->error('Cover store invalid resource error', [
+                    'service' => self::class,
+                    'message' => $exception->getMessage(),
+                    'identifier' => $identifier,
+                ]);
+                continue;
+            } catch (CoverStoreException $exception) {
+                $this->statsLogger->error('Cover store error - retry', [
+                    'service' => self::class,
+                    'message' => $exception->getMessage(),
+                    'identifier' => $identifier,
+                ]);
+                continue;
             }
 
             if (VendorState::INSERT === $state) {
