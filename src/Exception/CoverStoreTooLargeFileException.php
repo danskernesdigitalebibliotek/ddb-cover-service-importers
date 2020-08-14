@@ -6,6 +6,6 @@
 
 namespace App\Exception;
 
-class CoverStoreTooLargeFileException extends \Exception
+class CoverStoreTooLargeFileException extends CoverStoreException
 {
 }

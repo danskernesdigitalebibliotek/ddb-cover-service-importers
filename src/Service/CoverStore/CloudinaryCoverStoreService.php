@@ -9,6 +9,7 @@ namespace App\Service\CoverStore;
 
 use App\Exception\CoverStoreCredentialException;
 use App\Exception\CoverStoreException;
+use App\Exception\CoverStoreInvalidResourceException;
 use App\Exception\CoverStoreNotFoundException;
 use App\Exception\CoverStoreTooLargeFileException;
 use App\Exception\CoverStoreUnexpectedException;
@@ -65,6 +66,10 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
 
             if (preg_match('/^File size too large.*/', $message)) {
                 throw new CoverStoreTooLargeFileException($message, $error->getCode());
+            }
+
+            if (preg_match('/^Resource is invalid.*/', $message)) {
+                throw new CoverStoreInvalidResourceException($message, $error->getCode());
             }
 
             if (520 === $error->getCode()) {
