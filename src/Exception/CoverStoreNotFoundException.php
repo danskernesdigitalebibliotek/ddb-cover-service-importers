@@ -2,10 +2,14 @@
 
 /**
  * @file
+ * File not found exception.
  */
 
 namespace App\Exception;
 
-class CoverStoreNotFoundException extends \Exception
+/**
+ * Class CoverStoreNotFoundException.
+ */
+class CoverStoreNotFoundException extends CoverStoreException
 {
 }
