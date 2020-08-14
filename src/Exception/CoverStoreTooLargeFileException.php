@@ -2,10 +2,14 @@
 
 /**
  * @file
+ * File is to large for the cover store exception.
  */
 
 namespace App\Exception;
 
-class CoverStoreTooLargeFileException extends \Exception
+/**
+ * Class CoverStoreTooLargeFileException.
+ */
+class CoverStoreTooLargeFileException extends CoverStoreException
 {
 }

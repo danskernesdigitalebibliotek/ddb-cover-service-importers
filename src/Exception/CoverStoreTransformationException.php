@@ -2,10 +2,14 @@
 
 /**
  * @file
+ * Transformation exception at the cover store.
  */
 
 namespace App\Exception;
 
-class CoverStoreTransformationException extends \Exception
+/**
+ * Class CoverStoreTransformationException.
+ */
+class CoverStoreTransformationException extends CoverStoreException
 {
 }

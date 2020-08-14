@@ -7,6 +7,7 @@
 
 namespace App\Service\CoverStore;
 
+use App\Exception\CoverStoreAlreadyExistsException;
 use App\Exception\CoverStoreCredentialException;
 use App\Exception\CoverStoreException;
 use App\Exception\CoverStoreNotFoundException;
@@ -58,7 +59,6 @@ interface CoverStoreInterface
      * @return coverStoreItem
      *   CoverStoreItem object contain information about the image
      *
-     * @throws CoverStoreCredentialException
      * @throws CoverStoreException
      */
     public function generate(Material $material, string $folder, string $identifier, array $tags = []): CoverStoreItem;
@@ -73,7 +73,11 @@ interface CoverStoreInterface
      * @param string $identifier
      *   Filename for the cover in the store
      *
+     * @throws CoverStoreAlreadyExistsException
      * @throws CoverStoreCredentialException
+     * @throws CoverStoreNotFoundException
+     * @throws CoverStoreTooLargeFileException
+     * @throws CoverStoreUnexpectedException
      * @throws CoverStoreException
      */
     public function remove(string $folder, string $identifier): void;
@@ -103,6 +107,8 @@ interface CoverStoreInterface
      *
      * @return CoverStoreItem
      *   The cover information after it have been moved
+     *
+     * @throws CoverStoreException
      */
     public function move(string $source, string $destination, bool $overwrite = false): CoverStoreItem;
 }

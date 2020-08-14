@@ -2,10 +2,14 @@
 
 /**
  * @file
+ * Unexpected or unknown exception at the cover store.
  */
 
 namespace App\Exception;
 
-class CoverStoreUnexpectedException extends \Exception
+/**
+ * Class CoverStoreUnexpectedException.
+ */
+class CoverStoreUnexpectedException extends CoverStoreException
 {
 }
