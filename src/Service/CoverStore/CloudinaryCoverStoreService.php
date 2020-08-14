@@ -7,6 +7,7 @@
 
 namespace App\Service\CoverStore;
 
+use App\Exception\CoverStoreAlreadyExistsException;
 use App\Exception\CoverStoreCredentialException;
 use App\Exception\CoverStoreException;
 use App\Exception\CoverStoreInvalidResourceException;
@@ -250,12 +251,39 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
      */
     public function move(string $source, string $destination, bool $overwrite = false): CoverStoreItem
     {
-        // This is done like this with overwrite because you get an "Invalid Signature" error if you send overwrite
-        // false in the request.
-        if (true === $overwrite) {
-            $result = \Cloudinary\Uploader::rename($source, $destination, ['invalidate' => true, 'overwrite' => $overwrite]);
-        } else {
-            $result = \Cloudinary\Uploader::rename($source, $destination, ['invalidate' => true]);
+        try {
+            // This is done like this with overwrite because you get an "Invalid Signature" error if you send overwrite
+            // false in the request.
+            if (true === $overwrite) {
+                $result = \Cloudinary\Uploader::rename($source, $destination, ['invalidate' => true, 'overwrite' => $overwrite]);
+            } else {
+                $result = \Cloudinary\Uploader::rename($source, $destination, ['invalidate' => true]);
+            }
+        } catch (\Cloudinary\Error $error) {
+            $message = $error->getMessage();
+
+            // Try to convert to cover store exception.
+            if (preg_match('/^to_public_id(.+)already exists$/', $message)) {
+                throw new CoverStoreAlreadyExistsException($message, $error->getCode());
+            }
+
+            if (preg_match('/^Invalid.*/', $message)) {
+                throw new CoverStoreCredentialException($message, $error->getCode());
+            }
+
+            if (preg_match('/^Resource not found.*/', $message)) {
+                throw new CoverStoreNotFoundException($message, $error->getCode());
+            }
+
+            if (preg_match('/^File size too large.*/', $message)) {
+                throw new CoverStoreTooLargeFileException($message, $error->getCode());
+            }
+
+            if (520 === $error->getCode()) {
+                throw new CoverStoreUnexpectedException($error->getMessage(), $error->getCode());
+            }
+
+            throw new CoverStoreException($message, $error->getCode());
         }
 
         $parts = explode('/', $destination);
