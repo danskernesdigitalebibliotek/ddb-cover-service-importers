@@ -6,6 +6,6 @@
 
 namespace App\Exception;
 
-class CoverStoreUnexpectedException extends \Exception
+class CoverStoreUnexpectedException extends CoverStoreException
 {
 }

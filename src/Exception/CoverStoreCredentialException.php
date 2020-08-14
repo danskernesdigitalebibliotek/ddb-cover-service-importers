@@ -6,6 +6,6 @@
 
 namespace App\Exception;
 
-class CoverStoreCredentialException extends \Exception
+class CoverStoreCredentialException extends CoverStoreException
 {
 }

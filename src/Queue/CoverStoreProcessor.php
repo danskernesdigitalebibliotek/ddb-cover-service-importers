@@ -11,6 +11,7 @@ use App\Entity\Source;
 use App\Entity\Vendor;
 use App\Exception\CoverStoreCredentialException;
 use App\Exception\CoverStoreException;
+use App\Exception\CoverStoreInvalidResourceException;
 use App\Exception\CoverStoreNotFoundException;
 use App\Exception\CoverStoreTooLargeFileException;
 use App\Exception\CoverStoreUnexpectedException;
@@ -111,6 +112,14 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
             return self::REJECT;
         } catch (CoverStoreUnexpectedException $exception) {
             $this->statsLogger->error('Cover store unexpected error', [
+                'service' => 'CoverStoreProcessor',
+                'message' => $exception->getMessage(),
+                'identifier' => $processMessage->getIdentifier(),
+            ]);
+
+            return self::REJECT;
+        } catch (CoverStoreInvalidResourceException $exception) {
+            $this->statsLogger->error('Cover store invalid resource error', [
                 'service' => 'CoverStoreProcessor',
                 'message' => $exception->getMessage(),
                 'identifier' => $processMessage->getIdentifier(),
