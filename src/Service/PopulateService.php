@@ -90,7 +90,7 @@ class PopulateService
         $currentId = 0;
 
         while ($entriesAdded < $numberOfRecords) {
-            $params = ['body' => [], 'refresh' => true];
+            $params = ['body' => []];
 
             $criteria = [];
             if (-1 !== $record_id) {
