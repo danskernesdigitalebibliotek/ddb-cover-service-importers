@@ -56,11 +56,13 @@ class PopulateService
      *
      * @param string $index
      *   The index to populate
+     * @param int $record_id
+     *   Limit populate to this single search record id
      *
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function populate(string $index)
+    public function populate(string $index, int $record_id = -1)
     {
         $this->progressStart('Starting populate process');
 
@@ -72,9 +74,12 @@ class PopulateService
 
         $params = ['body' => []];
 
-        $numberOfRecords = $this->searchRepository->getNumberOfRecords();
-        $lastId = $this->searchRepository->findLastId();
-
+        $numberOfRecords = 1;
+        $lastId = $record_id;
+        if (-1 === $record_id) {
+            $numberOfRecords = $this->searchRepository->getNumberOfRecords();
+            $lastId = $this->searchRepository->findLastId();
+        }
         // Make sure there are entries in the Search table to process.
         if (0 === $numberOfRecords || null === $lastId) {
             $this->progressMessage('No entries in Search table.');
@@ -87,7 +92,11 @@ class PopulateService
         $currentId = 0;
 
         while ($entriesAdded < $numberOfRecords) {
-            $entities = $this->searchRepository->findBy([], ['id' => 'ASC'], self::BATCH_SIZE, $entriesAdded);
+            $criteria = [];
+            if (-1 !== $record_id) {
+                $criteria = ['id' => $record_id];
+            }
+            $entities = $this->searchRepository->findBy($criteria, ['id' => 'ASC'], self::BATCH_SIZE, $entriesAdded);
 
             // No more results.
             if (0 === count($entities)) {
