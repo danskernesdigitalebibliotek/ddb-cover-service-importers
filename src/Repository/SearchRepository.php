@@ -8,6 +8,8 @@ namespace App\Repository;
 
 use App\Entity\Search;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
@@ -21,7 +23,7 @@ class SearchRepository extends ServiceEntityRepository
     /**
      * SearchRepository constructor.
      *
-     * @param \Symfony\Bridge\Doctrine\RegistryInterface $registry
+     * @param RegistryInterface $registry
      */
     public function __construct(RegistryInterface $registry)
     {
@@ -47,8 +49,8 @@ class SearchRepository extends ServiceEntityRepository
      * @return int
      *   Number of records in the Search table
      *
-     * @throws \Doctrine\ORM\NoResultException
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NoResultException
+     * @throws NonUniqueResultException
      */
     public function getNumberOfRecords(): int
     {
