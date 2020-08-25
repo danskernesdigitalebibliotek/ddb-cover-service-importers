@@ -72,8 +72,6 @@ class PopulateService
             throw new \RuntimeException('Index must be created before populating it.');
         }
 
-        $params = ['body' => []];
-
         $numberOfRecords = 1;
         $lastId = $record_id;
         if (-1 === $record_id) {
@@ -92,6 +90,8 @@ class PopulateService
         $currentId = 0;
 
         while ($entriesAdded < $numberOfRecords) {
+            $params = ['body' => [], 'refresh' => true];
+
             $criteria = [];
             if (-1 !== $record_id) {
                 $criteria = ['id' => $record_id];
@@ -133,8 +133,7 @@ class PopulateService
             // Update progress message.
             $this->progressMessage(sprintf('%d of %d added. Id: %d. Last id: %d.', $entriesAdded, $numberOfRecords, $currentId, $lastId));
 
-            // Cleanup.
-            $params = ['body' => []];
+            // Free up memory usages.
             $this->entityManager->clear();
             gc_collect_cycles();
 
