@@ -7,6 +7,7 @@
 
 namespace App\Service\OpenPlatform;
 
+use App\Exception\MaterialTypeException;
 use App\Exception\PlatformSearchException;
 use App\Utils\OpenPlatform\Material;
 use App\Utils\Types\IdentifierType;
@@ -148,7 +149,7 @@ class SearchService
      * @return material
      *   Material with all the information collected
      *
-     * @throws \App\Exception\MaterialTypeException
+     * @throws MaterialTypeException
      */
     private function parseResult(array $result)
     {
@@ -166,32 +167,31 @@ class SearchService
                             $material->addIdentifier(IdentifierType::FAUST, $matches[1]);
                         }
                     }
-
-                  break;
+                    break;
 
                 case 'identifierISBN':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::ISBN, $this->stripDashes($item));
                     }
-                  break;
+                    break;
 
                 case 'identifierISSN':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::ISSN, $this->stripDashes($item));
                     }
-                  break;
+                    break;
 
                 case 'identifierISMN':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::ISMN, $this->stripDashes($item));
                     }
-                  break;
+                    break;
 
                 case 'identifierISR':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::ISRC, $this->stripDashes($item));
                     }
-                break;
+                    break;
 
                 default:
                     $method = 'set'.ucfirst($key);
@@ -199,6 +199,9 @@ class SearchService
                     break;
             }
         }
+
+        // Try to detect if this is an collection (used later on to not override existing covers).
+        $material->setCollection(count($result['title']) > 1);
 
         return $material;
     }

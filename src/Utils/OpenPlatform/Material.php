@@ -18,6 +18,7 @@ class Material
     private $date = 'Unknown';
     private $publisher = 'Unknown';
     private $identifiers = [];
+    private $collection = false;
 
     public function __toString()
     {
@@ -29,6 +30,7 @@ class Material
             $output[] = 'Creator: '.$this->creator;
             $output[] = 'Date: '.$this->date;
             $output[] = 'Publisher: '.$this->publisher;
+            $output[] = 'Collection: '.($this->isCollection() ? 'true' : 'false');
             $output[] = str_repeat('-', 41);
             $output[] = '----'.str_repeat(' ', 11).'Identifiers'.str_repeat(' ', 11).'----';
             $output[] = str_repeat('-', 41);
@@ -220,6 +222,31 @@ class Material
         }
 
         return $this;
+    }
+
+    /**
+     * If this material is part of an collection.
+     *
+     * Can be used to determined if an book cover should be overridden by a collection from the same vendor or another
+     * vendor.
+     *
+     * @return bool
+     *   If true it is an collection. Default false.
+     */
+    public function isCollection(): bool
+    {
+        return $this->collection;
+    }
+
+    /**
+     * Set whether it is from an collection or not.
+     *
+     * @param bool $collection
+     *   True for collection, false if not
+     */
+    public function setCollection(bool $collection): void
+    {
+        $this->collection = $collection;
     }
 
     /**
