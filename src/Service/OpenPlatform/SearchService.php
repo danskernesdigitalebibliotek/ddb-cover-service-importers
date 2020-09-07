@@ -8,6 +8,7 @@
 namespace App\Service\OpenPlatform;
 
 use App\Exception\MaterialTypeException;
+use App\Exception\PlatformAuthException;
 use App\Exception\PlatformSearchException;
 use App\Utils\OpenPlatform\Material;
 use App\Utils\Types\IdentifierType;
@@ -16,6 +17,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use Nicebooks\Isbn\IsbnTools;
 use Psr\Log\LoggerInterface;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
@@ -82,7 +84,7 @@ class SearchService
      *
      * Note: that cache is utilized, hence the result may not be fresh.
      *
-     * @param $identifier
+     * @param string $identifier
      *   The identifier to search for
      * @param string $type
      *   The type of identifier
@@ -93,11 +95,11 @@ class SearchService
      *   Material object with the result
      *
      * @throws PlatformSearchException
-     * @throws \App\Exception\MaterialTypeException
-     * @throws \App\Exception\PlatformAuthException
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws MaterialTypeException
+     * @throws PlatformAuthException
+     * @throws InvalidArgumentException
      */
-    public function search($identifier, $type, $refresh = false): Material
+    public function search(string $identifier, string $type, $refresh = false): Material
     {
         // Try getting item from cache.
         $item = $this->cache->getItem('openplatform.search_query'.str_replace(':', '', $identifier));
