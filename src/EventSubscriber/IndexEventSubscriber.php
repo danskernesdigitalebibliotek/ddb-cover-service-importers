@@ -131,23 +131,26 @@ class IndexEventSubscriber implements EventSubscriberInterface
      */
     private function shouldOverride(Material $material, Source $source, Search $search): bool
     {
-        // Collection should not override covers on items that already have unique cover.
-        if ($material->isCollection()) {
-            // Unless it is marked as an collection search entity then this may be an image update.
-            if ($search->isCollection()) {
-                return true;
-            }
-
-            return false;
-        }
-
         // Rank is unique so can never be identical for two different vendors
         // but we need to update search if update image from same vendor.
         $sourceRank = $source->getVendor()->getRank();
         $searchRank = $search->getSource()->getVendor()->getRank();
         if ($sourceRank <= $searchRank) {
+            // Collection should not override covers on items that already have unique cover.
+            if ($material->isCollection()) {
+                // Unless it is marked as an collection search entity then this may be an image update.
+                if ($search->isCollection()) {
+                    return true;
+                }
+
+                return false;
+            }
+
+            // Not a collection and rank is higher, so allow override.
             return true;
         }
+
+        return false;
     }
 
     /**
