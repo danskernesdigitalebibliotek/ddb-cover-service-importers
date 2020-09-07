@@ -26,13 +26,13 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 /**
  * Class CoverUploadProcessor.
  */
-class CoverUploadProcessor implements Processor, TopicSubscriberInterface
+class CoverUserUploadProcessor implements Processor, TopicSubscriberInterface
 {
     private $em;
     private $dispatcher;
     private $statsLogger;
 
-    private const VENDOR_ID = 12;
+    private const VENDOR_ID = 15;
     /** @var Vendor $vendor */
     private $vendor;
     private $sourceRepo;
@@ -93,19 +93,6 @@ class CoverUploadProcessor implements Processor, TopicSubscriberInterface
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedTopics(): array
-    {
-        return [
-            'UploadImageTopic' => [
-                'processorName' => 'UploadImageProcessor',
-                'queueName' => 'CoverStoreQueue',
-            ],
-        ];
-    }
-
-    /**
      * Create or update existing source entity in the database.
      *
      * @param string $identifier
@@ -117,8 +104,6 @@ class CoverUploadProcessor implements Processor, TopicSubscriberInterface
      *
      * @return bool
      *   true on insert and false on update
-     *
-     * @throws \Exception
      */
     private function createUpdateSource(string $identifier, array $sources, CoverUploadProcessMessage $uploadProcessMessage): bool
     {
@@ -149,5 +134,18 @@ class CoverUploadProcessor implements Processor, TopicSubscriberInterface
         gc_collect_cycles();
 
         return $isNew;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getSubscribedTopics(): array
+    {
+        return [
+            'UserUploadImageTopic' => [
+                'processorName' => 'CoverUserUploadProcessor',
+                'queueName' => 'CoverStoreQueue',
+            ],
+        ];
     }
 }

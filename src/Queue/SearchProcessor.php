@@ -115,6 +115,10 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
             return self::REJECT;
         }
 
+
+
+        
+
         // Check if this was an zero hit search.
         if ($material->isEmpty()) {
             $this->statsLogger->info('Search zero-hit', [
