@@ -7,6 +7,8 @@
 
 namespace App\Service\OpenPlatform;
 
+use App\Exception\MaterialTypeException;
+use App\Exception\PlatformAuthException;
 use App\Exception\PlatformSearchException;
 use App\Utils\OpenPlatform\Material;
 use App\Utils\Types\IdentifierType;
@@ -14,6 +16,7 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use Nicebooks\Isbn\IsbnTools;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -81,7 +84,7 @@ class SearchService
      *
      * Note: that cache is utilized, hence the result may not be fresh.
      *
-     * @param $identifier
+     * @param string $identifier
      *   The identifier to search for
      * @param string $type
      *   The type of identifier
@@ -92,11 +95,11 @@ class SearchService
      *   Material object with the result
      *
      * @throws PlatformSearchException
-     * @throws \App\Exception\MaterialTypeException
-     * @throws \App\Exception\PlatformAuthException
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws MaterialTypeException
+     * @throws PlatformAuthException
+     * @throws InvalidArgumentException
      */
-    public function search($identifier, $type, $refresh = false): Material
+    public function search(string $identifier, string $type, $refresh = false): Material
     {
         // Try getting item from cache.
         $item = $this->cache->getItem('openplatform.search_query'.str_replace(':', '', $identifier));
@@ -148,7 +151,7 @@ class SearchService
      * @return material
      *   Material with all the information collected
      *
-     * @throws \App\Exception\MaterialTypeException
+     * @throws MaterialTypeException
      */
     private function parseResult(array $result)
     {
@@ -166,32 +169,31 @@ class SearchService
                             $material->addIdentifier(IdentifierType::FAUST, $matches[1]);
                         }
                     }
-
-                  break;
+                    break;
 
                 case 'identifierISBN':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::ISBN, $this->stripDashes($item));
                     }
-                  break;
+                    break;
 
                 case 'identifierISSN':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::ISSN, $this->stripDashes($item));
                     }
-                  break;
+                    break;
 
                 case 'identifierISMN':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::ISMN, $this->stripDashes($item));
                     }
-                  break;
+                    break;
 
                 case 'identifierISR':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::ISRC, $this->stripDashes($item));
                     }
-                break;
+                    break;
 
                 default:
                     $method = 'set'.ucfirst($key);
@@ -199,6 +201,9 @@ class SearchService
                     break;
             }
         }
+
+        // Try to detect if this is an collection (used later on to not override existing covers).
+        $material->setCollection(count($result['title']) > 1);
 
         return $material;
     }
