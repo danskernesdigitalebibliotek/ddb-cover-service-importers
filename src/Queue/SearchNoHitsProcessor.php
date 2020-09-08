@@ -133,9 +133,9 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
             // vendors have a given cover and when the material is indexed into the data-well.
             $type = $processMessage->getIdentifierType();
             $material = $this->searchService->search($identifier, $type);
+            $sourceRepos = $this->em->getRepository(Source::class);
 
             foreach ($material->getIdentifiers() as $is) {
-                $sourceRepos = $this->em->getRepository(Source::class);
                 $source = $sourceRepos->findOneBy([
                     'matchId' => $is->getId(),
                     'matchType' => $is->getType(),
