@@ -189,6 +189,7 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
     }
 
     // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
+
     /**
      * {@inheritdoc}
      */
@@ -201,5 +202,6 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
             ],
         ];
     }
+
     // phpcs:enable
 }

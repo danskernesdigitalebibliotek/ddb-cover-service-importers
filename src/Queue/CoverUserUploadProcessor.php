@@ -61,7 +61,6 @@ class CoverUserUploadProcessor implements Processor, TopicSubscriberInterface
 
         // Load vendor here to ensure that it's only load once.
         $this->vendor = $userUploadVendorService->getVendor();
-
     }
 
     /**
@@ -143,6 +142,7 @@ class CoverUserUploadProcessor implements Processor, TopicSubscriberInterface
     }
 
     // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
+
     /**
      * {@inheritdoc}
      */
@@ -155,5 +155,6 @@ class CoverUserUploadProcessor implements Processor, TopicSubscriberInterface
             ],
         ];
     }
+
     // phpcs:enable
 }

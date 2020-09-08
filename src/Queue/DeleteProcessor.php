@@ -140,6 +140,7 @@ class DeleteProcessor implements Processor, TopicSubscriberInterface
     }
 
     // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
+
     /**
      * {@inheritdoc}
      */
@@ -151,5 +152,6 @@ class DeleteProcessor implements Processor, TopicSubscriberInterface
             ],
         ];
     }
+
     // phpcs:enable
 }
