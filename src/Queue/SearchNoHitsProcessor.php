@@ -2,18 +2,23 @@
 
 /**
  * @file
+ * Handle not-hits queue processing.
  */
 
 namespace App\Queue;
 
 use App\Entity\Search;
+use App\Entity\Source;
 use App\Service\CoverStore\CoverStoreInterface;
+use App\Service\OpenPlatform\SearchService;
 use App\Utils\Message\ProcessMessage;
 use App\Utils\Types\IdentifierType;
+use App\Utils\Types\VendorState;
 use Doctrine\DBAL\ConnectionException;
 use Doctrine\ORM\EntityManagerInterface;
 use Enqueue\Client\ProducerInterface;
 use Enqueue\Client\TopicSubscriberInterface;
+use Enqueue\Util\JSON;
 use Interop\Queue\Context;
 use Interop\Queue\Message;
 use Interop\Queue\Processor;
@@ -29,6 +34,7 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
     private $coverStore;
     private $producer;
     private $statsLogger;
+    private $searchService;
 
     const VENDOR = 'Unknown';
 
@@ -42,13 +48,15 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
      * @param CoverStoreInterface $coverStore
      * @param ProducerInterface $producer
      * @param LoggerInterface $statsLogger
+     * @param SearchService $searchService
      */
-    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $coverStore, ProducerInterface $producer, LoggerInterface $statsLogger)
+    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $coverStore, ProducerInterface $producer, LoggerInterface $statsLogger, SearchService $searchService)
     {
         $this->em = $entityManager;
         $this->coverStore = $coverStore;
         $this->producer = $producer;
         $this->statsLogger = $statsLogger;
+        $this->searchService = $searchService;
     }
 
     /**
@@ -57,6 +65,7 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
     public function process(Message $message, Context $session)
     {
         $jsonDecoder = new JsonDecoder(true);
+        /* @var ProcessMessage $processMessage */
         $processMessage = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
         $identifier = $processMessage->getIdentifier();
 
@@ -65,7 +74,7 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
         if (strpos($identifier, '-katalog:')) {
             $parts = explode(':', $identifier);
             $basicPid = $this::BASIC_PID_PREFIX.end($parts);
-            $repos = $this->em->getRepository(Search::class);
+            $searchRepos = $this->em->getRepository(Search::class);
 
             try {
                 // There may exists a race condition when multiple queues are
@@ -74,7 +83,7 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
                 $this->em->getConnection()->beginTransaction();
 
                 try {
-                    $search = $repos->findOneByisIdentifier($basicPid);
+                    $search = $searchRepos->findOneByisIdentifier($basicPid);
 
                     if (!empty($search)) {
                         $newSearch = new Search();
@@ -119,6 +128,37 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
                     'source' => $basicPid,
                 ]);
             }
+        } else {
+            // Try to search the data well and match source entity. This might work as there is an race between when
+            // vendors have a given cover and when the material is indexed into the data-well.
+            $type = $processMessage->getIdentifierType();
+            $material = $this->searchService->search($identifier, $type);
+
+            foreach ($material->getIdentifiers() as $is) {
+                $sourceRepos = $this->em->getRepository(Source::class);
+                $source = $sourceRepos->findOneBy([
+                    'matchId' => $is->getId(),
+                    'matchType' => $is->getType(),
+                ]);
+
+                if (!is_null($source)) {
+                    // Found match in source table based on the data well search, so create job to re-index this source
+                    // entity.
+                    $processMessage = new ProcessMessage();
+                    $processMessage->setIdentifier($source->getMatchId())
+                        ->setOperation(VendorState::UPDATE)
+                        ->setIdentifierType($source->getMatchType())
+                        ->setVendorId($source->getVendor()->getId())
+                        ->setImageId($source->getImage()->getId())
+                        ->setUseSearchCache(true);
+                    $this->producer->sendEvent('SearchTopic', JSON::encode($processMessage));
+
+                    // Stop processing. A source record was found and sent to re-indexing :-).
+                    break;
+                }
+            }
+
+            return self::ACK;
         }
 
         // Log current not handled no hit.
