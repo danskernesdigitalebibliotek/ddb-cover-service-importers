@@ -162,6 +162,7 @@ class VendorImageProcessor implements Processor, TopicSubscriberInterface
         return $processorStatus;
     }
 
+    // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
     /**
      * {@inheritdoc}
      */
@@ -174,4 +175,5 @@ class VendorImageProcessor implements Processor, TopicSubscriberInterface
             ],
         ];
     }
+    // phpcs:enable
 }

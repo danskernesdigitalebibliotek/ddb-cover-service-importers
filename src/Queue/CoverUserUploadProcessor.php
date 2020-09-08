@@ -136,6 +136,7 @@ class CoverUserUploadProcessor implements Processor, TopicSubscriberInterface
         return $isNew;
     }
 
+    // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
     /**
      * {@inheritdoc}
      */
@@ -148,4 +149,5 @@ class CoverUserUploadProcessor implements Processor, TopicSubscriberInterface
             ],
         ];
     }
+    // phpcs:enable
 }

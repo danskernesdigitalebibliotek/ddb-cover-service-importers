@@ -173,6 +173,7 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
         return self::ACK;
     }
 
+    // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
     /**
      * {@inheritdoc}
      */
@@ -184,4 +185,5 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
             ],
         ];
     }
+    // phpcs:enable
 }
