@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Handle not-hits queue processing.
+ * Handle no-hits queue processing.
  */
 
 namespace App\Queue;
