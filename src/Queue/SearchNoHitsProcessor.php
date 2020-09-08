@@ -12,6 +12,7 @@ use App\Entity\Source;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\OpenPlatform\SearchService;
 use App\Utils\Message\ProcessMessage;
+use App\Utils\OpenPlatform\Material;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Doctrine\DBAL\ConnectionException;

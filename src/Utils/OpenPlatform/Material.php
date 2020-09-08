@@ -259,4 +259,20 @@ class Material
     {
         return empty($this->identifiers);
     }
+
+    /**
+     * Get faust number from a post id (PID).
+     *
+     * @param string $pid
+     *   The pid to translate
+     *
+     * @return string
+     *   The faust number
+     */
+    public static function translatePidToFaust(string $pid): string
+    {
+        $parts = explode(':', $pid);
+
+        return end($parts);
+    }
 }

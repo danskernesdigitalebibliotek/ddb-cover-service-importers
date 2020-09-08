@@ -127,6 +127,14 @@ class SearchService
                 $material->addIdentifier($type, $identifier);
             }
 
+            // If the vendor provided type is PID, then we should be able to get the faust number as well.
+            if (IdentifierType::PID === $type) {
+                $faust = Material::translatePidToFaust($identifier);
+                if (!$material->hasIdentifier(IdentifierType::FAUST, $faust)) {
+                    $material->addIdentifier(IdentifierType::FAUST, $faust);
+                }
+            }
+
             $item->expiresAfter($this->searchCacheTTL);
             $item->set($material);
             $this->cache->save($item);
