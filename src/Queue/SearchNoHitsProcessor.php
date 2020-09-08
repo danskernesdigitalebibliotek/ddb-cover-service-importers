@@ -136,14 +136,14 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
             $sourceRepos = $this->em->getRepository(Source::class);
 
             foreach ($material->getIdentifiers() as $is) {
-                $source = $sourceRepos->findOneBy([
+                $sources = $sourceRepos->findBy([
                     'matchId' => $is->getId(),
                     'matchType' => $is->getType(),
                 ]);
 
-                if (!is_null($source)) {
-                    // Found match in source table based on the data well search, so create job to re-index this source
-                    // entity.
+                // Found matches in source table based on the data well search, so create jobs to re-index the source
+                // entities. The re-indexing will take source rank etc. into account in the queue system.
+                foreach ($sources as $source) {
                     $processMessage = new ProcessMessage();
                     $processMessage->setIdentifier($source->getMatchId())
                         ->setOperation(VendorState::UPDATE)
@@ -152,9 +152,6 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
                         ->setImageId($source->getImage()->getId())
                         ->setUseSearchCache(true);
                     $this->producer->sendEvent('SearchTopic', JSON::encode($processMessage));
-
-                    // Stop processing. A source record was found and sent to re-indexing :-).
-                    break;
                 }
             }
 
