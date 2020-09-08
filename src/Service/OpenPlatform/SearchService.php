@@ -117,18 +117,23 @@ class SearchService
                 throw new PlatformSearchException($exception->getMessage(), $exception->getCode());
             }
 
-            // Handle zero hit.
-            if (empty($res)) {
-                // Simply create an empty material object. Which then can be tested with
-                // the isEmpty() method.
-                $material = new Material();
-            } else {
-                $material = $this->parseResult($res);
+            $material = $this->parseResult($res);
 
-                // Check that the search IS is part of the parsed result. As this is not
-                // always the case. e.g. 9788798970804
-                if (!$material->hasIdentifier($type, $identifier)) {
-                    $material->addIdentifier($type, $identifier);
+            // Check that the searched for identifier is part of the parsed result. As this is not
+            // always the case. e.g. 9788798970804. This will also mean that we trust the information vendor provided
+            // information. This will also fix the issue where upload service provide a "katelog" post that we are not
+            // able to find in the datawell (doing to the way the datawell works). Because the datawell does not allow
+            // for non-scoped search, the result we get will always be scoped to the agency credentials we search with.
+            // Materials that are not part of that agency´s collection will not be searchable.
+            if (!$material->hasIdentifier($type, $identifier)) {
+                $material->addIdentifier($type, $identifier);
+            }
+
+            // If the vendor provided type is PID, then we should be able to get the faust number as well.
+            if (IdentifierType::PID === $type) {
+                $faust = Material::translatePidToFaust($identifier);
+                if (!$material->hasIdentifier(IdentifierType::FAUST, $faust)) {
+                    $material->addIdentifier(IdentifierType::FAUST, $faust);
                 }
             }
 
@@ -203,7 +208,7 @@ class SearchService
         }
 
         // Try to detect if this is an collection (used later on to not override existing covers).
-        $material->setCollection(count($result['title']) > 1);
+        $material->setCollection((!empty($result['title']) && count($result['title']) > 1));
 
         return $material;
     }

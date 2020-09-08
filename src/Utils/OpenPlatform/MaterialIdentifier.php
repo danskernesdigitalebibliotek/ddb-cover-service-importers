@@ -17,9 +17,6 @@ class MaterialIdentifier
     private $type;
     private $id;
 
-    // The valid IS types in the data well.
-    private $types = [];
-
     /**
      * MaterialIdentifier constructor.
      *
@@ -35,10 +32,10 @@ class MaterialIdentifier
     {
         // Build types array.
         $obj = new \ReflectionClass(IdentifierType::class);
-        $this->types = array_values($obj->getConstants());
+        $types = array_values($obj->getConstants());
 
         // Validate type.
-        if (!in_array($type, $this->types)) {
+        if (!in_array($type, $types)) {
             throw new MaterialTypeException('Unknown material type: '.$type, 0, null, $type);
         }
 

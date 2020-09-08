@@ -10,8 +10,11 @@ namespace App\Queue;
 use App\Entity\Source;
 use App\Entity\Vendor;
 use App\Event\VendorEvent;
+use App\Exception\IllegalVendorServiceException;
+use App\Exception\UnknownVendorServiceException;
 use App\Repository\SourceRepository;
 use App\Repository\VendorRepository;
+use App\Service\VendorService\UserUpload\UserUploadVendorService;
 use App\Utils\Message\CoverUploadProcessMessage;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,13 +29,12 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 /**
  * Class CoverUploadProcessor.
  */
-class CoverUploadProcessor implements Processor, TopicSubscriberInterface
+class CoverUserUploadProcessor implements Processor, TopicSubscriberInterface
 {
     private $em;
     private $dispatcher;
     private $statsLogger;
 
-    private const VENDOR_ID = 12;
     /** @var Vendor $vendor */
     private $vendor;
     private $sourceRepo;
@@ -45,8 +47,11 @@ class CoverUploadProcessor implements Processor, TopicSubscriberInterface
      * @param EventDispatcherInterface $eventDispatcher
      * @param SourceRepository $sourceRepo
      * @param VendorRepository $vendorRepo
+     *
+     * @throws IllegalVendorServiceException
+     * @throws UnknownVendorServiceException
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $statsLogger, EventDispatcherInterface $eventDispatcher, SourceRepository $sourceRepo, VendorRepository $vendorRepo)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $statsLogger, EventDispatcherInterface $eventDispatcher, SourceRepository $sourceRepo, VendorRepository $vendorRepo, UserUploadVendorService $userUploadVendorService)
     {
         $this->em = $entityManager;
         $this->statsLogger = $statsLogger;
@@ -55,7 +60,7 @@ class CoverUploadProcessor implements Processor, TopicSubscriberInterface
         $this->sourceRepo = $sourceRepo;
 
         // Load vendor here to ensure that it's only load once.
-        $this->vendor = $vendorRepo->find(self::VENDOR_ID);
+        $this->vendor = $userUploadVendorService->getVendor();
     }
 
     /**
@@ -93,19 +98,6 @@ class CoverUploadProcessor implements Processor, TopicSubscriberInterface
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedTopics(): array
-    {
-        return [
-            'UploadImageTopic' => [
-                'processorName' => 'UploadImageProcessor',
-                'queueName' => 'CoverStoreQueue',
-            ],
-        ];
-    }
-
-    /**
      * Create or update existing source entity in the database.
      *
      * @param string $identifier
@@ -117,8 +109,6 @@ class CoverUploadProcessor implements Processor, TopicSubscriberInterface
      *
      * @return bool
      *   true on insert and false on update
-     *
-     * @throws \Exception
      */
     private function createUpdateSource(string $identifier, array $sources, CoverUploadProcessMessage $uploadProcessMessage): bool
     {
@@ -150,4 +140,21 @@ class CoverUploadProcessor implements Processor, TopicSubscriberInterface
 
         return $isNew;
     }
+
+    // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function getSubscribedTopics(): array
+    {
+        return [
+            'UserUploadImageTopic' => [
+                'processorName' => 'CoverUserUploadProcessor',
+                'queueName' => 'CoverStoreQueue',
+            ],
+        ];
+    }
+
+    // phpcs:enable
 }

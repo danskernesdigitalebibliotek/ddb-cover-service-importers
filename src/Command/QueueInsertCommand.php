@@ -44,7 +44,7 @@ class QueueInsertCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription('Insert')
+            ->setDescription('Create job in queue system with a given message and topic')
             ->addOption('topic', null, InputOption::VALUE_REQUIRED, 'Topic to send into queue system.')
             ->addOption('message', null, InputOption::VALUE_OPTIONAL, 'String encode json message')
             ->addOption('with-test-message', null, InputOption::VALUE_NONE, 'Use default test message with given topic')
@@ -64,11 +64,11 @@ class QueueInsertCommand extends Command
         if ($withTestMessage) {
             // Test messages for easy testing.
             switch ($topic) {
-                case 'UploadImageTopic':
+                case 'UserUploadImageTopic':
                     $processMessage = new CoverUploadProcessMessage();
                     $processMessage->setIdentifierType(IdentifierType::PID);
                     $processMessage->setIdentifier('1234567890');
-                    $processMessage->setVendorId('12');
+                    $processMessage->setVendorId('15');
                     $processMessage->setImageUrl('https://www.danskernesdigitalebibliotek.dk/fileadmin/_kulturstyrelsen/images/ddb/logo.png');
                     $processMessage->setOperation($vendorState ?? VendorState::INSERT);
                     $message = JSON::encode($processMessage);
@@ -81,6 +81,13 @@ class QueueInsertCommand extends Command
                         ->setIdentifierType(IdentifierType::ISBN)
                         ->setVendorId(1)
                         ->setImageId(1);
+                    $message = JSON::encode($processMessage);
+                    break;
+
+                case 'SearchNoHitsTopic':
+                    $processMessage = new ProcessMessage();
+                    $processMessage->setIdentifier('9788799239535')
+                        ->setIdentifierType(IdentifierType::ISBN);
                     $message = JSON::encode($processMessage);
                     break;
 

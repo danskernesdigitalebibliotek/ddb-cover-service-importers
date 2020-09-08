@@ -134,6 +134,8 @@ class CoverStoreAutoProcessor implements Processor, TopicSubscriberInterface
         return self::ACK;
     }
 
+    // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
+
     /**
      * {@inheritdoc}
      */
@@ -142,7 +144,9 @@ class CoverStoreAutoProcessor implements Processor, TopicSubscriberInterface
         return ['CoverStoreAutoTopic' => [
               'processorName' => 'CoverStoreAutoProcessor',
               'queueName' => 'CoverStoreAutoQueue',
-          ],
-      ];
+            ],
+        ];
     }
+
+    // phpcs:enable
 }
