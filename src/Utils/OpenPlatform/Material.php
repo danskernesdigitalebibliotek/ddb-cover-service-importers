@@ -6,6 +6,7 @@
 
 namespace App\Utils\OpenPlatform;
 
+use App\Exception\MaterialConversionException;
 use App\Exception\MaterialTypeException;
 
 /**
@@ -274,5 +275,27 @@ class Material
         $parts = explode(':', $pid);
 
         return end($parts);
+    }
+
+    /**
+     * Get basic PID from katelog PID.
+     *
+     * @param string $pid
+     *   Katelog PID to be converted.
+     *
+     * @return string
+     *   Basic PID.
+     *
+     * @throws MaterialConversionException
+     *   If the input is not a katelog PID.
+     */
+    public static function convertKatelogPidToBasicPid(string $pid): string
+    {
+        if (strpos($pid, '-katalog:')) {
+            $faust = Material::translatePidToFaust($pid);
+            return '870970-basis:'.$faust;
+        }
+
+        throw new MaterialConversionException('The PID given was not an katelog PID - '.$pid);
     }
 }

@@ -39,9 +39,6 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
 
     const VENDOR = 'Unknown';
 
-    // Magic datawell prefix for a basic PID.
-    const BASIC_PID_PREFIX = '870970-basis:';
-
     /**
      * SearchNoHitsProcessor constructor.
      *
@@ -73,11 +70,13 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
         // If it's a "katalog" identifier, we will try to check if a matching
         // "basic" identifier exits and create the mapping.
         if (strpos($identifier, '-katalog:')) {
-            $parts = explode(':', $identifier);
-            $basicPid = $this::BASIC_PID_PREFIX.end($parts);
             $searchRepos = $this->em->getRepository(Search::class);
+            $basicPid = null;
 
             try {
+                // Try to get basic pid.
+                $basicPid = Material::translatePidToFaust($identifier);
+
                 // There may exists a race condition when multiple queues are
                 // running. To ensure we don't insert duplicates we need to
                 // wrap our search/update/insert in a transaction.
@@ -126,7 +125,7 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
                     'service' => 'SearchNoHitsProcessor',
                     'message' => $exception->getMessage(),
                     'identifier' => $identifier,
-                    'source' => $basicPid,
+                    'source' => $basicPid ?: 'unknown',
                 ]);
             }
         } else {
