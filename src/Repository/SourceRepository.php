@@ -72,4 +72,31 @@ class SourceRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Find single Source entity with the highest rank (lowest rank value).
+     *
+     * @param string $type
+     *   The identifier type
+     * @param string $identifier
+     *   The identifier to lookup
+     *
+     * @return Source|bool
+     *   If found Source entity else false
+     */
+    public function findOneByVendorRank(string $type, string $identifier)
+    {
+        $sources = $this->createQueryBuilder('s')
+            ->andWhere('s.matchId = :identifier')
+            ->andWhere('s.matchType = :type')
+            ->leftJoin('s.vendor', 'vendor')
+            ->orderBy('vendor.rank')
+            ->setParameter('identifier', $identifier)
+            ->setParameter('type', $type)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getResult();
+
+        return end($sources);
+    }
 }
