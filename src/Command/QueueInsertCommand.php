@@ -44,7 +44,7 @@ class QueueInsertCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription('Insert')
+            ->setDescription('Create job in queue system with a given message and topic')
             ->addOption('topic', null, InputOption::VALUE_REQUIRED, 'Topic to send into queue system.')
             ->addOption('message', null, InputOption::VALUE_OPTIONAL, 'String encode json message')
             ->addOption('with-test-message', null, InputOption::VALUE_NONE, 'Use default test message with given topic')
@@ -81,6 +81,13 @@ class QueueInsertCommand extends Command
                         ->setIdentifierType(IdentifierType::ISBN)
                         ->setVendorId(1)
                         ->setImageId(1);
+                    $message = JSON::encode($processMessage);
+                    break;
+
+                case 'SearchNoHitsTopic':
+                    $processMessage = new ProcessMessage();
+                    $processMessage->setIdentifier('9788799239535')
+                        ->setIdentifierType(IdentifierType::ISBN);
                     $message = JSON::encode($processMessage);
                     break;
 
