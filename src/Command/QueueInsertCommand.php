@@ -64,11 +64,11 @@ class QueueInsertCommand extends Command
         if ($withTestMessage) {
             // Test messages for easy testing.
             switch ($topic) {
-                case 'UploadImageTopic':
+                case 'UserUploadImageTopic':
                     $processMessage = new CoverUploadProcessMessage();
                     $processMessage->setIdentifierType(IdentifierType::PID);
                     $processMessage->setIdentifier('1234567890');
-                    $processMessage->setVendorId('12');
+                    $processMessage->setVendorId('15');
                     $processMessage->setImageUrl('https://www.danskernesdigitalebibliotek.dk/fileadmin/_kulturstyrelsen/images/ddb/logo.png');
                     $processMessage->setOperation($vendorState ?? VendorState::INSERT);
                     $message = JSON::encode($processMessage);
