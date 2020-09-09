@@ -2,18 +2,24 @@
 
 /**
  * @file
+ * Handle no-hits queue processing.
  */
 
 namespace App\Queue;
 
 use App\Entity\Search;
+use App\Entity\Source;
 use App\Service\CoverStore\CoverStoreInterface;
+use App\Service\OpenPlatform\SearchService;
 use App\Utils\Message\ProcessMessage;
+use App\Utils\OpenPlatform\Material;
 use App\Utils\Types\IdentifierType;
+use App\Utils\Types\VendorState;
 use Doctrine\DBAL\ConnectionException;
 use Doctrine\ORM\EntityManagerInterface;
 use Enqueue\Client\ProducerInterface;
 use Enqueue\Client\TopicSubscriberInterface;
+use Enqueue\Util\JSON;
 use Interop\Queue\Context;
 use Interop\Queue\Message;
 use Interop\Queue\Processor;
@@ -29,11 +35,9 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
     private $coverStore;
     private $producer;
     private $statsLogger;
+    private $searchService;
 
     const VENDOR = 'Unknown';
-
-    // Magic datawell prefix for a basic PID.
-    const BASIC_PID_PREFIX = '870970-basis:';
 
     /**
      * SearchNoHitsProcessor constructor.
@@ -42,13 +46,15 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
      * @param CoverStoreInterface $coverStore
      * @param ProducerInterface $producer
      * @param LoggerInterface $statsLogger
+     * @param SearchService $searchService
      */
-    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $coverStore, ProducerInterface $producer, LoggerInterface $statsLogger)
+    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $coverStore, ProducerInterface $producer, LoggerInterface $statsLogger, SearchService $searchService)
     {
         $this->em = $entityManager;
         $this->coverStore = $coverStore;
         $this->producer = $producer;
         $this->statsLogger = $statsLogger;
+        $this->searchService = $searchService;
     }
 
     /**
@@ -57,24 +63,27 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
     public function process(Message $message, Context $session)
     {
         $jsonDecoder = new JsonDecoder(true);
+        /* @var ProcessMessage $processMessage */
         $processMessage = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
         $identifier = $processMessage->getIdentifier();
 
         // If it's a "katalog" identifier, we will try to check if a matching
         // "basic" identifier exits and create the mapping.
         if (strpos($identifier, '-katalog:')) {
-            $parts = explode(':', $identifier);
-            $basicPid = $this::BASIC_PID_PREFIX.end($parts);
-            $repos = $this->em->getRepository(Search::class);
+            $searchRepos = $this->em->getRepository(Search::class);
+            $basicPid = null;
 
             try {
+                // Try to get basic pid.
+                $basicPid = Material::translatePidToFaust($identifier);
+
                 // There may exists a race condition when multiple queues are
                 // running. To ensure we don't insert duplicates we need to
                 // wrap our search/update/insert in a transaction.
                 $this->em->getConnection()->beginTransaction();
 
                 try {
-                    $search = $repos->findOneByisIdentifier($basicPid);
+                    $search = $searchRepos->findOneByisIdentifier($basicPid);
 
                     if (!empty($search)) {
                         $newSearch = new Search();
@@ -116,9 +125,34 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
                     'service' => 'SearchNoHitsProcessor',
                     'message' => $exception->getMessage(),
                     'identifier' => $identifier,
-                    'source' => $basicPid,
+                    'source' => $basicPid ?: 'unknown',
                 ]);
             }
+        } else {
+            // Try to search the data well and match source entity. This might work as there is an race between when
+            // vendors have a given cover and when the material is indexed into the data-well.
+            $type = $processMessage->getIdentifierType();
+            $material = $this->searchService->search($identifier, $type);
+            $sourceRepos = $this->em->getRepository(Source::class);
+
+            foreach ($material->getIdentifiers() as $is) {
+                $source = $sourceRepos->findOneByVendorRank($is->getType(), $is->getId());
+
+                // Found matches in source table based on the data well search, so create jobs to re-index the source
+                // entities.
+                if (false !== $source) {
+                    $processMessage = new ProcessMessage();
+                    $processMessage->setIdentifier($source->getMatchId())
+                        ->setOperation(VendorState::UPDATE)
+                        ->setIdentifierType($source->getMatchType())
+                        ->setVendorId($source->getVendor()->getId())
+                        ->setImageId($source->getImage()->getId())
+                        ->setUseSearchCache(true);
+                    $this->producer->sendEvent('SearchTopic', JSON::encode($processMessage));
+                }
+            }
+
+            return self::ACK;
         }
 
         // Log current not handled no hit.
@@ -135,6 +169,8 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
         return self::ACK;
     }
 
+    // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
+
     /**
      * {@inheritdoc}
      */
@@ -146,4 +182,6 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
             ],
         ];
     }
+
+    // phpcs:enable
 }

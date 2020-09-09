@@ -7,6 +7,8 @@
 
 namespace App\Service\OpenPlatform;
 
+use App\Exception\MaterialTypeException;
+use App\Exception\PlatformAuthException;
 use App\Exception\PlatformSearchException;
 use App\Utils\OpenPlatform\Material;
 use App\Utils\Types\IdentifierType;
@@ -14,6 +16,7 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use Nicebooks\Isbn\IsbnTools;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -81,7 +84,7 @@ class SearchService
      *
      * Note: that cache is utilized, hence the result may not be fresh.
      *
-     * @param $identifier
+     * @param string $identifier
      *   The identifier to search for
      * @param string $type
      *   The type of identifier
@@ -92,11 +95,11 @@ class SearchService
      *   Material object with the result
      *
      * @throws PlatformSearchException
-     * @throws \App\Exception\MaterialTypeException
-     * @throws \App\Exception\PlatformAuthException
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws MaterialTypeException
+     * @throws PlatformAuthException
+     * @throws InvalidArgumentException
      */
-    public function search($identifier, $type, $refresh = false): Material
+    public function search(string $identifier, string $type, $refresh = false): Material
     {
         // Try getting item from cache.
         $item = $this->cache->getItem('openplatform.search_query'.str_replace(':', '', $identifier));
@@ -114,18 +117,23 @@ class SearchService
                 throw new PlatformSearchException($exception->getMessage(), $exception->getCode());
             }
 
-            // Handle zero hit.
-            if (empty($res)) {
-                // Simply create an empty material object. Which then can be tested with
-                // the isEmpty() method.
-                $material = new Material();
-            } else {
-                $material = $this->parseResult($res);
+            $material = $this->parseResult($res);
 
-                // Check that the search IS is part of the parsed result. As this is not
-                // always the case. e.g. 9788798970804
-                if (!$material->hasIdentifier($type, $identifier)) {
-                    $material->addIdentifier($type, $identifier);
+            // Check that the searched for identifier is part of the parsed result. As this is not
+            // always the case. e.g. 9788798970804. This will also mean that we trust the information vendor provided
+            // information. This will also fix the issue where upload service provide a "katelog" post that we are not
+            // able to find in the datawell (doing to the way the datawell works). Because the datawell does not allow
+            // for non-scoped search, the result we get will always be scoped to the agency credentials we search with.
+            // Materials that are not part of that agency´s collection will not be searchable.
+            if (!$material->hasIdentifier($type, $identifier)) {
+                $material->addIdentifier($type, $identifier);
+            }
+
+            // If the vendor provided type is PID, then we should be able to get the faust number as well.
+            if (IdentifierType::PID === $type) {
+                $faust = Material::translatePidToFaust($identifier);
+                if (!$material->hasIdentifier(IdentifierType::FAUST, $faust)) {
+                    $material->addIdentifier(IdentifierType::FAUST, $faust);
                 }
             }
 
@@ -148,7 +156,7 @@ class SearchService
      * @return material
      *   Material with all the information collected
      *
-     * @throws \App\Exception\MaterialTypeException
+     * @throws MaterialTypeException
      */
     private function parseResult(array $result)
     {
@@ -166,32 +174,31 @@ class SearchService
                             $material->addIdentifier(IdentifierType::FAUST, $matches[1]);
                         }
                     }
-
-                  break;
+                    break;
 
                 case 'identifierISBN':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::ISBN, $this->stripDashes($item));
                     }
-                  break;
+                    break;
 
                 case 'identifierISSN':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::ISSN, $this->stripDashes($item));
                     }
-                  break;
+                    break;
 
                 case 'identifierISMN':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::ISMN, $this->stripDashes($item));
                     }
-                  break;
+                    break;
 
                 case 'identifierISR':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::ISRC, $this->stripDashes($item));
                     }
-                break;
+                    break;
 
                 default:
                     $method = 'set'.ucfirst($key);
@@ -199,6 +206,9 @@ class SearchService
                     break;
             }
         }
+
+        // Try to detect if this is an collection (used later on to not override existing covers).
+        $material->setCollection((!empty($result['title']) && count($result['title']) > 1));
 
         return $material;
     }

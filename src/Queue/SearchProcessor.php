@@ -10,6 +10,7 @@ namespace App\Queue;
 use App\Entity\Source;
 use App\Event\IndexReadyEvent;
 use App\Exception\MaterialTypeException;
+use App\Exception\PlatformAuthException;
 use App\Exception\PlatformSearchException;
 use App\Service\OpenPlatform\SearchService;
 use App\Utils\Message\ProcessMessage;
@@ -20,6 +21,7 @@ use Interop\Queue\Context;
 use Interop\Queue\Message;
 use Interop\Queue\Processor;
 use Karriere\JsonDecoder\JsonDecoder;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -52,8 +54,8 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
     /**
      * {@inheritdoc}
      *
-     * @throws \App\Exception\PlatformAuthException
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws PlatformAuthException
+     * @throws InvalidArgumentException
      */
     public function process(Message $message, Context $session)
     {
@@ -137,6 +139,8 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
         return self::ACK;
     }
 
+    // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
+
     /**
      * {@inheritdoc}
      */
@@ -149,4 +153,6 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
             ],
         ];
     }
+
+    // phpcs:enable
 }

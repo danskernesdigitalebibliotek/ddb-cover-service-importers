@@ -9,8 +9,8 @@ namespace App\Command\OpenPlatform;
 
 use App\Service\OpenPlatform\SearchService;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -21,7 +21,6 @@ class OpenPlatformSearchCommand extends Command
     protected static $defaultName = 'app:openplatform:search';
 
     private $search;
-    private $refresh = false;
 
     /**
      * OpenPlatformSearchCommand constructor.
@@ -43,9 +42,9 @@ class OpenPlatformSearchCommand extends Command
     {
         $this->setDescription('Use environment configuration to test search')
             ->setHelp('Try search request against the open platform')
-            ->addArgument('is', InputArgument::REQUIRED, 'The material id (isbn, faust, pid)')
-            ->addArgument('type', InputArgument::REQUIRED, 'Identifier type e.g. ISBN.')
-            ->addArgument('refresh', InputArgument::OPTIONAL, 'By-pass cache layer');
+            ->addOption('type', null, InputOption::VALUE_REQUIRED, 'The material id (isbn, faust, pid)')
+            ->addOption('identifier', null, InputOption::VALUE_REQUIRED, 'Identifier type e.g. ISBN.')
+            ->addOption('without-search-cache', null, InputOption::VALUE_NONE, 'If set do not use search cache during re-index');
     }
 
     /**
@@ -55,12 +54,11 @@ class OpenPlatformSearchCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $refresh = $input->getArgument('refresh');
-        $this->refresh = $refresh ? (bool) $refresh : $this->refresh;
-        $is = $input->getArgument('is');
-        $type = $input->getArgument('type');
+        $is = $input->getOption('identifier');
+        $type = $input->getOption('type');
+        $withOutSearchCache = $input->getOption('without-search-cache');
 
-        $material = $this->search->search($is, $type, $this->refresh);
+        $material = $this->search->search($is, $type, $withOutSearchCache);
         $output->writeln($material);
     }
 }
