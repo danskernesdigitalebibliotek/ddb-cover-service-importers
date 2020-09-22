@@ -139,8 +139,8 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
                 $source = $sourceRepos->findOneByVendorRank($is->getType(), $is->getId());
 
                 // Found matches in source table based on the data well search, so create jobs to re-index the source
-                // entities.
-                if (false !== $source) {
+                // entities. Also check that the source record has an image from the vendor as not all do.
+                if (false !== $source && !is_null($source->getImage())) {
                     $processMessage = new ProcessMessage();
                     $processMessage->setIdentifier($source->getMatchId())
                         ->setOperation(VendorState::UPDATE)
