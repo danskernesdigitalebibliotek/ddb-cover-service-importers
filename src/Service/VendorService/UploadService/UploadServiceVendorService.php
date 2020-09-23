@@ -82,6 +82,11 @@ class UploadServiceVendorService extends AbstractBaseVendorService
         foreach ($items as $item) {
             $filename = $this->extractFilename($item->getId());
             if (!$this->isValidFilename($filename)) {
+                $this->statsLogger->info($this->getVendorName().' invalid filename', [
+                    'service' => self::class,
+                    'filename' => $filename,
+                    'url' => $item->getUrl(),
+                ]);
                 continue;
             }
 
