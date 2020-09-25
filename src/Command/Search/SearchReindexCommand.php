@@ -66,7 +66,7 @@ class SearchReindexCommand extends Command
         $query = 'SELECT s FROM App\Entity\Source s WHERE s.image IS NOT NULL';
         if (!is_null($identifier)) {
             if (!is_null($vendorId)) {
-                $query .= ' AND s.matchId = '.$identifier;
+                $query .= ' AND s.matchId = \''.$identifier.'\'';
             } else {
                 $output->writeln('<error>Missing vendor id required in combination with identifier</error>');
 
