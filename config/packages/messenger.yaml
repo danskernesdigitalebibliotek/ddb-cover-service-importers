@@ -20,13 +20,15 @@ framework:
                 options:
                     exchange:
                         name: search
-                retry_strategy:
-                    max_retries: 1
-                    delay: 1000
-                    multiplier: 2
-                    max_delay: 0
+
+            background-queue:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    exchange:
+                        name: background
 
             #failed: 'doctrine://default?queue_name=failed'
 
         routing:
-            'App\Message\ProcessMessageSearch': search-queue
+            'App\Message\SearchMessage': search-queue
+            'App\Message\DeleteMessage': background-queue

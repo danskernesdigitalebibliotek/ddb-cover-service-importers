@@ -46,6 +46,13 @@ class SearchMessageHandler implements MessageHandlerInterface
         $this->searchService = $searchService;
     }
 
+    /**
+     * @param SearchMessage $message
+     * @throws PlatformSearchException
+     *
+     * @throws \App\Exception\PlatformAuthException
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
     public function __invoke(SearchMessage $message)
     {
         // Clean up: find all search that links back to a give source and remove them before sending new index event.
