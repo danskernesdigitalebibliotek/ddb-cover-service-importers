@@ -1,0 +1,32 @@
+framework:
+    messenger:
+        # Uncomment this (and the failed transport below) to send failed messages to this transport for later handling.
+        # failure_transport: failed
+
+        transports:
+            async_high:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    exchange:
+                        name: high
+                retry_strategy:
+                    max_retries: 3
+                    delay: 1000
+                    multiplier: 2
+                    max_delay: 0
+
+            search-queue:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    exchange:
+                        name: search
+                retry_strategy:
+                    max_retries: 1
+                    delay: 1000
+                    multiplier: 2
+                    max_delay: 0
+
+            #failed: 'doctrine://default?queue_name=failed'
+
+        routing:
+            'App\Message\ProcessMessageSearch': search-queue
