@@ -28,6 +28,12 @@ class SearchReindexCommand extends Command
     private $em;
     private $bus;
 
+    /**
+     * SearchReindexCommand constructor.
+     *
+     * @param EntityManagerInterface $entityManager
+     * @param MessageBusInterface $bus
+     */
     public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus)
     {
         $this->em = $entityManager;

@@ -15,7 +15,7 @@ app:
     port: "6379"
     cache_db: "11"
   amqp:
-    server: ""
+    server: "rabbit.cover-service.svc.cluster.local"
     port: "5672"
   php:
     memory_limit: "512M"

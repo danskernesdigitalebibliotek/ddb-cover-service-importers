@@ -9,6 +9,6 @@ namespace App\Message;
 /**
  * Class VendorImageMessage.
  */
-class VendorImageMessage extends BaseMessage
+class VendorImageMessage extends AbstractBaseMessage
 {
 }

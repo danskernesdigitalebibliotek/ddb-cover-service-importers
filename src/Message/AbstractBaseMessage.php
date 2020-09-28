@@ -9,7 +9,7 @@ namespace App\Message;
 /**
  * Class BaseMessage.
  */
-abstract class BaseMessage
+abstract class AbstractBaseMessage
 {
     private $operation;
     private $identifierType;
@@ -29,7 +29,7 @@ abstract class BaseMessage
     /**
      * @param mixed $operation
      *
-     * @return BaseMessage
+     * @return AbstractBaseMessage
      */
     public function setOperation($operation): self
     {
@@ -49,7 +49,7 @@ abstract class BaseMessage
     /**
      * @param mixed $type
      *
-     * @return BaseMessage
+     * @return AbstractBaseMessage
      */
     public function setIdentifierType($type): self
     {
@@ -69,7 +69,7 @@ abstract class BaseMessage
     /**
      * @param mixed $identifier
      *
-     * @return BaseMessage
+     * @return AbstractBaseMessage
      */
     public function setIdentifier($identifier): self
     {
@@ -89,7 +89,7 @@ abstract class BaseMessage
     /**
      * @param mixed $vendorId
      *
-     * @return BaseMessage
+     * @return AbstractBaseMessage
      */
     public function setVendorId($vendorId): self
     {
@@ -109,7 +109,7 @@ abstract class BaseMessage
     /**
      * @param mixed $imageId
      *
-     * @return BaseMessage
+     * @return AbstractBaseMessage
      */
     public function setImageId($imageId): self
     {
@@ -135,7 +135,7 @@ abstract class BaseMessage
      * @param bool $useIt
      *   True to use or false to by-pass search cache
      *
-     * @return BaseMessage
+     * @return AbstractBaseMessage
      */
     public function setUseSearchCache(bool $useIt): self
     {

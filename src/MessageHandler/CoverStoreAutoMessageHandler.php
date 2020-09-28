@@ -10,12 +10,14 @@ use App\Entity\Image;
 use App\Entity\Search;
 use App\Exception\CoverStoreException;
 use App\Exception\MaterialTypeException;
+use App\Exception\PlatformAuthException;
 use App\Exception\PlatformSearchException;
 use App\Message\CoverStoreAutoMessage;
 use App\Message\SearchMessage;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\OpenPlatform\SearchService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
@@ -52,6 +54,12 @@ class CoverStoreAutoMessageHandler implements MessageHandlerInterface
         $this->statsLogger = $statsLogger;
     }
 
+    /**
+     * @param CoverStoreAutoMessage $message
+     *
+     * @throws PlatformAuthException
+     * @throws InvalidArgumentException
+     */
     public function __invoke(CoverStoreAutoMessage $message)
     {
         // As there are more that one queue processor another process may have

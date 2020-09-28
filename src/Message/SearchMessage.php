@@ -9,6 +9,6 @@ namespace App\Message;
 /**
  * Class SearchMessage.
  */
-class SearchMessage extends BaseMessage
+class SearchMessage extends AbstractBaseMessage
 {
 }

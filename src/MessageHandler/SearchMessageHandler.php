@@ -16,8 +16,8 @@ use App\Message\SearchMessage;
 use App\Service\OpenPlatform\SearchService;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Psr\Cache\InvalidArgumentException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
@@ -50,8 +50,8 @@ class SearchMessageHandler implements MessageHandlerInterface
 
     /**
      * @param SearchMessage $message
-     * @throws PlatformSearchException
      *
+     * @throws PlatformSearchException
      * @throws PlatformAuthException
      * @throws InvalidArgumentException
      */

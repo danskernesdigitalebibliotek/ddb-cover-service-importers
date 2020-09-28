@@ -9,6 +9,6 @@ namespace App\Message;
 /**
  * Class SearchNoHitsMessage.
  */
-class SearchNoHitsMessage extends BaseMessage
+class SearchNoHitsMessage extends AbstractBaseMessage
 {
 }

@@ -9,6 +9,6 @@ namespace App\Message;
 /**
  * Class DeleteMessage.
  */
-class DeleteMessage extends BaseMessage
+class DeleteMessage extends AbstractBaseMessage
 {
 }

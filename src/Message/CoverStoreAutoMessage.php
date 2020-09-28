@@ -9,6 +9,6 @@ namespace App\Message;
 /**
  * Class CoverStoreAutoMessage.
  */
-class CoverStoreAutoMessage extends BaseMessage
+class CoverStoreAutoMessage extends AbstractBaseMessage
 {
 }

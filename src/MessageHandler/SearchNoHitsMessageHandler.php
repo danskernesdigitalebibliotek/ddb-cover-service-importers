@@ -10,6 +10,9 @@ namespace App\MessageHandler;
 use App\Entity\Search;
 use App\Entity\Source;
 use App\Event\VendorEvent;
+use App\Exception\MaterialTypeException;
+use App\Exception\PlatformAuthException;
+use App\Exception\PlatformSearchException;
 use App\Message\CoverStoreAutoMessage;
 use App\Message\SearchMessage;
 use App\Message\SearchNoHitsMessage;
@@ -23,9 +26,7 @@ use App\Utils\Types\VendorState;
 use Doctrine\DBAL\ConnectionException;
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Exception\GuzzleException;
-use Interop\Queue\Context;
-use Interop\Queue\Message;
-use Karriere\JsonDecoder\JsonDecoder;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
@@ -69,6 +70,14 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
         $this->dispatcher = $eventDispatcher;
     }
 
+    /**
+     * @param SearchNoHitsMessage $message
+     *
+     * @throws MaterialTypeException
+     * @throws PlatformAuthException
+     * @throws PlatformSearchException
+     * @throws InvalidArgumentException
+     */
     public function __invoke(SearchNoHitsMessage $message)
     {
         $identifier = $message->getIdentifier();

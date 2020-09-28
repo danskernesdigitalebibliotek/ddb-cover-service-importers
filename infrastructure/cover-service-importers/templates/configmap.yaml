@@ -17,4 +17,4 @@ data:
   APP_ELASTIC_URL: {{ .Values.app.elastic_url | quote }}
   APP_AMQP_SERVER: {{ .Values.app.amqp.server | quote }}
   APP_AMQP_PORT: {{ .Values.app.amqp.port | quote }}
-  PHP_MEMORY_LIMIT: { { .Values.app.php.memory_limit | quote } }
+  PHP_MEMORY_LIMIT: {{ .Values.app.php.memory_limit | quote }}

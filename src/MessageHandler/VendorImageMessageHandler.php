@@ -38,8 +38,7 @@ class VendorImageMessageHandler implements MessageHandlerInterface
      * @param MessageBusInterface $bus
      * @param LoggerInterface $statsLogger
      */
-    public function __construct(EntityManagerInterface $entityManager, VendorImageValidatorService $imageValidator,
-                                MessageBusInterface $bus, LoggerInterface $statsLogger)
+    public function __construct(EntityManagerInterface $entityManager, VendorImageValidatorService $imageValidator, MessageBusInterface $bus, LoggerInterface $statsLogger)
     {
         $this->em = $entityManager;
         $this->imageValidator = $imageValidator;
@@ -47,6 +46,11 @@ class VendorImageMessageHandler implements MessageHandlerInterface
         $this->statsLogger = $statsLogger;
     }
 
+    /**
+     * @param VendorImageMessage $message
+     *
+     * @throws GuzzleException
+     */
     public function __invoke(VendorImageMessage $message)
     {
         // Look up vendor to get information about image server.
