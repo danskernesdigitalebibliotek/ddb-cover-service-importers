@@ -34,7 +34,7 @@ class SourceUpdateImageMetaCommand extends Command
      */
     protected function configure()
     {
-        $this->setDescription('Reindex search table')
+        $this->setDescription('Update image metadata informations')
             ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'Only for this identifier');
     }
 
