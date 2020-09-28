@@ -21,6 +21,9 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
+/**
+ * Class SourceDownloadCoversCommand.
+ */
 class SourceDownloadCoversCommand extends Command
 {
     use ProgressBarTrait;
@@ -31,6 +34,16 @@ class SourceDownloadCoversCommand extends Command
     private $validator;
     private $dispatcher;
 
+    /**
+     * SourceDownloadCoversCommand constructor.
+     *
+     * @param EntityManagerInterface $entityManager
+     *   The entity manager to access that database
+     * @param VendorImageValidatorService $validator
+     *   Image validation service used to detected remote cover
+     * @param EventDispatcherInterface $eventDispatcher
+     *   Send event into the system
+     */
     public function __construct(EntityManagerInterface $entityManager, VendorImageValidatorService $validator, EventDispatcherInterface $eventDispatcher)
     {
         $this->em = $entityManager;
@@ -104,6 +117,7 @@ class SourceDownloadCoversCommand extends Command
             ++$i;
         }
 
+        // Finish progress-bar and start the command line on a new line.
         $this->progressFinish();
         $output->writeln('');
 
