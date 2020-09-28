@@ -6,25 +6,31 @@
 
 namespace App\Command\Source;
 
+use App\Entity\Source;
+use App\Event\VendorEvent;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
+use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
-class SourceUpdateImageMetaCommand extends Command
+class SourceDownloadCoversCommand extends Command
 {
-    protected static $defaultName = 'app:source:update-image-meta';
+    protected static $defaultName = 'app:source:download';
 
     private $em;
     private $validator;
+    private $dispatcher;
 
-    public function __construct(EntityManagerInterface $entityManager, VendorImageValidatorService $validator)
+    public function __construct(EntityManagerInterface $entityManager, VendorImageValidatorService $validator, EventDispatcherInterface $eventDispatcher)
     {
         $this->em = $entityManager;
         $this->validator = $validator;
+        $this->dispatcher = $eventDispatcher;
 
         parent::__construct();
     }
@@ -34,7 +40,8 @@ class SourceUpdateImageMetaCommand extends Command
      */
     protected function configure()
     {
-        $this->setDescription('Update image metadata informations')
+        $this->setDescription('Try to (re-)download source records that have not been downloaded into Cover store')
+            ->addOption('vendor-id', null, InputOption::VALUE_OPTIONAL, 'Limit to this vendor')
             ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'Only for this identifier');
     }
 
@@ -43,18 +50,25 @@ class SourceUpdateImageMetaCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $vendorId = $input->getOption('vendor-id');
         $identifier = $input->getOption('identifier');
+
         $batchSize = 50;
         $i = 0;
+        $found = 0;
 
-        // @TODO: Move into repository and use query builder.
-        $queryStr = 'SELECT s FROM App\Entity\Source s WHERE s.originalFile IS NOT NULL AND s.originalContentLength IS NULL AND s.originalLastModified IS NULL';
+        $queryStr = 'SELECT s FROM App\Entity\Source s WHERE s.image IS NULL AND s.originalFile IS NOT NULL';
         if (!is_null($identifier)) {
-            $queryStr = 'SELECT s FROM App\Entity\Source s WHERE s.matchId='.$identifier;
+            $queryStr .= ' AND s.matchId = '.$identifier;
         }
+        if (!is_null($vendorId)) {
+            $queryStr .= ' AND s.vendor = '.$vendorId;
+        }
+
         $query = $this->em->createQuery($queryStr);
         $iterableResult = $query->iterate();
         foreach ($iterableResult as $row) {
+            /** @var Source $source */
             $source = $row[0];
 
             $item = new VendorImageItem();
@@ -62,8 +76,11 @@ class SourceUpdateImageMetaCommand extends Command
             $this->validator->validateRemoteImage($item);
 
             if ($item->isFound()) {
-                $source->setOriginalLastModified($item->getOriginalLastModified());
-                $source->setOriginalContentLength($item->getOriginalContentLength());
+                $found++;
+                echo "+";
+
+                $event = new VendorEvent(VendorState::UPDATE, [$source->getMatchId()], $source->getMatchType(), $source->getVendor()->getId());
+                $this->dispatcher->dispatch($event, $event::NAME);
             }
 
             // Free memory when batch size is reached.
@@ -74,6 +91,8 @@ class SourceUpdateImageMetaCommand extends Command
 
             ++$i;
         }
+
+        echo "\nFound: " . $found . "\n";
 
         $this->em->flush();
         $this->em->clear();
