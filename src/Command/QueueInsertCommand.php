@@ -6,9 +6,8 @@
 
 namespace App\Command;
 
-use App\Message\ProcessMessageSearch;
+use App\Message\SearchMessage;
 use App\Utils\Message\CoverUploadProcessMessage;
-use App\Utils\Message\ProcessMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Symfony\Component\Console\Command\Command;
@@ -74,8 +73,8 @@ class QueueInsertCommand extends Command
 //                    $message = JSON::encode($processMessage);
                     break;
 
-                case 'SearchTopic':
-                    $message = new ProcessMessageSearch();
+                case 'Search':
+                    $message = new SearchMessage();
                     $message->setIdentifier('9788799239535')
                         ->setOperation($vendorState ?? VendorState::UPDATE)
                         ->setIdentifierType(IdentifierType::ISBN)

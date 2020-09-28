@@ -18,15 +18,14 @@ use App\Exception\CoverStoreUnexpectedException;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Utils\Message\ProcessMessage;
 use Doctrine\ORM\EntityManagerInterface;
-use Enqueue\Client\ProducerInterface;
 use Enqueue\Client\TopicSubscriberInterface;
-use Enqueue\Util\JSON;
 use Interop\Queue\Context;
 use Interop\Queue\Message;
 use Interop\Queue\Processor;
 use Karriere\JsonDecoder\JsonDecoder;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class CoverStoreProcessor.
@@ -34,7 +33,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 class CoverStoreProcessor implements Processor, TopicSubscriberInterface
 {
     private $em;
-    private $producer;
+    private $bus;
     private $statsLogger;
     private $coverStore;
 
@@ -42,14 +41,14 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
      * CoverStoreProcessor constructor.
      *
      * @param EntityManagerInterface $entityManager
-     * @param ProducerInterface $producer
+     * @param MessageBusInterface $bus
      * @param LoggerInterface $statsLogger
      * @param CoverStoreInterface $coverStore
      */
-    public function __construct(EntityManagerInterface $entityManager, ProducerInterface $producer, LoggerInterface $statsLogger, CoverStoreInterface $coverStore)
+    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, LoggerInterface $statsLogger, CoverStoreInterface $coverStore)
     {
         $this->em = $entityManager;
-        $this->producer = $producer;
+        $this->bus = $bus;
         $this->statsLogger = $statsLogger;
         $this->coverStore = $coverStore;
     }
@@ -60,28 +59,28 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
     public function process(Message $message, Context $session)
     {
         $jsonDecoder = new JsonDecoder(true);
-        $processMessage = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
+        $message = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
 
         // Look up vendor to get information about image server.
         $vendorRepos = $this->em->getRepository(Vendor::class);
-        $vendor = $vendorRepos->find($processMessage->getVendorId());
+        $vendor = $vendorRepos->find($message->getVendorId());
 
         // Look up source to get source url and link it to the image.
         $sourceRepos = $this->em->getRepository(Source::class);
         $source = $sourceRepos->findOneBy([
-            'matchId' => $processMessage->getIdentifier(),
+            'matchId' => $message->getIdentifier(),
             'vendor' => $vendor,
         ]);
 
         try {
-            $identifier = $processMessage->getIdentifier();
+            $identifier = $message->getIdentifier();
             $item = $this->coverStore->upload($source->getOriginalFile(), $vendor->getName(), $identifier, [$identifier]);
         } catch (CoverStoreCredentialException $exception) {
             // Access issues.
             $this->statsLogger->error('Access denied to cover store', [
                 'service' => 'CoverStoreProcessor',
                 'message' => $exception->getMessage(),
-                'identifier' => $processMessage->getIdentifier(),
+                'identifier' => $message->getIdentifier(),
             ]);
 
             return self::REJECT;
@@ -96,7 +95,7 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
             $this->statsLogger->error('Cover store error - not found', [
                 'service' => 'CoverStoreProcessor',
                 'message' => $exception->getMessage(),
-                'identifier' => $processMessage->getIdentifier(),
+                'identifier' => $message->getIdentifier(),
                 'url' => $source->getOriginalFile(),
             ]);
 
@@ -105,7 +104,7 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
             $this->statsLogger->error('Cover was to large', [
                 'service' => 'CoverStoreProcessor',
                 'message' => $exception->getMessage(),
-                'identifier' => $processMessage->getIdentifier(),
+                'identifier' => $message->getIdentifier(),
                 'url' => $source->getOriginalFile(),
             ]);
 
@@ -114,7 +113,7 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
             $this->statsLogger->error('Cover store unexpected error', [
                 'service' => 'CoverStoreProcessor',
                 'message' => $exception->getMessage(),
-                'identifier' => $processMessage->getIdentifier(),
+                'identifier' => $message->getIdentifier(),
             ]);
 
             return self::REJECT;
@@ -122,7 +121,7 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
             $this->statsLogger->error('Cover store invalid resource error', [
                 'service' => 'CoverStoreProcessor',
                 'message' => $exception->getMessage(),
-                'identifier' => $processMessage->getIdentifier(),
+                'identifier' => $message->getIdentifier(),
             ]);
 
             return self::REJECT;
@@ -130,7 +129,7 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
             $this->statsLogger->error('Cover store error - retry', [
                 'service' => 'CoverStoreProcessor',
                 'message' => $exception->getMessage(),
-                'identifier' => $processMessage->getIdentifier(),
+                'identifier' => $message->getIdentifier(),
             ]);
 
             // Service issues, retry the job once. If this a redelivered message reject.
@@ -160,12 +159,12 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
             // SearchProcess job that's up next.
             if ($image->isAutoGenerated()) {
                 try {
-                    $this->coverStore->remove('Unknown', $processMessage->getIdentifier());
+                    $this->coverStore->remove('Unknown', $message->getIdentifier());
                 } catch (Exception $exception) {
                     $this->statsLogger->error('Error removing auto-generated cover - replaced by real cover', [
                         'service' => 'CoverStoreProcessor',
                         'message' => $exception->getMessage(),
-                        'identifier' => $processMessage->getIdentifier(),
+                        'identifier' => $message->getIdentifier(),
                     ]);
                 }
             }
@@ -182,8 +181,8 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
         $this->em->flush();
 
         // Send message to next part of the process.
-        $processMessage->setImageId($image->getId());
-        $this->producer->sendEvent('SearchTopic', JSON::encode($processMessage));
+        $message->setImageId($image->getId());
+        $this->bus->dispatch($message);
 
         return self::ACK;
     }

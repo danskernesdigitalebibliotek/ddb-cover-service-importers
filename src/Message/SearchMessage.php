@@ -9,7 +9,7 @@ namespace App\Message;
 /**
  * Class ProcessMessage.
  */
-class ProcessMessageSearch //implements ProcessMessageInterface
+class SearchMessage //implements ProcessMessageInterface
 {
     private $operation;
     private $identifierType;
@@ -29,7 +29,7 @@ class ProcessMessageSearch //implements ProcessMessageInterface
     /**
      * @param mixed $operation
      *
-     * @return ProcessMessageSearch
+     * @return SearchMessage
      */
     public function setOperation($operation): self
     {
@@ -49,7 +49,7 @@ class ProcessMessageSearch //implements ProcessMessageInterface
     /**
      * @param mixed $type
      *
-     * @return ProcessMessageSearch
+     * @return SearchMessage
      */
     public function setIdentifierType($type): self
     {
@@ -69,7 +69,7 @@ class ProcessMessageSearch //implements ProcessMessageInterface
     /**
      * @param mixed $identifier
      *
-     * @return ProcessMessageSearch
+     * @return SearchMessage
      */
     public function setIdentifier($identifier): self
     {
@@ -89,7 +89,7 @@ class ProcessMessageSearch //implements ProcessMessageInterface
     /**
      * @param mixed $vendorId
      *
-     * @return ProcessMessageSearch
+     * @return SearchMessage
      */
     public function setVendorId($vendorId): self
     {
@@ -109,7 +109,7 @@ class ProcessMessageSearch //implements ProcessMessageInterface
     /**
      * @param mixed $imageId
      *
-     * @return ProcessMessageSearch
+     * @return SearchMessage
      */
     public function setImageId($imageId): self
     {
@@ -135,7 +135,7 @@ class ProcessMessageSearch //implements ProcessMessageInterface
      * @param bool $useIt
      *   True to use or false to by-pass search cache
      *
-     * @return ProcessMessageSearch
+     * @return SearchMessage
      */
     public function setUseSearchCache(bool $useIt): self
     {

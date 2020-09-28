@@ -9,7 +9,7 @@ namespace App\Message;
 /**
  * Class ProcessMessage.
  */
-interface ProcessMessageInterface
+interface MessageInterface
 {
     public function getOperation();
     public function setOperation($operation): self;

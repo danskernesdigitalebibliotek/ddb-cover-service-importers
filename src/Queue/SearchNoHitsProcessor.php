@@ -20,9 +20,7 @@ use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Doctrine\DBAL\ConnectionException;
 use Doctrine\ORM\EntityManagerInterface;
-use Enqueue\Client\ProducerInterface;
 use Enqueue\Client\TopicSubscriberInterface;
-use Enqueue\Util\JSON;
 use GuzzleHttp\Exception\GuzzleException;
 use Interop\Queue\Context;
 use Interop\Queue\Message;
@@ -30,6 +28,7 @@ use Interop\Queue\Processor;
 use Karriere\JsonDecoder\JsonDecoder;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class SearchNoHitsProcessor.
@@ -38,7 +37,7 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
 {
     private $em;
     private $coverStore;
-    private $producer;
+    private $bus;
     private $statsLogger;
     private $searchService;
     private $validatorService;
@@ -51,15 +50,15 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
      *
      * @param EntityManagerInterface $entityManager
      * @param CoverStoreInterface $coverStore
-     * @param ProducerInterface $producer
+     * @param MessageBusInterface $bus
      * @param LoggerInterface $statsLogger
      * @param SearchService $searchService
      */
-    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $coverStore, ProducerInterface $producer, LoggerInterface $statsLogger, SearchService $searchService, VendorImageValidatorService $validatorService, EventDispatcherInterface $eventDispatcher)
+    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $coverStore, MessageBusInterface $bus, LoggerInterface $statsLogger, SearchService $searchService, VendorImageValidatorService $validatorService, EventDispatcherInterface $eventDispatcher)
     {
         $this->em = $entityManager;
         $this->coverStore = $coverStore;
-        $this->producer = $producer;
+        $this->bus = $bus;
         $this->statsLogger = $statsLogger;
         $this->searchService = $searchService;
         $this->validatorService = $validatorService;
@@ -72,9 +71,9 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
     public function process(Message $message, Context $session)
     {
         $jsonDecoder = new JsonDecoder(true);
-        /* @var ProcessMessage $processMessage */
-        $processMessage = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
-        $identifier = $processMessage->getIdentifier();
+        /* @var ProcessMessage $message */
+        $message = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
+        $identifier = $message->getIdentifier();
 
         // If it's a "katalog" identifier, we will try to check if a matching
         // "basic" identifier exits and create the mapping.
@@ -140,7 +139,7 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
         } else {
             // Try to search the data well and match source entity. This might work as there is an race between when
             // vendors have a given cover and when the material is indexed into the data-well.
-            $type = $processMessage->getIdentifierType();
+            $type = $message->getIdentifierType();
             $material = $this->searchService->search($identifier, $type);
             $sourceRepos = $this->em->getRepository(Source::class);
 
@@ -148,18 +147,29 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
                 $source = $sourceRepos->findOneByVendorRank($is->getType(), $is->getId());
 
                 // Found matches in source table based on the data well search, so create jobs to re-index the source
-                // entities.
-                if (false !== $source) {
-                    // Also check that the source record has an image from the vendor as not all do.
-                    if (!is_null($source->getImage())) {
-                        $processMessage = new ProcessMessage();
-                        $processMessage->setIdentifier($source->getMatchId())
-                            ->setOperation(VendorState::UPDATE)
-                            ->setIdentifierType($source->getMatchType())
-                            ->setVendorId($source->getVendor()->getId())
-                            ->setImageId($source->getImage()->getId())
-                            ->setUseSearchCache(true);
-                        $this->producer->sendEvent('SearchTopic', JSON::encode($processMessage));
+                // entities. Also check that the source record has an image from the vendor as not all do.
+                if (false !== $source && !is_null($source->getImage())) {
+                    $message = new ProcessMessage();
+                    $message->setIdentifier($source->getMatchId())
+                        ->setOperation(VendorState::UPDATE)
+                        ->setIdentifierType($source->getMatchType())
+                        ->setVendorId($source->getVendor()->getId())
+                        ->setImageId($source->getImage()->getId())
+                        ->setUseSearchCache(true);
+                    $this->bus->dispatch($message);
+                }
+
+                // If the source image is null. It might have been made available since we asked the vendor for the
+                // cover.
+                if (is_null($source->getImage()) && !is_null($source->getOriginalFile())) {
+                    $item = new VendorImageItem();
+                    $item->setOriginalFile($source->getOriginalFile());
+                    try {
+                        $this->validatorService->validateRemoteImage($item);
+                    } catch (GuzzleException $e) {
+                        // Just remove this job from the queue, on fetch errors. This will ensure that the job is not
+                        // re-queue in infinity loop.
+                        return self::ACK;
                     }
 
                     // If the source image is null. It might have been made available since we asked the vendor for the
@@ -195,7 +205,7 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
 
         // @TODO re-enable when we start to process auto-generate cover queue
         // Send to auto-generate cover queue.
-        // $this->producer->sendEvent('CoverStoreAutoTopic', \json_encode($processMessage));
+        // $this->producer->sendEvent('CoverStoreAutoTopic', \json_encode($message));
 
         return self::ACK;
     }

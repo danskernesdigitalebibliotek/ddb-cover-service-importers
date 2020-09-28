@@ -11,7 +11,7 @@ use App\Entity\Source;
 use App\Event\IndexReadyEvent;
 use App\Exception\MaterialTypeException;
 use App\Exception\PlatformSearchException;
-use App\Message\ProcessMessageSearch;
+use App\Message\SearchMessage;
 use App\Service\OpenPlatform\SearchService;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
@@ -46,7 +46,7 @@ class SearchMessageHandler implements MessageHandlerInterface
         $this->searchService = $searchService;
     }
 
-    public function __invoke(ProcessMessageSearch $message)
+    public function __invoke(SearchMessage $message)
     {
         // Clean up: find all search that links back to a give source and remove them before sending new index event.
         // This is done even if the search below is a zero-hit.

@@ -8,6 +8,7 @@
 namespace App\Command\Search;
 
 use App\Entity\Source;
+use App\Message\SearchMessage;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Message\ProcessMessage;
 use App\Utils\Types\VendorState;
@@ -19,6 +20,7 @@ use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class SearchReindexCommand extends Command
 {
@@ -27,12 +29,12 @@ class SearchReindexCommand extends Command
     protected static $defaultName = 'app:search:reindex';
 
     private $em;
-    private $producer;
+    private $bus;
 
-    public function __construct(EntityManagerInterface $entityManager, ProducerInterface $producer)
+    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus)
     {
         $this->em = $entityManager;
-        $this->producer = $producer;
+        $this->bus = $bus;
 
         parent::__construct();
     }
@@ -91,14 +93,14 @@ class SearchReindexCommand extends Command
             $source = $row[0];
 
             // Build and create new search job which will trigger index event.
-            $processMessage = new ProcessMessage();
-            $processMessage->setIdentifier($source->getMatchId())
+            $message = new SearchMessage();
+            $message->setIdentifier($source->getMatchId())
                 ->setOperation(true === $cleanUp ? VendorState::DELETE_AND_UPDATE : VendorState::UPDATE)
                 ->setIdentifierType($source->getMatchType())
                 ->setVendorId($source->getVendor()->getId())
                 ->setImageId($source->getImage()->getId())
                 ->setUseSearchCache(!$withOutSearchCache);
-            $this->producer->sendEvent('SearchTopic', JSON::encode($processMessage));
+            $this->bus->dispatch($message);
 
             // Free memory when batch size is reached.
             if (0 === ($i % $batchSize)) {
