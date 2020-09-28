@@ -2,17 +2,20 @@
 
 /**
  * @file
+ * Helper command to search the source table for potential new images.
  */
 
 namespace App\Command\Source;
 
 use App\Entity\Source;
 use App\Event\VendorEvent;
+use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -20,6 +23,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class SourceDownloadCoversCommand extends Command
 {
+    use ProgressBarTrait;
+
     protected static $defaultName = 'app:source:download';
 
     private $em;
@@ -57,6 +62,12 @@ class SourceDownloadCoversCommand extends Command
         $i = 0;
         $found = 0;
 
+        $this->progressBar = new ProgressBar($output);
+        $this->progressBar->setFormat('[%bar%] %elapsed% (%memory%) - %message%');
+        $this->progressMessage('Search database source table');
+        $this->progressBar->start();
+        $this->progressBar->advance();
+
         $queryStr = 'SELECT s FROM App\Entity\Source s WHERE s.image IS NULL AND s.originalFile IS NOT NULL';
         if (!is_null($identifier)) {
             $queryStr .= ' AND s.matchId = '.$identifier;
@@ -76,12 +87,13 @@ class SourceDownloadCoversCommand extends Command
             $this->validator->validateRemoteImage($item);
 
             if ($item->isFound()) {
-                $found++;
-                echo "+";
-
+                ++$found;
                 $event = new VendorEvent(VendorState::UPDATE, [$source->getMatchId()], $source->getMatchType(), $source->getVendor()->getId());
                 $this->dispatcher->dispatch($event, $event::NAME);
             }
+
+            $this->progressAdvance();
+            $this->progressMessage(sprintf('Found: %d. Not found: %d.', $found, ($i + 1) - $found));
 
             // Free memory when batch size is reached.
             if (0 === ($i % $batchSize)) {
@@ -92,9 +104,9 @@ class SourceDownloadCoversCommand extends Command
             ++$i;
         }
 
-        echo "\nFound: " . $found . "\n";
+        $this->progressFinish();
+        $output->writeln('');
 
-        $this->em->flush();
-        $this->em->clear();
+        return 0;
     }
 }
