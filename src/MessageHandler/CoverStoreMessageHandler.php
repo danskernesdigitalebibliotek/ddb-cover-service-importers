@@ -4,33 +4,37 @@
  * @file
  */
 
-namespace App\Queue;
+namespace App\MessageHandler;
 
 use App\Entity\Image;
 use App\Entity\Source;
 use App\Entity\Vendor;
+use App\Exception\CoverStoreAlreadyExistsException;
 use App\Exception\CoverStoreCredentialException;
 use App\Exception\CoverStoreException;
 use App\Exception\CoverStoreInvalidResourceException;
 use App\Exception\CoverStoreNotFoundException;
 use App\Exception\CoverStoreTooLargeFileException;
 use App\Exception\CoverStoreUnexpectedException;
+use App\Exception\ReQueueMessageException;
+use App\Message\CoverStoreMessage;
+use App\Message\SearchMessage;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Utils\Message\ProcessMessage;
 use Doctrine\ORM\EntityManagerInterface;
-use Enqueue\Client\TopicSubscriberInterface;
 use Interop\Queue\Context;
 use Interop\Queue\Message;
-use Interop\Queue\Processor;
 use Karriere\JsonDecoder\JsonDecoder;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
+use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class CoverStoreProcessor.
  */
-class CoverStoreProcessor implements Processor, TopicSubscriberInterface
+class CoverStoreMessageHandler implements MessageHandlerInterface
 {
     private $em;
     private $bus;
@@ -54,13 +58,20 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @param CoverStoreMessage $message
+     *
+     * @return mixed
+     *
+     * @throws CoverStoreAlreadyExistsException
+     * @throws CoverStoreCredentialException
+     * @throws CoverStoreException
+     * @throws CoverStoreNotFoundException
+     * @throws CoverStoreTooLargeFileException
+     * @throws CoverStoreUnexpectedException
+     * @throws ReQueueMessageException
      */
-    public function process(Message $message, Context $session)
+    public function __invoke(CoverStoreMessage $message)
     {
-        $jsonDecoder = new JsonDecoder(true);
-        $message = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
-
         // Look up vendor to get information about image server.
         $vendorRepos = $this->em->getRepository(Vendor::class);
         $vendor = $vendorRepos->find($message->getVendorId());
@@ -83,7 +94,7 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
                 'identifier' => $message->getIdentifier(),
             ]);
 
-            return self::REJECT;
+            throw new UnrecoverableMessageHandlingException('Access denied to cover store');
         } catch (CoverStoreNotFoundException $exception) {
             // Update image entity and remove source URL.
             $source->setOriginalFile(null);
@@ -99,7 +110,7 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
                 'url' => $source->getOriginalFile(),
             ]);
 
-            return self::REJECT;
+            throw new UnrecoverableMessageHandlingException('Cover store error - not found');
         } catch (CoverStoreTooLargeFileException $exception) {
             $this->statsLogger->error('Cover was to large', [
                 'service' => 'CoverStoreProcessor',
@@ -108,7 +119,7 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
                 'url' => $source->getOriginalFile(),
             ]);
 
-            return self::REJECT;
+            throw new UnrecoverableMessageHandlingException('Cover was to large');
         } catch (CoverStoreUnexpectedException $exception) {
             $this->statsLogger->error('Cover store unexpected error', [
                 'service' => 'CoverStoreProcessor',
@@ -116,7 +127,7 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
                 'identifier' => $message->getIdentifier(),
             ]);
 
-            return self::REJECT;
+            throw new UnrecoverableMessageHandlingException('Cover store unexpected error');
         } catch (CoverStoreInvalidResourceException $exception) {
             $this->statsLogger->error('Cover store invalid resource error', [
                 'service' => 'CoverStoreProcessor',
@@ -124,7 +135,7 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
                 'identifier' => $message->getIdentifier(),
             ]);
 
-            return self::REJECT;
+            throw new UnrecoverableMessageHandlingException('Cover store invalid resource error');
         } catch (CoverStoreException $exception) {
             $this->statsLogger->error('Cover store error - retry', [
                 'service' => 'CoverStoreProcessor',
@@ -132,8 +143,8 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
                 'identifier' => $message->getIdentifier(),
             ]);
 
-            // Service issues, retry the job once. If this a redelivered message reject.
-            return $message->isRedelivered() ? self::REJECT : self::REQUEUE;
+            // Throw exception for retry.
+            throw new ReQueueMessageException('Cover store error - retry');
         }
 
         // Log information about the image uploaded.
@@ -180,27 +191,16 @@ class CoverStoreProcessor implements Processor, TopicSubscriberInterface
         $source->setImage($image);
         $this->em->flush();
 
-        // Send message to next part of the process.
         $message->setImageId($image->getId());
-        $this->bus->dispatch($message);
 
-        return self::ACK;
+        // Send message to next part of the process.
+        $searchMessage = new SearchMessage();
+        $searchMessage->setIdentifier($message->getIdentifier())
+            ->setIdentifierType($message->getIdentifierType())
+            ->setOperation($message->getOperation())
+            ->setImageId($message->getImageId())
+            ->setVendorId($message->getVendorId())
+            ->setUseSearchCache($message->useSearchCache());
+        $this->bus->dispatch($searchMessage);
     }
-
-    // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedTopics()
-    {
-        return [
-            'CoverStoreTopic' => [
-                'processorName' => 'CoverStoreProcessor',
-                'queueName' => 'CoverStoreQueue',
-            ],
-        ];
-    }
-
-    // phpcs:enable
 }

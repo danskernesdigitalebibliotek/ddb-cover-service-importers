@@ -4,28 +4,21 @@
  * @file
  */
 
-namespace App\Queue;
+namespace App\MessageHandler;
 
 use App\Entity\Source;
 use App\Entity\Vendor;
-use App\Message\SearchMessage;
+use App\Message\CoverStoreMessage;
 use App\Message\VendorImageMessage;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
-use App\Utils\Message\ProcessMessage;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
-use Enqueue\Client\ProducerInterface;
-use Enqueue\Client\TopicSubscriberInterface;
-use Enqueue\Util\JSON;
 use GuzzleHttp\Exception\GuzzleException;
-use Interop\Queue\Context;
-use Interop\Queue\Message;
-use Interop\Queue\Processor;
-use Karriere\JsonDecoder\JsonDecoder;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class VendorImageMessageHandler.
@@ -34,7 +27,7 @@ class VendorImageMessageHandler implements MessageHandlerInterface
 {
     private $em;
     private $imageValidator;
-    private $producer;
+    private $bus;
     private $statsLogger;
 
     /**
@@ -42,15 +35,15 @@ class VendorImageMessageHandler implements MessageHandlerInterface
      *
      * @param EntityManagerInterface $entityManager
      * @param VendorImageValidatorService $imageValidator
-     * @param ProducerInterface $producer
+     * @param MessageBusInterface $bus
      * @param LoggerInterface $statsLogger
      */
-    public function __construct(EntityManagerInterface $entityManager,VendorImageValidatorService $imageValidator,
-                                ProducerInterface $producer, LoggerInterface $statsLogger)
+    public function __construct(EntityManagerInterface $entityManager, VendorImageValidatorService $imageValidator,
+                                MessageBusInterface $bus, LoggerInterface $statsLogger)
     {
         $this->em = $entityManager;
         $this->imageValidator = $imageValidator;
-        $this->producer = $producer;
+        $this->bus = $bus;
         $this->statsLogger = $statsLogger;
     }
 
@@ -102,7 +95,15 @@ class VendorImageMessageHandler implements MessageHandlerInterface
         $this->imageValidator->validateRemoteImage($item);
 
         if ($item->isFound()) {
-            $this->producer->sendEvent('CoverStoreTopic', JSON::encode($message));
+            // Hack to send message into new queue.
+            $coverStoreMessage = new CoverStoreMessage();
+            $coverStoreMessage->setIdentifier($message->getIdentifier())
+                ->setIdentifierType($message->getIdentifierType())
+                ->setImageId($message->getImageId())
+                ->setOperation($message->getOperation())
+                ->setUseSearchCache($message->useSearchCache())
+                ->setVendorId($message->getVendorId());
+            $this->bus->dispatch($coverStoreMessage);
 
             $source->setOriginalLastModified($item->getOriginalLastModified());
             $source->setOriginalContentLength($item->getOriginalContentLength());
@@ -140,7 +141,14 @@ class VendorImageMessageHandler implements MessageHandlerInterface
         $this->imageValidator->isRemoteImageUpdated($item, $source);
 
         if ($item->isUpdated()) {
-            $this->producer->sendEvent('CoverStoreTopic', JSON::encode($message));
+            $coverStoreMessage = new CoverStoreMessage();
+            $coverStoreMessage->setIdentifier($message->getIdentifier())
+                ->setIdentifierType($message->getIdentifierType())
+                ->setImageId($message->getImageId())
+                ->setOperation($message->getOperation())
+                ->setUseSearchCache($message->useSearchCache())
+                ->setVendorId($message->getVendorId());
+            $this->bus->dispatch($coverStoreMessage);
         } else {
             throw new UnrecoverableMessageHandlingException('Remote image is not updated');
         }
