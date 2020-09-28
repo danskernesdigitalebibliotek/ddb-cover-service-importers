@@ -62,6 +62,9 @@ class SearchPopulateCommand extends Command
         $this->populateService->setProgressBar($progressBar);
         $this->populateService->populate($index, $id);
 
+        // Start the command line on a new line.
+        $output->writeln('');
+
         return 0;
     }
 }
