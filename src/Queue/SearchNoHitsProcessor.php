@@ -9,8 +9,11 @@ namespace App\Queue;
 
 use App\Entity\Search;
 use App\Entity\Source;
+use App\Event\VendorEvent;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\OpenPlatform\SearchService;
+use App\Service\VendorService\VendorImageValidatorService;
+use App\Utils\CoverVendor\VendorImageItem;
 use App\Utils\Message\ProcessMessage;
 use App\Utils\OpenPlatform\Material;
 use App\Utils\Types\IdentifierType;
@@ -20,11 +23,13 @@ use Doctrine\ORM\EntityManagerInterface;
 use Enqueue\Client\ProducerInterface;
 use Enqueue\Client\TopicSubscriberInterface;
 use Enqueue\Util\JSON;
+use GuzzleHttp\Exception\GuzzleException;
 use Interop\Queue\Context;
 use Interop\Queue\Message;
 use Interop\Queue\Processor;
 use Karriere\JsonDecoder\JsonDecoder;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class SearchNoHitsProcessor.
@@ -36,6 +41,8 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
     private $producer;
     private $statsLogger;
     private $searchService;
+    private $validatorService;
+    private $dispatcher;
 
     const VENDOR = 'Unknown';
 
@@ -48,13 +55,15 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
      * @param LoggerInterface $statsLogger
      * @param SearchService $searchService
      */
-    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $coverStore, ProducerInterface $producer, LoggerInterface $statsLogger, SearchService $searchService)
+    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $coverStore, ProducerInterface $producer, LoggerInterface $statsLogger, SearchService $searchService, VendorImageValidatorService $validatorService, EventDispatcherInterface $eventDispatcher)
     {
         $this->em = $entityManager;
         $this->coverStore = $coverStore;
         $this->producer = $producer;
         $this->statsLogger = $statsLogger;
         $this->searchService = $searchService;
+        $this->validatorService = $validatorService;
+        $this->dispatcher = $eventDispatcher;
     }
 
     /**
@@ -149,6 +158,25 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
                         ->setImageId($source->getImage()->getId())
                         ->setUseSearchCache(true);
                     $this->producer->sendEvent('SearchTopic', JSON::encode($processMessage));
+                }
+
+                // If the source image is null. It might have been made available since we asked the vendor for the
+                // cover.
+                if (is_null($source->getImage()) && !is_null($source->getOriginalFile())) {
+                    $item = new VendorImageItem();
+                    $item->setOriginalFile($source->getOriginalFile());
+                    try {
+                        $this->validatorService->validateRemoteImage($item);
+                    } catch (GuzzleException $e) {
+                        // Just remove this job from the queue, on fetch errors. This will ensure that the job is not
+                        // re-queue in infinity loop.
+                        return self::ACK;
+                    }
+
+                    if ($item->isFound()) {
+                        $event = new VendorEvent(VendorState::UPDATE, [$source->getMatchId()], $source->getMatchType(), $source->getVendor()->getId());
+                        $this->dispatcher->dispatch($event, $event::NAME);
+                    }
                 }
             }
 
