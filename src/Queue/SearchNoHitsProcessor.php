@@ -10,6 +10,7 @@ namespace App\Queue;
 use App\Entity\Search;
 use App\Entity\Source;
 use App\Event\VendorEvent;
+use App\Message\CoverStoreAutoMessage;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\OpenPlatform\SearchService;
 use App\Service\VendorService\VendorImageValidatorService;
@@ -205,7 +206,14 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
 
         // @TODO re-enable when we start to process auto-generate cover queue
         // Send to auto-generate cover queue.
-        // $this->producer->sendEvent('CoverStoreAutoTopic', \json_encode($message));
+//        $coverStoreAutoMessage = new CoverStoreAutoMessage();
+//        $coverStoreAutoMessage->setIdentifier($message->getIdentifier())
+//            ->setIdentifierType($message->getIdentifierType())
+//            ->setImageId($message->getImageId())
+//            ->setOperation($message->getOperation())
+//            ->setVendorId($message->getVendorId())
+//            ->setUseSearchCache($message->useSearchCache());
+//        $this->bus->dispatch($coverStoreAutoMessage);
 
         return self::ACK;
     }

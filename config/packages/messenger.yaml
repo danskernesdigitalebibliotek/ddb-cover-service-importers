@@ -27,6 +27,12 @@ framework:
                     exchange:
                         name: coverstore
 
+            cover-store-auto-queue:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    exchange:
+                        name: coverstoreauto
+
             background-queue:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                 options:
@@ -40,3 +46,4 @@ framework:
             'App\Message\DeleteMessage': background-queue
             'App\Message\VendorImageMessage': cover-store-queue
             'App\Message\CoverStoreMessage': cover-store-queue
+            'App\Message\CoverStoreAutoMessage': cover-store-auto-queue
