@@ -6,8 +6,8 @@
 
 namespace App\Command;
 
+use App\Message\CoverUserUploadMessage;
 use App\Message\SearchMessage;
-use App\Utils\Message\CoverUploadProcessMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Symfony\Component\Console\Command\Command;
@@ -63,14 +63,13 @@ class QueueInsertCommand extends Command
         if ($withTestMessage) {
             // Test messages for easy testing.
             switch ($topic) {
-                case 'UserUploadImageTopic':
-//                    $processMessage = new CoverUploadProcessMessage();
-//                    $processMessage->setIdentifierType(IdentifierType::PID);
-//                    $processMessage->setIdentifier('1234567890');
-//                    $processMessage->setVendorId('15');
-//                    $processMessage->setImageUrl('https://www.danskernesdigitalebibliotek.dk/fileadmin/_kulturstyrelsen/images/ddb/logo.png');
-//                    $processMessage->setOperation($vendorState ?? VendorState::INSERT);
-//                    $message = JSON::encode($processMessage);
+                case 'UserUploadImage':
+                    $processMessage = new CoverUserUploadMessage();
+                    $processMessage->setIdentifierType(IdentifierType::PID);
+                    $processMessage->setIdentifier('1234567890');
+                    $processMessage->setVendorId('15');
+                    $processMessage->setImageUrl('https://www.danskernesdigitalebibliotek.dk/fileadmin/_kulturstyrelsen/images/ddb/logo.png');
+                    $processMessage->setOperation($vendorState ?? VendorState::INSERT);
                     break;
 
                 case 'Search':

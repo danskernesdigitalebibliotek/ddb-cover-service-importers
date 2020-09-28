@@ -7,12 +7,12 @@
  * Please note that this class is shared between this repository and the cover upload service repository.
  */
 
-namespace App\Utils\Message;
+namespace App\Message;
 
 /**
- * Class CoverUploadProcessMessage.
+ * Class CoverUploadMessage.
  */
-class CoverUploadProcessMessage implements \JsonSerializable
+class CoverUserUploadMessage
 {
     private $operation;
     private $identifierType;
@@ -20,21 +20,6 @@ class CoverUploadProcessMessage implements \JsonSerializable
     private $imageUrl;
     private $accrediting;
     private $vendorId;
-
-    /**
-     * {@inheritdoc}
-     *
-     * Serialization function for the object.
-     */
-    public function jsonSerialize(): array
-    {
-        $arr = [];
-        foreach ($this as $key => $value) {
-            $arr[$key] = $value;
-        }
-
-        return $arr;
-    }
 
     /**
      * @return string
@@ -47,7 +32,7 @@ class CoverUploadProcessMessage implements \JsonSerializable
     /**
      * @param string $operation
      *
-     * @return CoverUploadProcessMessage
+     * @return CoverUserUploadMessage
      */
     public function setOperation(string $operation): self
     {
@@ -67,7 +52,7 @@ class CoverUploadProcessMessage implements \JsonSerializable
     /**
      * @param string $type
      *
-     * @return CoverUploadProcessMessage
+     * @return CoverUserUploadMessage
      */
     public function setIdentifierType(string $type): self
     {
@@ -87,7 +72,7 @@ class CoverUploadProcessMessage implements \JsonSerializable
     /**
      * @param string $identifier
      *
-     * @return CoverUploadProcessMessage
+     * @return CoverUserUploadMessage
      */
     public function setIdentifier(string $identifier): self
     {
@@ -107,7 +92,7 @@ class CoverUploadProcessMessage implements \JsonSerializable
     /**
      * @param string $imageUrl
      *
-     * @return CoverUploadProcessMessage
+     * @return CoverUserUploadMessage
      */
     public function setImageUrl(string $imageUrl): self
     {
@@ -119,7 +104,7 @@ class CoverUploadProcessMessage implements \JsonSerializable
     /**
      * @param string $accrediting
      *
-     * @return $this
+     * @return CoverUserUploadMessage
      */
     public function setAccrediting(string $accrediting): self
     {
@@ -147,7 +132,7 @@ class CoverUploadProcessMessage implements \JsonSerializable
     /**
      * @param mixed $vendorId
      *
-     * @return CoverUploadProcessMessage
+     * @return CoverUserUploadMessage
      */
     public function setVendorId($vendorId): self
     {
