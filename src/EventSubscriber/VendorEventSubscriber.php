@@ -8,6 +8,7 @@ namespace App\EventSubscriber;
 
 use App\Event\VendorEvent;
 use App\Message\DeleteMessage;
+use App\Message\VendorImageMessage;
 use App\Utils\Message\ProcessMessage;
 use App\Utils\Types\VendorState;
 use Enqueue\Client\ProducerInterface;
@@ -62,8 +63,7 @@ class VendorEventSubscriber implements EventSubscriberInterface
         switch ($type) {
             case VendorState::INSERT:
             case VendorState::UPDATE:
-                $message = new ProcessMessage();
-                $jobName = 'VendorImageTopic';
+                $message = new VendorImageMessage();
                 break;
 
             case VendorState::DELETE:
@@ -76,12 +76,10 @@ class VendorEventSubscriber implements EventSubscriberInterface
         }
 
         foreach ($identifiers as $identifier) {
-
             $message->setOperation($type)
                 ->setIdentifier($identifier)
                 ->setVendorId($vendorId)
                 ->setIdentifierType($identifierType);
-
             $this->bus->dispatch($message);
         }
     }

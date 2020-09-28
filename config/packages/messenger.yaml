@@ -21,6 +21,12 @@ framework:
                     exchange:
                         name: search
 
+            cover-store-queue:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    exchange:
+                        name: background
+
             background-queue:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                 options:
@@ -32,3 +38,4 @@ framework:
         routing:
             'App\Message\SearchMessage': search-queue
             'App\Message\DeleteMessage': background-queue
+            'App\Message\VendorImageMessage': cover-store-queue
