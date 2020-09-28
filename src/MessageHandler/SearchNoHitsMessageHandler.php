@@ -5,36 +5,37 @@
  * Handle no-hits queue processing.
  */
 
-namespace App\Queue;
+namespace App\MessageHandler;
 
 use App\Entity\Search;
 use App\Entity\Source;
 use App\Event\VendorEvent;
 use App\Message\CoverStoreAutoMessage;
+use App\Message\SearchMessage;
+use App\Message\SearchNoHitsMessage;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\OpenPlatform\SearchService;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
-use App\Utils\Message\ProcessMessage;
 use App\Utils\OpenPlatform\Material;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Doctrine\DBAL\ConnectionException;
 use Doctrine\ORM\EntityManagerInterface;
-use Enqueue\Client\TopicSubscriberInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Interop\Queue\Context;
 use Interop\Queue\Message;
-use Interop\Queue\Processor;
 use Karriere\JsonDecoder\JsonDecoder;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
+use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
- * Class SearchNoHitsProcessor.
+ * Class SearchNoHitsMessageHandler.
  */
-class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
+class SearchNoHitsMessageHandler implements MessageHandlerInterface
 {
     private $em;
     private $coverStore;
@@ -47,13 +48,15 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
     const VENDOR = 'Unknown';
 
     /**
-     * SearchNoHitsProcessor constructor.
+     * SearchNoHitsMessageHandler constructor.
      *
      * @param EntityManagerInterface $entityManager
      * @param CoverStoreInterface $coverStore
      * @param MessageBusInterface $bus
      * @param LoggerInterface $statsLogger
      * @param SearchService $searchService
+     * @param VendorImageValidatorService $validatorService
+     * @param EventDispatcherInterface $eventDispatcher
      */
     public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $coverStore, MessageBusInterface $bus, LoggerInterface $statsLogger, SearchService $searchService, VendorImageValidatorService $validatorService, EventDispatcherInterface $eventDispatcher)
     {
@@ -66,14 +69,8 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
         $this->dispatcher = $eventDispatcher;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function process(Message $message, Context $session)
+    public function __invoke(SearchNoHitsMessage $message)
     {
-        $jsonDecoder = new JsonDecoder(true);
-        /* @var ProcessMessage $message */
-        $message = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
         $identifier = $message->getIdentifier();
 
         // If it's a "katalog" identifier, we will try to check if a matching
@@ -117,7 +114,7 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
                             'source' => $basicPid,
                         ]);
 
-                        return self::ACK;
+                        return;
                     }
                 } catch (\Exception $exception) {
                     $this->em->getConnection()->rollBack();
@@ -150,7 +147,7 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
                 // Found matches in source table based on the data well search, so create jobs to re-index the source
                 // entities. Also check that the source record has an image from the vendor as not all do.
                 if (false !== $source && !is_null($source->getImage())) {
-                    $message = new ProcessMessage();
+                    $message = new SearchMessage();
                     $message->setIdentifier($source->getMatchId())
                         ->setOperation(VendorState::UPDATE)
                         ->setIdentifierType($source->getMatchType())
@@ -170,7 +167,7 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
                     } catch (GuzzleException $e) {
                         // Just remove this job from the queue, on fetch errors. This will ensure that the job is not
                         // re-queue in infinity loop.
-                        return self::ACK;
+                        throw new UnrecoverableMessageHandlingException('Image fetch error in validation');
                     }
 
                     // If the source image is null. It might have been made available since we asked the vendor for the
@@ -194,7 +191,7 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
                 }
             }
 
-            return self::ACK;
+            return;
         }
 
         // Log current not handled no hit.
@@ -214,23 +211,5 @@ class SearchNoHitsProcessor implements Processor, TopicSubscriberInterface
 //            ->setVendorId($message->getVendorId())
 //            ->setUseSearchCache($message->useSearchCache());
 //        $this->bus->dispatch($coverStoreAutoMessage);
-
-        return self::ACK;
     }
-
-    // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedTopics()
-    {
-        return ['SearchNoHitsTopic' => [
-                'processorName' => 'SearchNoHitsProcessor',
-                'queueName' => 'BackgroundQueue',
-            ],
-        ];
-    }
-
-    // phpcs:enable
 }

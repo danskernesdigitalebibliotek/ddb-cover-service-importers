@@ -8,6 +8,7 @@ namespace App\Command;
 
 use App\Message\CoverUserUploadMessage;
 use App\Message\SearchMessage;
+use App\Message\SearchNoHitsMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Symfony\Component\Console\Command\Command;
@@ -64,12 +65,12 @@ class QueueInsertCommand extends Command
             // Test messages for easy testing.
             switch ($topic) {
                 case 'UserUploadImage':
-                    $processMessage = new CoverUserUploadMessage();
-                    $processMessage->setIdentifierType(IdentifierType::PID);
-                    $processMessage->setIdentifier('1234567890');
-                    $processMessage->setVendorId('15');
-                    $processMessage->setImageUrl('https://www.danskernesdigitalebibliotek.dk/fileadmin/_kulturstyrelsen/images/ddb/logo.png');
-                    $processMessage->setOperation($vendorState ?? VendorState::INSERT);
+                    $message = new CoverUserUploadMessage();
+                    $message->setIdentifierType(IdentifierType::PID);
+                    $message->setIdentifier('1234567890');
+                    $message->setVendorId('15');
+                    $message->setImageUrl('https://www.danskernesdigitalebibliotek.dk/fileadmin/_kulturstyrelsen/images/ddb/logo.png');
+                    $message->setOperation($vendorState ?? VendorState::INSERT);
                     break;
 
                 case 'Search':
@@ -81,11 +82,10 @@ class QueueInsertCommand extends Command
                         ->setImageId(1);
                     break;
 
-                case 'SearchNoHitsTopic':
-//                    $processMessage = new ProcessMessage();
-//                    $processMessage->setIdentifier('9788799239535')
-//                        ->setIdentifierType(IdentifierType::ISBN);
-//                    $message = JSON::encode($processMessage);
+                case 'SearchNoHits':
+                    $message = new SearchNoHitsMessage();
+                    $message->setIdentifier('9788799239535')
+                        ->setIdentifierType(IdentifierType::ISBN);
                     break;
 
                 default:

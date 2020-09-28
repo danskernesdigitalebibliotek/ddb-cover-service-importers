@@ -44,6 +44,7 @@ framework:
         routing:
             'App\Message\SearchMessage': search-queue
             'App\Message\DeleteMessage': background-queue
+            'App\Message\SearchNoHitsMessage': background-queue
             'App\Message\VendorImageMessage': cover-store-queue
             'App\Message\CoverStoreMessage': cover-store-queue
             'App\Message\CoverUserUploadMessage': cover-store-queue
