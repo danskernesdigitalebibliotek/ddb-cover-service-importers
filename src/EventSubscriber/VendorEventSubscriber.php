@@ -9,10 +9,7 @@ namespace App\EventSubscriber;
 use App\Event\VendorEvent;
 use App\Message\DeleteMessage;
 use App\Message\VendorImageMessage;
-use App\Utils\Message\ProcessMessage;
 use App\Utils\Types\VendorState;
-use Enqueue\Client\ProducerInterface;
-use Enqueue\Util\JSON;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
@@ -21,18 +18,16 @@ use Symfony\Component\Messenger\MessageBusInterface;
  */
 class VendorEventSubscriber implements EventSubscriberInterface
 {
-    private $producer;
     private $bus;
 
     /**
      * VendorEventSubscriber constructor.
      *
-     * @param producerInterface $producer
-     *   Queue producer to send messages (jobs)
+     * @param MessageBusInterface $bus
+     *   Message bus to send messages (jobs)
      */
-    public function __construct(ProducerInterface $producer, MessageBusInterface $bus)
+    public function __construct(MessageBusInterface $bus)
     {
-        $this->producer = $producer;
         $this->bus = $bus;
     }
 

@@ -42,18 +42,16 @@ ElasticSearch 6.5, Redis Server 3.2.
 The application is currently developed and hosted on this stack. However, the
 individual components can be swapped for relevant alternatives. Apache can be
 used instead of Nginx. Any database supported by Doctrine DBAL such as MySQL or
-PostgreSQL can replace MariaDB. Redis is used as both caching layer for Symfony
-and persistence layer for Enqueue. Both support multiple other persistence
-layers such as memcache and RabbitMQ, respectively, and can be changed as
-needed.
+PostgreSQL can replace MariaDB. Redis is used as caching layer for Symfony. 
+Both support multiple other persistence layers such as memcache and RabbitMQ, 
+respectively, and can be changed as needed.
 
 Application components:
 
 * [Symfony 4 (flex)](https://symfony.com/) - underlying Web Application
   framework
 * [Doctrine 2](https://www.doctrine-project.org/) - database DBAL/ORM layer
-* [Enqueue](https://github.com/php-enqueue/enqueue-dev) - Message Queue, Job
-  Queue packages for PHP, Symfony
+* [RabbitMq](https://www.rabbitmq.com/) - RabbitMQ is used for async jobs
 
 External Services:
 
@@ -310,31 +308,12 @@ bin/console app:vendor:event insert 9788702173277 ISBN 1
 The application defines a number of job queues for the various background tasks
 and is configured to use Redis as the persistence layer for queues/messages. To
 have a fully functioning development setup you will need to run consumers for
-all queues. Alternatively you can choose to only run select queues or to inspect
-directly in Redis that messages are persisted there using the Redis CLI or any
-available Redis client.
+all queues.
 
 To run consumers for all queues do
 
 ```sh
-bin/console enqueue:consume --env=prod --setup-broker --quiet --receive-timeout 5000 default
-bin/console enqueue:consume --env=prod --quiet --receive-timeout 5000 CoverStoreQueue
-bin/console enqueue:consume --env=prod --quiet --receive-timeout 5000 SearchQueue
-bin/console enqueue:consume --env=prod --quiet --receive-timeout 5000 BackgroundQueue
-```
-
-Please note that:
-
-* you must always run the broker even if your only need to run a consumer for
-  one queue.
-* without the `--receive-timeout 5000` option the CPU load with Redis gets very
-  high as it polls Redis all the time (given a 40% load for each queue).
-
-#### Possible other consumer options
-
-```sh
---message-limit=MESSAGE-LIMIT      Consume n messages and exit
---time-limit=TIME-LIMIT            Consume messages during this time
---memory-limit=MEMORY-LIMIT        Consume messages until process reaches this memory limit in MB
---niceness=NICENESS
+bin/console messenger:consume --env=prod --quiet --time-limit=900 cover-store-queue
+bin/console messenger:consume --env=prod --quiet --time-limit=900 search-queue
+bin/console messenger:consume --env=prod --quiet --time-limit=900 background-queue
 ```

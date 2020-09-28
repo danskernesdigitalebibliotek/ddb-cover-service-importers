@@ -66,10 +66,3 @@ services:
     App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiService:
         arguments:
             $apiKey: '%env(THEMOVIEDATABASE_APIKEY)%'
-
-    Enqueue\Bundle\Consumption\Extension\DoctrinePingConnectionExtension:
-        public: false
-        arguments:
-            - '@doctrine'
-        tags:
-            - { name: 'enqueue.consumption.extension' }

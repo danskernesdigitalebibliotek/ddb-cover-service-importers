@@ -14,6 +14,9 @@ app:
     prefix: "DDBCoverImporters"
     port: "6379"
     cache_db: "11"
+  amqp:
+    server: ""
+    port: "5672"
   php:
     memory_limit: "512M"
   db:
