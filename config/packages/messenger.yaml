@@ -4,48 +4,31 @@ framework:
         # failure_transport: failed
 
         transports:
-            async_high:
+            async_priority_high:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                 options:
                     exchange:
                         name: high
-                retry_strategy:
-                    max_retries: 3
-                    delay: 1000
-                    multiplier: 2
-                    max_delay: 0
 
-            search-queue:
+            async_priority_normal:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                 options:
                     exchange:
-                        name: search
+                        name: normal
 
-            cover-store-queue:
+            async_priority_low:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                 options:
                     exchange:
-                        name: coverstore
-
-            cover-store-auto-queue:
-                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
-                options:
-                    exchange:
-                        name: coverstoreauto
-
-            background-queue:
-                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
-                options:
-                    exchange:
-                        name: background
+                        name: low
 
             #failed: 'doctrine://default?queue_name=failed'
 
         routing:
-            'App\Message\SearchMessage': search-queue
-            'App\Message\DeleteMessage': background-queue
-            'App\Message\SearchNoHitsMessage': background-queue
-            'App\Message\VendorImageMessage': cover-store-queue
-            'App\Message\CoverStoreMessage': cover-store-queue
-            'App\Message\CoverUserUploadMessage': cover-store-queue
-            'App\Message\CoverStoreAutoMessage': cover-store-auto-queue
+            'App\Message\SearchMessage': async_priority_high
+            'App\Message\VendorImageMessage': async_priority_high
+            'App\Message\CoverStoreMessage': async_priority_high
+            'App\Message\CoverUserUploadMessage': async_priority_high
+            'App\Message\SearchNoHitsMessage': async_priority_normal
+            'App\Message\CoverStoreAutoMessage': async_priority_low
+            'App\Message\DeleteMessage': async_priority_low
