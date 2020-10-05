@@ -17,6 +17,13 @@ app:
   amqp:
     server: "rabbit.cover-service.svc.cluster.local"
     port: "5672"
+  supervisor:
+    workers: 8
+    time_limit: 900
+    queues:
+      - async_priority_high
+      - async_priority_normal
+      - async_priority_low
   php:
     memory_limit: "512M"
   db:

@@ -15,13 +15,6 @@ app:
     version: latest
     pullPolicy: IfNotPresent
   elastic_url: "http://es-elasticsearch-coordinating-only.cover-service.svc.cluster.local:9200"
-  supervisor:
-    workers: 8
-    time_limit: 900
-    queues:
-      - async_priority_high
-      - async_priority_normal
-      - async_priority_low
   redis:
     server: "redis-master.cover-service.svc.cluster.local"
     prefix: "DDBCoverImporters"
