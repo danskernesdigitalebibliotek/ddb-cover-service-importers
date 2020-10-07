@@ -154,29 +154,18 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                 $source = $sourceRepos->findOneByVendorRank($is->getType(), $is->getId());
 
                 // Found matches in source table based on the data well search, so create jobs to re-index the source
-                // entities. Also check that the source record has an image from the vendor as not all do.
-                if (false !== $source && !is_null($source->getImage())) {
-                    $message = new SearchMessage();
-                    $message->setIdentifier($source->getMatchId())
-                        ->setOperation(VendorState::UPDATE)
-                        ->setIdentifierType($source->getMatchType())
-                        ->setVendorId($source->getVendor()->getId())
-                        ->setImageId($source->getImage()->getId())
-                        ->setUseSearchCache(true);
-                    $this->bus->dispatch($message);
-                }
-
-                // If the source image is null. It might have been made available since we asked the vendor for the
-                // cover.
-                if (is_null($source->getImage()) && !is_null($source->getOriginalFile())) {
-                    $item = new VendorImageItem();
-                    $item->setOriginalFile($source->getOriginalFile());
-                    try {
-                        $this->validatorService->validateRemoteImage($item);
-                    } catch (GuzzleException $e) {
-                        // Just remove this job from the queue, on fetch errors. This will ensure that the job is not
-                        // re-queue in infinity loop.
-                        throw new UnrecoverableMessageHandlingException('Image fetch error in validation');
+                // entities.
+                if (false !== $source) {
+                    // Also check that the source record has an image from the vendor as not all do.
+                    if (!is_null($source->getImage())) {
+                        $message = new SearchMessage();
+                        $message->setIdentifier($source->getMatchId())
+                            ->setOperation(VendorState::UPDATE)
+                            ->setIdentifierType($source->getMatchType())
+                            ->setVendorId($source->getVendor()->getId())
+                            ->setImageId($source->getImage()->getId())
+                            ->setUseSearchCache(true);
+                        $this->bus->dispatch($message);
                     }
 
                     // If the source image is null. It might have been made available since we asked the vendor for the
@@ -189,7 +178,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                         } catch (GuzzleException $e) {
                             // Just remove this job from the queue, on fetch errors. This will ensure that the job is not
                             // re-queue in infinity loop.
-                            return self::ACK;
+                            throw new UnrecoverableMessageHandlingException('Image fetch error in validation');
                         }
 
                         if ($item->isFound()) {
