@@ -9,6 +9,7 @@ app:
     version: latest
     pullPolicy: IfNotPresent
   elastic_url: "http://es-elasticsearch-coordinating-only.cover-service.svc.cluster.local:9200"
+  no_hits_ttl: 3600
   redis:
     server: "redis-master.cover-service.svc.cluster.local"
     prefix: "DDBCoverImporters"
@@ -24,6 +25,7 @@ app:
       - async_priority_high
       - async_priority_normal
       - async_priority_low
+      - async_no_hit
   php:
     memory_limit: "512M"
   db:

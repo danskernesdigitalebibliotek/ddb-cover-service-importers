@@ -90,10 +90,11 @@ services:
       - '9200'
       - '9300'
 
-  rabit:
+  rabbit:
     image: rabbitmq:3-management
     networks:
       - app
+      - frontend
     ports:
       - 15672
     environment:

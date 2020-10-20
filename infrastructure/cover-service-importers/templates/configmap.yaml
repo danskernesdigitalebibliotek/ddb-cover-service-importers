@@ -17,7 +17,8 @@ data:
   APP_ELASTIC_URL: {{ .Values.app.elastic_url | quote }}
   APP_AMQP_SERVER: {{ .Values.app.amqp.server | quote }}
   APP_AMQP_PORT: {{ .Values.app.amqp.port | quote }}
-  APP_SUPERVISOR_WORKERS: { { .Values.app.supervisor.workers | quote } }
-  APP_SUPERVISOR_TIME_LIMIT: { { .Values.app.supervisor.time_limit | quote } }
-  APP_SUPERVISOR_QUEUES: { { join " " .Values.app.supervisor.queues | quote } }
+  APP_SUPERVISOR_WORKERS: {{ .Values.app.supervisor.workers | quote }}
+  APP_SUPERVISOR_TIME_LIMIT: {{ .Values.app.supervisor.time_limit | quote }}
+  APP_SUPERVISOR_QUEUES: {{ join " " .Values.app.supervisor.queues | quote }}
+  APP_NO_HITS_TTL: {{ mul .Values.app.no_hits_ttl 1000 | quote }}
   PHP_MEMORY_LIMIT: {{ .Values.app.php.memory_limit | quote }}
