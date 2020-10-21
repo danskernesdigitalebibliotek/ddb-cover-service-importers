@@ -6,6 +6,9 @@ metadata:
   name: {{ .Release.Name }}-importers
   annotations:
     checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+  labels:
+    app: {{ .Release.Name }}-imports
+    networking/allow-internet-access: "true"
 spec:
   containers:
   - name: importers

@@ -1,0 +1,24 @@
+---
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  namespace: {{ .Release.Namespace }}
+  name: {{ .Release.Name }}-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      networking/allow-internet-access: "true"
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+      ports:
+        # Allow SQL connections to the outside. It's not possible to use named external services in egress.
+        - protocol: TCP
+          port: 3306
+        # Need to communicate with opensearch, adgangsplatformen, cover-store and vendors.
+        - protocol: TCP
+          port: 443
+        # Bogportal needs FTP access.
+        - protocol: TCP
+          port: 21
