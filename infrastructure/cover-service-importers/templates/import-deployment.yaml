@@ -8,7 +8,7 @@ metadata:
     checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
   labels:
     app: {{ .Release.Name }}-imports
-    networking/allow-internet-access: "true"
+    networking/allow-internet-access: "{{ .Release.Name }}"
 spec:
   containers:
   - name: importers

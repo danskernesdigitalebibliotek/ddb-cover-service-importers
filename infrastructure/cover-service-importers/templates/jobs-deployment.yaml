@@ -12,7 +12,7 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name }}-jobs
-        networking/allow-internet-access: "true"
+        networking/allow-internet-access: "{{ .Release.Name }}"
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:

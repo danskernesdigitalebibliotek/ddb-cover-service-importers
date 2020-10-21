@@ -17,7 +17,7 @@ spec:
             checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
           labels:
             app: {{ .Release.Name }}-cron
-            networking/allow-internet-access: "true"
+            networking/allow-internet-access: "{{ .Release.Name }}"
         spec:
           containers:
             - name: cronjob
