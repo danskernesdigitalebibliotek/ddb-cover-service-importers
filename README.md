@@ -276,23 +276,15 @@ bin/console app:vendor:load --env=prod --no-debug
 ```
 
 Note: For some Vendors proper access credentials need to be set in the database
-before running an import. To populate the `Vendor` table you can run
+before running an import. To populate the `Vendor` table you can run:
 
 ```sh
 bin/console app:vendor:populate
 ```
 
 This will create an entry for each defined vendor service that extends
-`AbstractBaseVendorService`. However you must manually add the relevant
+`AbstractBaseVendorService`. However, you must manually add the relevant
 credentials to each row in the database.
-
-Note: the vendor "TheMovieDatabase" uses queues doing cover imports and needs 
-these to run. Also TheMovieDatabase is rate limited in the API, so keep the 
-number of processed covers below 200 pr. min. 
-```sh
-bin/console enqueue:consume --env=prod --setup-broker --quiet --receive-timeout 5000 default
-bin/console enqueue:consume --env=prod --quiet --receive-timeout 5000 ApiSearchQueue
-```
 
 #### Vendor event
 
@@ -308,12 +300,19 @@ bin/console app:vendor:event insert 9788702173277 ISBN 1
 The application defines a number of job queues for the various background tasks
 and is configured to use Redis as the persistence layer for queues/messages. To
 have a fully functioning development setup you will need to run consumers for
-all queues.
+all queues. See https://symfony.com/doc/current/messenger.html for more information
+about symfony messenger.
 
 To run consumers for all queues do
 
 ```sh
-bin/console messenger:consume --env=prod --quiet --time-limit=900 cover-store-queue
-bin/console messenger:consume --env=prod --quiet --time-limit=900 search-queue
-bin/console messenger:consume --env=prod --quiet --time-limit=900 background-queue
+bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_high
+bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_normal
+bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_low
+bin/console messenger:consume --env=prod --quiet --time-limit=900 async_no_hit
+```
+
+Or use all your works to run all queue in the order given (from high to no-hit).
+```
+bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_high async_priority_normal async_priority_low async_no_hit
 ```
