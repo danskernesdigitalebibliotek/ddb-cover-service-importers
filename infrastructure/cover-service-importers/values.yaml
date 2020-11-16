@@ -7,7 +7,7 @@ env: "prod"
 app:
   image:
     version: latest
-    pullPolicy: IfNotPresent
+    imagePullPolicy: IfNotPresent
   elastic_url: "http://es-elasticsearch-coordinating-only.cover-service.svc.cluster.local:9200"
   no_hits_ttl: 3600
   redis:

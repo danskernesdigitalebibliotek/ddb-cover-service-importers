@@ -13,7 +13,7 @@ cron:
 app:
   image:
     version: latest
-    pullPolicy: IfNotPresent
+    imagePullPolicy: IfNotPresent
   elastic_url: "http://es-elasticsearch-coordinating-only.cover-service.svc.cluster.local:9200"
   redis:
     server: "redis-master.cover-service.svc.cluster.local"
