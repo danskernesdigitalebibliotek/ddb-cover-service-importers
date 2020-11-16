@@ -112,15 +112,17 @@ class BogPortalenVendorService extends AbstractBaseVendorService
                     $offset += self::BATCH_SIZE;
                 }
 
-                $this->logStatistics();
-
-                $this->progressFinish();
-
-                return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted, $this->totalDeleted);
+                $this->local->delete($archive);
             } catch (\Exception $exception) {
                 return VendorImportResultMessage::error($exception->getMessage());
             }
         }
+
+        $this->logStatistics();
+
+        $this->progressFinish();
+
+        return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted, $this->totalDeleted);
     }
 
     /**
@@ -188,13 +190,10 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     {
         $update = true;
 
-        if ($this->local->has($archive)) {
-            $remoteModifiedAtCache = $this->cache->getItem('app.vendor.'.$this->getVendorId().'.remoteModifiedAt');
-
-            if ($remoteModifiedAtCache->isHit()) {
-                $remote = $this->ftp->getTimestamp($archive);
-                $update = $remote > $remoteModifiedAtCache->get();
-            }
+        $remoteModifiedAtCache = $this->cache->getItem('app.vendor.'.$this->getVendorId().'.'.$archive.'.remoteModifiedAt');
+        if ($remoteModifiedAtCache->isHit()) {
+            $remote = $this->ftp->getTimestamp($archive);
+            $update = $remote > $remoteModifiedAtCache->get();
         }
 
         return $update;
@@ -215,7 +214,7 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     private function updateArchive(string $archive): bool
     {
         $remoteModifiedAt = $this->ftp->getTimestamp($archive);
-        $remoteModifiedAtCache = $this->cache->getItem('app.vendor.'.$this->getVendorId().'.remoteModifiedAt');
+        $remoteModifiedAtCache = $this->cache->getItem('app.vendor.'.$this->getVendorId().'.'.$archive.'.remoteModifiedAt');
         $remoteModifiedAtCache->set($remoteModifiedAt);
         $remoteModifiedAtCache->expiresAfter(24 * 60 * 60);
 
