@@ -24,10 +24,9 @@ use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
-use Enqueue\Client\ProducerInterface;
-use Enqueue\Util\JSON;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class UploadServiceVendorService.
@@ -44,8 +43,8 @@ class UploadServiceVendorService extends AbstractBaseVendorService
     /** @var CoverStoreInterface $store */
     private $store;
 
-    /** @var ProducerInterface $producer */
-    private $producer;
+    /** @var MessageBusInterface $bus */
+    private $bus;
 
     /** @var SourceRepository $sourceRepository */
     private $sourceRepository;
@@ -57,13 +56,13 @@ class UploadServiceVendorService extends AbstractBaseVendorService
      * @param EntityManagerInterface $entityManager
      * @param LoggerInterface $statsLogger
      * @param CoverStoreInterface $store
-     * @param ProducerInterface $producer
+     * @param MessageBusInterface $bus
      * @param SourceRepository $sourceRepository
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, CoverStoreInterface $store, ProducerInterface $producer, SourceRepository $sourceRepository)
+    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, CoverStoreInterface $store, MessageBusInterface $bus, SourceRepository $sourceRepository)
     {
         $this->store = $store;
-        $this->producer = $producer;
+        $this->bus = $bus;
         $this->sourceRepository = $sourceRepository;
 
         parent::__construct($eventDispatcher, $entityManager, $statsLogger);
@@ -217,15 +216,15 @@ class UploadServiceVendorService extends AbstractBaseVendorService
             $this->em->flush();
 
             // Create queue message.
-            $processMessage = new ProcessMessage();
-            $processMessage->setOperation($state)
+            $message = new ProcessMessage();
+            $message->setOperation($state)
                 ->setIdentifierType($type)
                 ->setIdentifier($identifier)
                 ->setVendorId($this->getVendorId())
                 ->setImageId($image->getId());
 
             // Send message into queue system into the search part.
-            $this->producer->sendEvent('SearchTopic', JSON::encode($processMessage));
+            $this->bus->dispatch($message);
 
             // Update UI with progress information.
             ++$inserted;

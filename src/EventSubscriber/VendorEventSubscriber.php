@@ -7,28 +7,28 @@
 namespace App\EventSubscriber;
 
 use App\Event\VendorEvent;
-use App\Utils\Message\ProcessMessage;
+use App\Message\DeleteMessage;
+use App\Message\VendorImageMessage;
 use App\Utils\Types\VendorState;
-use Enqueue\Client\ProducerInterface;
-use Enqueue\Util\JSON;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class VendorEventSubscriber.
  */
 class VendorEventSubscriber implements EventSubscriberInterface
 {
-    private $producer;
+    private $bus;
 
     /**
      * VendorEventSubscriber constructor.
      *
-     * @param producerInterface $producer
-     *   Queue producer to send messages (jobs)
+     * @param MessageBusInterface $bus
+     *   Message bus to send messages (jobs)
      */
-    public function __construct(ProducerInterface $producer)
+    public function __construct(MessageBusInterface $bus)
     {
-        $this->producer = $producer;
+        $this->bus = $bus;
     }
 
     /**
@@ -58,11 +58,11 @@ class VendorEventSubscriber implements EventSubscriberInterface
         switch ($type) {
             case VendorState::INSERT:
             case VendorState::UPDATE:
-                $jobName = 'VendorImageTopic';
+                $message = new VendorImageMessage();
                 break;
 
             case VendorState::DELETE:
-                $jobName = 'DeleteTopic';
+                $message = new DeleteMessage();
                 break;
 
             default:
@@ -71,13 +71,11 @@ class VendorEventSubscriber implements EventSubscriberInterface
         }
 
         foreach ($identifiers as $identifier) {
-            $message = new ProcessMessage();
             $message->setOperation($type)
                 ->setIdentifier($identifier)
                 ->setVendorId($vendorId)
                 ->setIdentifierType($identifierType);
-
-            $this->producer->sendEvent($jobName, JSON::encode($message));
+            $this->bus->dispatch($message);
         }
     }
 }

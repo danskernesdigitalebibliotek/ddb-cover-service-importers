@@ -125,33 +125,6 @@
     "endclothing/prometheus_client_php": {
         "version": "1.0.1"
     },
-    "enqueue/dsn": {
-        "version": "0.10.0"
-    },
-    "enqueue/enqueue": {
-        "version": "0.8.42"
-    },
-    "enqueue/enqueue-bundle": {
-        "version": "0.4",
-        "recipe": {
-            "repo": "github.com/symfony/recipes-contrib",
-            "branch": "master",
-            "version": "0.4",
-            "ref": "daaea0035c3abd612f71f0288d5c20197c3c34ad"
-        }
-    },
-    "enqueue/null": {
-        "version": "0.8.42"
-    },
-    "enqueue/redis": {
-        "version": "0.7",
-        "recipe": {
-            "repo": "github.com/symfony/recipes-contrib",
-            "branch": "master",
-            "version": "0.7",
-            "ref": "2f8314cdcb8f459135aadbcb1e6545ccfdd899d9"
-        }
-    },
     "escapestudios/symfony2-coding-standard": {
         "version": "3.10.0"
     },
@@ -323,17 +296,8 @@
     "psr/log": {
         "version": "1.1.0"
     },
-    "queue-interop/amqp-interop": {
-        "version": "0.8.1"
-    },
-    "queue-interop/queue-interop": {
-        "version": "0.6.2"
-    },
     "ralouphie/getallheaders": {
         "version": "3.0.3"
-    },
-    "ramsey/uuid": {
-        "version": "3.8.0"
     },
     "react/promise": {
         "version": "v2.7.0"
@@ -499,6 +463,18 @@
             "version": "1.0",
             "ref": "fadbfe33303a76e25cb63401050439aa9b1a9c7f"
         }
+    },
+    "symfony/messenger": {
+        "version": "4.3",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "4.3",
+            "ref": "8a2675c061737658bed85102e9241c752620e575"
+        },
+        "files": [
+            "config/packages/messenger.yaml"
+        ]
     },
     "symfony/mime": {
         "version": "v4.4.1"

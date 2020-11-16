@@ -4,27 +4,24 @@
  * @file
  */
 
-namespace App\Queue;
+namespace App\MessageHandler;
 
 use App\Entity\Source;
 use App\Entity\Vendor;
 use App\Exception\CoverStoreException;
 use App\Exception\CoverStoreNotFoundException;
+use App\Message\DeleteMessage;
 use App\Service\CoverStore\CoverStoreInterface;
-use App\Utils\Message\ProcessMessage;
 use Doctrine\DBAL\ConnectionException;
 use Doctrine\ORM\EntityManagerInterface;
-use Enqueue\Client\TopicSubscriberInterface;
-use Interop\Queue\Context;
-use Interop\Queue\Message;
-use Interop\Queue\Processor;
-use Karriere\JsonDecoder\JsonDecoder;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
+use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
 /**
  * Class SearchProcessor.
  */
-class DeleteProcessor implements Processor, TopicSubscriberInterface
+class DeleteMessageHandler implements MessageHandlerInterface
 {
     private $em;
     private $statsLogger;
@@ -45,16 +42,13 @@ class DeleteProcessor implements Processor, TopicSubscriberInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @param DeleteMessage $message
      */
-    public function process(Message $message, Context $session)
+    public function __invoke(DeleteMessage $message)
     {
-        $jsonDecoder = new JsonDecoder(true);
-        $processMessage = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
-
         // Look up vendor to get information about image server.
         $vendorRepos = $this->em->getRepository(Vendor::class);
-        $vendor = $vendorRepos->find($processMessage->getVendorId());
+        $vendor = $vendorRepos->find($message->getVendorId());
 
         try {
             // There may exists a race condition when multiple queues are
@@ -66,7 +60,7 @@ class DeleteProcessor implements Processor, TopicSubscriberInterface
                 // Fetch source table rows.
                 $sourceRepos = $this->em->getRepository(Source::class);
                 $source = $sourceRepos->findOneBy([
-                    'matchId' => $processMessage->getIdentifier(),
+                    'matchId' => $message->getIdentifier(),
                     'vendor' => $vendor,
                 ]);
 
@@ -92,8 +86,8 @@ class DeleteProcessor implements Processor, TopicSubscriberInterface
                 } else {
                     $this->statsLogger->error('Source not found in the database', [
                         'service' => 'DeleteProcessor',
-                        'identifier' => $processMessage->getIdentifier(),
-                        'imageId' => $processMessage->getImageId(),
+                        'identifier' => $message->getIdentifier(),
+                        'imageId' => $message->getImageId(),
                     ]);
                 }
             } catch (\Exception $exception) {
@@ -102,56 +96,38 @@ class DeleteProcessor implements Processor, TopicSubscriberInterface
                 $this->statsLogger->error('Database exception: '.get_class($exception), [
                     'service' => 'DeleteProcessor',
                     'message' => $exception->getMessage(),
-                    'identifiers' => $processMessage->getIdentifier(),
+                    'identifiers' => $message->getIdentifier(),
                 ]);
             }
         } catch (ConnectionException $exception) {
             $this->statsLogger->error('Database Connection Exception', [
                 'service' => 'DeleteProcessor',
                 'message' => $exception->getMessage(),
-                'identifier' => $processMessage->getIdentifier(),
+                'identifier' => $message->getIdentifier(),
             ]);
         }
 
         // Delete image in cover store.
         try {
-            $this->coverStore->remove($vendor->getName(), $processMessage->getIdentifier());
+            $this->coverStore->remove($vendor->getName(), $message->getIdentifier());
         } catch (CoverStoreNotFoundException $exception) {
             $this->statsLogger->error('Error removing cover store image - not found', [
                 'service' => 'DeleteProcessor',
                 'message' => $exception->getMessage(),
-                'identifier' => $processMessage->getIdentifier(),
-                'imageId' => $processMessage->getImageId(),
+                'identifier' => $message->getIdentifier(),
+                'imageId' => $message->getImageId(),
             ]);
 
-            return self::REJECT;
+            throw new UnrecoverableMessageHandlingException('Error removing cover store image - not found');
         } catch (CoverStoreException $exception) {
             $this->statsLogger->error('Error removing cover store image', [
                 'service' => 'DeleteProcessor',
                 'message' => $exception->getMessage(),
-                'identifier' => $processMessage->getIdentifier(),
-                'imageId' => $processMessage->getImageId(),
+                'identifier' => $message->getIdentifier(),
+                'imageId' => $message->getImageId(),
             ]);
 
-            return self::REJECT;
+            throw new UnrecoverableMessageHandlingException('Error removing cover store image');
         }
-
-        return self::ACK;
     }
-
-    // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedTopics()
-    {
-        return ['DeleteTopic' => [
-              'processorName' => 'DeleteProcessor',
-              'queueName' => 'BackgroundQueue',
-            ],
-        ];
-    }
-
-    // phpcs:enable
 }

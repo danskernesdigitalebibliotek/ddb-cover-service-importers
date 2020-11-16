@@ -5,7 +5,6 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     locale: 'en'
-    app.enable.no.hits: '%env(bool:APP_ENABLE_NO_HITS)%'
     openPlatform.auth.id: '%env(OPENPLATFORM_AUTH_ID)%'
     openPlatform.auth.secret: '%env(OPENPLATFORM_AUTH_SECRET)%'
     openPlatform.auth.url: '%env(OPENPLATFORM_AUTH_URL)%'
@@ -66,10 +65,3 @@ services:
     App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiService:
         arguments:
             $apiKey: '%env(THEMOVIEDATABASE_APIKEY)%'
-
-    Enqueue\Bundle\Consumption\Extension\DoctrinePingConnectionExtension:
-        public: false
-        arguments:
-            - '@doctrine'
-        tags:
-            - { name: 'enqueue.consumption.extension' }

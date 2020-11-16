@@ -15,4 +15,6 @@ data:
   APP_REDIS_CACHE_DB: {{ .Values.app.redis.cache_db | quote }}
   APP_REDIS_CACHE_PREFIX: {{ .Values.app.redis.prefix | quote }}
   APP_ELASTIC_URL: {{ .Values.app.elastic_url | quote }}
+  APP_AMQP_SERVER: {{ .Values.app.amqp.server | quote }}
+  APP_AMQP_PORT: {{ .Values.app.amqp.port | quote }}
   PHP_MEMORY_LIMIT: {{ .Values.app.php.memory_limit | quote }}

@@ -2,33 +2,30 @@
 
 /**
  * @file
- * Search processor
+ * Search queue handler
  */
 
-namespace App\Queue;
+namespace App\MessageHandler;
 
 use App\Entity\Source;
 use App\Event\IndexReadyEvent;
 use App\Exception\MaterialTypeException;
 use App\Exception\PlatformAuthException;
 use App\Exception\PlatformSearchException;
+use App\Message\SearchMessage;
 use App\Service\OpenPlatform\SearchService;
-use App\Utils\Message\ProcessMessage;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
-use Enqueue\Client\TopicSubscriberInterface;
-use Interop\Queue\Context;
-use Interop\Queue\Message;
-use Interop\Queue\Processor;
-use Karriere\JsonDecoder\JsonDecoder;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
+use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
 /**
  * Class SearchProcessor.
  */
-class SearchProcessor implements Processor, TopicSubscriberInterface
+class SearchMessageHandler implements MessageHandlerInterface
 {
     private $em;
     private $dispatcher;
@@ -52,26 +49,23 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @param SearchMessage $message
      *
+     * @throws PlatformSearchException
      * @throws PlatformAuthException
      * @throws InvalidArgumentException
      */
-    public function process(Message $message, Context $session)
+    public function __invoke(SearchMessage $message)
     {
-        $jsonDecoder = new JsonDecoder(true);
-        /** @var ProcessMessage $processMessage */
-        $processMessage = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
-
         // Clean up: find all search that links back to a give source and remove them before sending new index event.
         // This is done even if the search below is a zero-hit.
-        if (VendorState::DELETE_AND_UPDATE === $processMessage->getOperation()) {
+        if (VendorState::DELETE_AND_UPDATE === $message->getOperation()) {
             $sourceRepos = $this->em->getRepository(Source::class);
             /** @var Source $source */
             $source = $sourceRepos->findOneBy([
-                'matchId' => $processMessage->getIdentifier(),
-                'matchType' => $processMessage->getIdentifierType(),
-                'vendor' => $processMessage->getVendorId(),
+                'matchId' => $message->getIdentifier(),
+                'matchType' => $message->getIdentifierType(),
+                'vendor' => $message->getVendorId(),
             ]);
             if (!is_null($source)) {
                 $searches = $source->getSearches();
@@ -83,76 +77,55 @@ class SearchProcessor implements Processor, TopicSubscriberInterface
                 $this->statsLogger->error('Unknown material type found', [
                     'service' => 'SearchProcessor',
                     'message' => 'Doing reindex source was null, hence the database has changed',
-                    'matchId' => $processMessage->getIdentifier(),
-                    'matchType' => $processMessage->getIdentifierType(),
-                    'vendor' => $processMessage->getVendorId(),
+                    'matchId' => $message->getIdentifier(),
+                    'matchType' => $message->getIdentifierType(),
+                    'vendor' => $message->getVendorId(),
                 ]);
 
-                return self::REJECT;
+                throw new UnrecoverableMessageHandlingException('Unknown material type found');
             }
         }
 
         try {
-            $material = $this->searchService->search($processMessage->getIdentifier(), $processMessage->getIdentifierType(), !$processMessage->useSearchCache());
+            $material = $this->searchService->search($message->getIdentifier(), $message->getIdentifierType(), !$message->useSearchCache());
         } catch (PlatformSearchException $e) {
             $this->statsLogger->error('Search request exception', [
                 'service' => 'SearchProcessor',
-                'identifier' => $processMessage->getIdentifier(),
-                'type' => $processMessage->getIdentifierType(),
+                'identifier' => $message->getIdentifier(),
+                'type' => $message->getIdentifierType(),
                 'message' => $e->getMessage(),
             ]);
 
-            return self::REQUEUE;
+            throw $e;
         } catch (MaterialTypeException $e) {
             $this->statsLogger->error('Unknown material type found', [
                 'service' => 'SearchProcessor',
                 'message' => $e->getMessage(),
-                'identifier' => $processMessage->getIdentifier(),
-                'type' => $processMessage->getIdentifierType(),
-                'imageId' => $processMessage->getImageId(),
+                'identifier' => $message->getIdentifier(),
+                'type' => $message->getIdentifierType(),
+                'imageId' => $message->getImageId(),
             ]);
 
-            return self::REJECT;
+            throw new UnrecoverableMessageHandlingException('Unknown material type found');
         }
 
         // Check if this was an zero hit search.
         if ($material->isEmpty()) {
             $this->statsLogger->info('Search zero-hit', [
                 'service' => 'SearchProcessor',
-                'identifier' => $processMessage->getIdentifier(),
-                'type' => $processMessage->getIdentifierType(),
-                'imageId' => $processMessage->getImageId(),
+                'identifier' => $message->getIdentifier(),
+                'type' => $message->getIdentifierType(),
+                'imageId' => $message->getImageId(),
             ]);
-
-            return self::REJECT;
         } else {
             $event = new IndexReadyEvent();
-            $event->setIs($processMessage->getIdentifier())
-                ->setOperation($processMessage->getOperation())
-                ->setVendorId($processMessage->getVendorId())
-                ->setImageId($processMessage->getImageId())
+            $event->setIs($message->getIdentifier())
+                ->setOperation($message->getOperation())
+                ->setVendorId($message->getVendorId())
+                ->setImageId($message->getImageId())
                 ->setMaterial($material);
 
-            $this->dispatcher->dispatch($event::NAME, $event);
+            $this->dispatcher->dispatch($event, $event::NAME);
         }
-
-        return self::ACK;
     }
-
-    // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedTopics()
-    {
-        return [
-            'SearchTopic' => [
-                'processorName' => 'SearchProcessor',
-                'queueName' => 'SearchQueue',
-            ],
-        ];
-    }
-
-    // phpcs:enable
 }

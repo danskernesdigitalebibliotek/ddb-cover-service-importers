@@ -1,0 +1,7 @@
+[template]
+src = "supervisor.tmpl"
+dest = "/etc/supervisor.d/cover_services_queues.ini"
+mode = "0644"
+keys = [
+    "/supervisor-config"
+]

@@ -4,12 +4,12 @@
  * @file
  */
 
-namespace App\Utils\Message;
+namespace App\Message;
 
 /**
- * Class ProcessMessage.
+ * Class BaseMessage.
  */
-class ProcessMessage implements \JsonSerializable
+abstract class AbstractBaseMessage
 {
     private $operation;
     private $identifierType;
@@ -17,21 +17,6 @@ class ProcessMessage implements \JsonSerializable
     private $vendorId;
     private $imageId;
     private $useSearchCache = true;
-
-    /**
-     * {@inheritdoc}
-     *
-     * Serialization function for the object.
-     */
-    public function jsonSerialize()
-    {
-        $arr = [];
-        foreach ($this as $key => $value) {
-            $arr[$key] = $value;
-        }
-
-        return $arr;
-    }
 
     /**
      * @return mixed
@@ -44,7 +29,7 @@ class ProcessMessage implements \JsonSerializable
     /**
      * @param mixed $operation
      *
-     * @return ProcessMessage
+     * @return AbstractBaseMessage
      */
     public function setOperation($operation): self
     {
@@ -64,7 +49,7 @@ class ProcessMessage implements \JsonSerializable
     /**
      * @param mixed $type
      *
-     * @return ProcessMessage
+     * @return AbstractBaseMessage
      */
     public function setIdentifierType($type): self
     {
@@ -84,7 +69,7 @@ class ProcessMessage implements \JsonSerializable
     /**
      * @param mixed $identifier
      *
-     * @return ProcessMessage
+     * @return AbstractBaseMessage
      */
     public function setIdentifier($identifier): self
     {
@@ -104,7 +89,7 @@ class ProcessMessage implements \JsonSerializable
     /**
      * @param mixed $vendorId
      *
-     * @return ProcessMessage
+     * @return AbstractBaseMessage
      */
     public function setVendorId($vendorId): self
     {
@@ -124,7 +109,7 @@ class ProcessMessage implements \JsonSerializable
     /**
      * @param mixed $imageId
      *
-     * @return ProcessMessage
+     * @return AbstractBaseMessage
      */
     public function setImageId($imageId): self
     {
@@ -150,7 +135,7 @@ class ProcessMessage implements \JsonSerializable
      * @param bool $useIt
      *   True to use or false to by-pass search cache
      *
-     * @return ProcessMessage
+     * @return AbstractBaseMessage
      */
     public function setUseSearchCache(bool $useIt): self
     {

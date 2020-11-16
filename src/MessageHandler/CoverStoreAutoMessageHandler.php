@@ -4,34 +4,34 @@
  * @file
  */
 
-namespace App\Queue;
+namespace App\MessageHandler;
 
 use App\Entity\Image;
 use App\Entity\Search;
 use App\Exception\CoverStoreException;
 use App\Exception\MaterialTypeException;
+use App\Exception\PlatformAuthException;
 use App\Exception\PlatformSearchException;
+use App\Message\CoverStoreAutoMessage;
+use App\Message\SearchMessage;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\OpenPlatform\SearchService;
-use App\Utils\Message\ProcessMessage;
 use Doctrine\ORM\EntityManagerInterface;
-use Enqueue\Client\ProducerInterface;
-use Enqueue\Client\TopicSubscriberInterface;
-use Interop\Queue\Context;
-use Interop\Queue\Message;
-use Interop\Queue\Processor;
-use Karriere\JsonDecoder\JsonDecoder;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
+use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
- * Class CoverStoreAutoProcessor.
+ * Class CoverStoreAutoMessageHandler.
  */
-class CoverStoreAutoProcessor implements Processor, TopicSubscriberInterface
+class CoverStoreAutoMessageHandler implements MessageHandlerInterface
 {
     private $em;
     private $coverStore;
     private $searchService;
-    private $producer;
+    private $bus;
     private $statsLogger;
 
     const VENDOR = 'Unknown';
@@ -42,76 +42,76 @@ class CoverStoreAutoProcessor implements Processor, TopicSubscriberInterface
      * @param EntityManagerInterface $entityManager
      * @param CoverStoreInterface $coverStore
      * @param SearchService $searchService
-     * @param ProducerInterface $producer
+     * @param MessageBusInterface $bus
      * @param LoggerInterface $statsLogger
      */
-    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $coverStore, SearchService $searchService, ProducerInterface $producer, LoggerInterface $statsLogger)
+    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $coverStore, SearchService $searchService, MessageBusInterface $bus, LoggerInterface $statsLogger)
     {
         $this->em = $entityManager;
         $this->coverStore = $coverStore;
         $this->searchService = $searchService;
-        $this->producer = $producer;
+        $this->bus = $bus;
         $this->statsLogger = $statsLogger;
     }
 
     /**
-     * {@inheritdoc}
+     * @param CoverStoreAutoMessage $message
+     *
+     * @throws PlatformAuthException
+     * @throws InvalidArgumentException
      */
-    public function process(Message $message, Context $session)
+    public function __invoke(CoverStoreAutoMessage $message)
     {
-        $jsonDecoder = new JsonDecoder(true);
-        $processMessage = $jsonDecoder->decode($message->getBody(), ProcessMessage::class);
-
         // As there are more that one queue processor another process may have
         // upload a real cover before this job was executed to check that.
         $searchRepos = $this->em->getRepository(Search::class);
-        $search = $searchRepos->findOneByisType($processMessage->getIdentifier());
+        $search = $searchRepos->findOneByisType($message->getIdentifier());
         if (!empty($search)) {
             // We assume image exits if a search result exists.
-            return self::REJECT;
+            throw new UnrecoverableMessageHandlingException('Cover already exists');
         }
 
         // Get information from the data well.
         try {
-            $material = $this->searchService->search($processMessage->getIdentifier(), $processMessage->getIdentifierType());
+            $material = $this->searchService->search($message->getIdentifier(), $message->getIdentifierType());
         } catch (PlatformSearchException $e) {
             $this->statsLogger->error('Search request exception', [
                 'service' => 'CoverStoreAutoProcessor',
                 'message' => $e->getMessage(),
             ]);
 
-            return self::REQUEUE;
+            throw new UnrecoverableMessageHandlingException('Search request exception');
         } catch (MaterialTypeException $e) {
             $this->statsLogger->error('Unknown material type found', [
                 'service' => 'CoverStoreAutoProcessor',
                 'message' => $e->getMessage(),
-                'identifier' => $processMessage->getIdentifier(),
-                'imageId' => $processMessage->getImageId(),
+                'identifier' => $message->getIdentifier(),
+                'imageId' => $message->getImageId(),
             ]);
 
-            return self::REJECT;
+            throw new UnrecoverableMessageHandlingException('Unknown material type found');
         }
 
         if ($material->isEmpty()) {
             $this->statsLogger->error('Material not found in search', [
                 'service' => 'CoverStoreAutoProcessor',
-                'identifier' => $processMessage->getIdentifier(),
+                'identifier' => $message->getIdentifier(),
             ]);
 
-            return self::REJECT;
+            throw new UnrecoverableMessageHandlingException('Material not found in search');
         }
 
         // Try to generate image based on the data well data.
         try {
-            $item = $this->coverStore->generate($material, $this::VENDOR, $processMessage->getIdentifier());
+            $item = $this->coverStore->generate($material, $this::VENDOR, $message->getIdentifier());
         } catch (CoverStoreException $exception) {
             $this->statsLogger->error('Cover store error - generate cover', [
                 'service' => 'CoverStoreAutoProcessor',
-                'identifier' => $processMessage->getIdentifier(),
+                'identifier' => $message->getIdentifier(),
                 'message' => $exception->getMessage(),
             ]);
 
-            return self::REJECT;
+            throw new UnrecoverableMessageHandlingException('Cover store error - generate cover');
         }
 
         // Create new image entity.
@@ -127,26 +127,17 @@ class CoverStoreAutoProcessor implements Processor, TopicSubscriberInterface
         $this->em->flush();
 
         // Send message to next part of the process.
-        $processMessage->setImageId($image->getId());
-        $processMessage->setVendorId($this::VENDOR);
-        $this->producer->sendEvent('SearchProcess', \json_encode($processMessage));
+        $message->setImageId($image->getId());
+        $message->setVendorId($this::VENDOR);
 
-        return self::ACK;
+        // Send message to next part of the process.
+        $searchMessage = new SearchMessage();
+        $searchMessage->setIdentifier($message->getIdentifier())
+            ->setIdentifierType($message->getIdentifierType())
+            ->setOperation($message->getOperation())
+            ->setImageId($message->getImageId())
+            ->setVendorId($message->getVendorId())
+            ->setUseSearchCache($message->useSearchCache());
+        $this->bus->dispatch($searchMessage);
     }
-
-    // phpcs:disable Symfony.Functions.ScopeOrder.Invalid
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedTopics()
-    {
-        return ['CoverStoreAutoTopic' => [
-              'processorName' => 'CoverStoreAutoProcessor',
-              'queueName' => 'CoverStoreAutoQueue',
-            ],
-        ];
-    }
-
-    // phpcs:enable
 }
