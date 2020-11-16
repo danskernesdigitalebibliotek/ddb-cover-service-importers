@@ -122,7 +122,7 @@ class VendorImageMessageHandler implements MessageHandlerInterface
             $this->statsLogger->error('Vendor image error - not found', [
                 'service' => 'VendorImageProcessor',
                 'identifier' => $message->getIdentifier(),
-                'url' => $source->getOriginalFile(),
+                'url' => $item->getOriginalFile(),
             ]);
 
             throw new UnrecoverableMessageHandlingException('Vendor image error - not found');
