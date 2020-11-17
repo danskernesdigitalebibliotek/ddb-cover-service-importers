@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7b431743d6d5b9c0f9e2ad097c3d1ae2",
+    "content-hash": "5824c363948e499944d2d239611d991c",
     "packages": [
         {
             "name": "box/spout",
@@ -1437,6 +1437,7 @@
                 "reflection",
                 "static"
             ],
+            "abandoned": "roave/better-reflection",
             "time": "2020-01-08T19:53:19+00:00"
         },
         {
@@ -9944,7 +9945,6 @@
         "ext-curl": "*",
         "ext-ftp": "*",
         "ext-iconv": "*",
-        "ext-imagick": "*",
         "ext-json": "*",
         "ext-redis": "*",
         "ext-xmlreader": "*",
