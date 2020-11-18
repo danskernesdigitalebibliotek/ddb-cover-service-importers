@@ -125,7 +125,7 @@ class VendorImageProcessor implements Processor, TopicSubscriberInterface
             $this->statsLogger->error('Vendor image error - not found', [
                 'service' => 'VendorImageProcessor',
                 'identifier' => $processMessage->getIdentifier(),
-                'url' => $source->getOriginalFile(),
+                'url' => $item->getOriginalFile(),
             ]);
         }
 
