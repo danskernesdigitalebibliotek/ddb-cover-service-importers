@@ -82,39 +82,44 @@ class BogPortalenVendorService extends AbstractBaseVendorService
                     $this->progressAdvance();
 
                     $this->updateArchive($archive);
-                }
 
-                $this->progressMessage('Getting filenames from archive: "'.$archive.'"');
-                $this->progressAdvance();
-
-                $localArchivePath = $this->local->getAdapter()->getPathPrefix().$archive;
-                $files = $this->listZipContents($localArchivePath);
-                $isbnList = $this->getIsbnNumbers($files);
-
-                $this->progressMessage('Removing ISBNs not found in archive');
-                $this->progressAdvance();
-
-                // @TODO Dispatch delete event to deleteProcessor
-                // $deleted = $this->deleteRemovedMaterials($isbnList);
-
-                $offset = 0;
-                $count = $this->limit ?: \count($isbnList);
-
-                while ($offset < $count) {
-                    $isbnBatch = \array_slice($isbnList, $offset, self::BATCH_SIZE, true);
-
-                    $isbnImageUrlArray = $this->buildIsbnImageUrlArray($isbnBatch);
-                    $this->updateOrInsertMaterials($isbnImageUrlArray, IdentifierType::ISBN);
-
-                    $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                    $this->progressMessage('Getting filenames from archive: "'.$archive.'"');
                     $this->progressAdvance();
 
-                    $offset += self::BATCH_SIZE;
-                }
+                    $localArchivePath = $this->local->getAdapter()->getPathPrefix().$archive;
+                    $files = $this->listZipContents($localArchivePath);
+                    $isbnList = $this->getIsbnNumbers($files);
 
-                $this->local->delete($archive);
-            } catch (\Exception $exception) {
-                return VendorImportResultMessage::error($exception->getMessage());
+                    $this->progressMessage('Removing ISBNs not found in archive');
+                    $this->progressAdvance();
+
+                    // @TODO Dispatch delete event to deleteProcessor
+                    // $deleted = $this->deleteRemovedMaterials($isbnList);
+
+                    $offset = 0;
+                    $count = $this->limit ?: \count($isbnList);
+
+                    while ($offset < $count) {
+                        $isbnBatch = \array_slice($isbnList, $offset, self::BATCH_SIZE, true);
+
+                        $isbnImageUrlArray = $this->buildIsbnImageUrlArray($isbnBatch);
+                        $this->updateOrInsertMaterials($isbnImageUrlArray, IdentifierType::ISBN);
+
+                        $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                        $this->progressAdvance();
+
+                        $offset += self::BATCH_SIZE;
+                    }
+
+                    $this->local->delete($archive);
+                } else {
+                    $this->progressMessage('Skipping... No new '.$archive.' archive found!');
+                    $this->progressAdvance();
+                }
+            } catch (InvalidArgumentException $e) {
+                return VendorImportResultMessage::error($e->getMessage());
+            } catch (\Exception $e) {
+                return VendorImportResultMessage::error($e->getMessage());
             }
         }
 
