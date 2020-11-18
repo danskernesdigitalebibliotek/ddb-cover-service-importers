@@ -45,13 +45,8 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      * @param loggerInterface $statsLogger
      *   Logger object to send stats to ES
      */
-    public function __construct(
-        EventDispatcherInterface $eventDispatcher,
-        Filesystem $local,
-        Filesystem $ftp,
-        EntityManagerInterface $entityManager,
-        LoggerInterface $statsLogger
-    ) {
+    public function __construct(EventDispatcherInterface $eventDispatcher, Filesystem $local, Filesystem $ftp, EntityManagerInterface $entityManager, LoggerInterface $statsLogger)
+    {
         parent::__construct($eventDispatcher, $entityManager, $statsLogger);
 
         $this->local = $local;
