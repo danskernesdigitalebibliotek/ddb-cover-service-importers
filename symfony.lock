@@ -209,6 +209,9 @@
     "league/flysystem-ziparchive": {
         "version": "1.0.3"
     },
+    "league/mime-type-detection": {
+        "version": "1.5.1"
+    },
     "microsoft/tolerant-php-parser": {
         "version": "v0.0.18"
     },

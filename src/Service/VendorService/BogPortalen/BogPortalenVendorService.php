@@ -177,7 +177,7 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     private function updateArchive(string $archive): bool
     {
         // @TODO Error handling for missing archive
-        return $this->local->put($archive, $this->ftp->read($archive));
+        return $this->local->putStream($archive, $this->ftp->readStream($archive));
     }
 
     /**
