@@ -14,9 +14,7 @@ use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use Doctrine\ORM\EntityManagerInterface;
 use League\Flysystem\Filesystem;
-use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 
@@ -32,7 +30,6 @@ class BogPortalenVendorService extends AbstractBaseVendorService
 
     private $local;
     private $ftp;
-    private $cache;
 
     /**
      * BogPortalenVendorService constructor.
@@ -47,18 +44,13 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      *   Doctrine entity manager
      * @param loggerInterface $statsLogger
      *   Logger object to send stats to ES
-     * @param AdapterInterface $cache
-     *   Cache adapter for the application
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, Filesystem $local,
-                                Filesystem $ftp, EntityManagerInterface $entityManager,
-                                LoggerInterface $statsLogger, AdapterInterface $cache)
+    public function __construct(EventDispatcherInterface $eventDispatcher, Filesystem $local, Filesystem $ftp, EntityManagerInterface $entityManager, LoggerInterface $statsLogger)
     {
         parent::__construct($eventDispatcher, $entityManager, $statsLogger);
 
         $this->local = $local;
         $this->ftp = $ftp;
-        $this->cache = $cache;
     }
 
     /**
@@ -75,14 +67,10 @@ class BogPortalenVendorService extends AbstractBaseVendorService
 
         foreach (self::VENDOR_ARCHIVE_NAMES as $archive) {
             try {
-                $this->progressStart('Checking for updated archive: "'.$archive.'"');
+                $this->progressMessage('Downloading '.$archive.' archive....');
+                $this->progressAdvance();
 
-                if ($this->archiveHasUpdate($archive)) {
-                    $this->progressMessage('New '.$archive.' archive found, Downloading....');
-                    $this->progressAdvance();
-
-                    $this->updateArchive($archive);
-                }
+                $this->updateArchive($archive);
 
                 $this->progressMessage('Getting filenames from archive: "'.$archive.'"');
                 $this->progressAdvance();
@@ -113,8 +101,10 @@ class BogPortalenVendorService extends AbstractBaseVendorService
                 }
 
                 $this->local->delete($archive);
-            } catch (\Exception $exception) {
-                return VendorImportResultMessage::error($exception->getMessage());
+            } catch (InvalidArgumentException $e) {
+                return VendorImportResultMessage::error($e->getMessage());
+            } catch (\Exception $e) {
+                return VendorImportResultMessage::error($e->getMessage());
             }
         }
 
@@ -175,31 +165,6 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     }
 
     /**
-     * Check if vendors archive has update.
-     *
-     * @param string $archive
-     *   Filename for the archive
-     *
-     * @return bool
-     *
-     * @throws IllegalVendorServiceException
-     * @throws InvalidArgumentException
-     * @throws \League\Flysystem\FileNotFoundException
-     */
-    private function archiveHasUpdate(string $archive): bool
-    {
-        $update = true;
-
-        $remoteModifiedAtCache = $this->cache->getItem('app.vendor.'.$this->getVendorId().'.'.$archive.'.remoteModifiedAt');
-        if ($remoteModifiedAtCache->isHit()) {
-            $remote = $this->ftp->getTimestamp($archive);
-            $update = $remote > $remoteModifiedAtCache->get();
-        }
-
-        return $update;
-    }
-
-    /**
      * Update local copy of vendors archive.
      *
      * @param string $archive
@@ -207,19 +172,10 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      *
      * @return bool
      *
-     * @throws IllegalVendorServiceException
-     * @throws InvalidArgumentException
      * @throws \League\Flysystem\FileNotFoundException
      */
     private function updateArchive(string $archive): bool
     {
-        $remoteModifiedAt = $this->ftp->getTimestamp($archive);
-        $remoteModifiedAtCache = $this->cache->getItem('app.vendor.'.$this->getVendorId().'.'.$archive.'.remoteModifiedAt');
-        $remoteModifiedAtCache->set($remoteModifiedAt);
-        $remoteModifiedAtCache->expiresAfter(24 * 60 * 60);
-
-        $this->cache->save($remoteModifiedAtCache);
-
         // @TODO Error handling for missing archive
         return $this->local->put($archive, $this->ftp->read($archive));
     }
