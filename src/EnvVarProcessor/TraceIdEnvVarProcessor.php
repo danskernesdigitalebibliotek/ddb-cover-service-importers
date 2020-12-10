@@ -8,6 +8,7 @@
 namespace App\EnvVarProcessor;
 
 use Symfony\Component\DependencyInjection\EnvVarProcessorInterface;
+use Symfony\Component\DependencyInjection\Exception\EnvNotFoundException;
 
 class TraceIdEnvVarProcessor implements EnvVarProcessorInterface
 {
@@ -18,13 +19,14 @@ class TraceIdEnvVarProcessor implements EnvVarProcessorInterface
      */
     public function getEnv($prefix, $name, $getEnv)
     {
-        $env = isset($_ENV[$name]) ? $getEnv($name) : '';
-        if (empty($this::$id) || empty($env)) {
+        try {
+            $this::$id = $getEnv($name);
+        } catch (EnvNotFoundException $exception) {
+            // Do not do anything here as the id will fallback to be generated.
+        }
+
+        if (empty($this::$id)) {
             $this->generate();
-        } else {
-            if (empty($this::$id)) {
-                $this::$id = $env;
-            }
         }
 
         return $this::$id;
@@ -41,6 +43,8 @@ class TraceIdEnvVarProcessor implements EnvVarProcessorInterface
     }
 
     /**
+     * Generate new unique id.
+     *
      * @throws \Exception
      */
     private function generate() {
