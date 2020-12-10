@@ -30,7 +30,12 @@ services:
         bind:
             $projectDir: '%kernel.project_dir%'
             $resourcesDir: '%kernel.project_dir%/resources'
+            $bindTraceId: '%env(traceId:HTTP_X_REQUEST_ID)%'
+
+            ## @TODO NEEDS TO GO
             $statsLogger: '@monolog.logger.statistics'
+
+
             $cloudinaryUrl: '%env(CLOUDINARY_URL)%'
             $cloudinaryTransformations: '%env(yml:file:resolve:CLOUDINARY_CONFIG_FILE)%'
             $httpClient: '@eight_points_guzzle.client.guzzle_client'
@@ -52,6 +57,13 @@ services:
     App\:
         resource: '../src/*'
         exclude: '../src/{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
+
+    monolog.formatter.json:
+        class: Monolog\Formatter\JsonFormatter
+
+    App\Logger\TraceIdProcessor:
+        tags:
+            - { name: monolog.processor }
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
