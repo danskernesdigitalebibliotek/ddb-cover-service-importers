@@ -24,12 +24,18 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 class IndexEventSubscriber implements EventSubscriberInterface
 {
     private $em;
-    private $statsLogger;
+    private $logger;
 
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $statsLogger)
+    /**
+     * IndexEventSubscriber constructor.
+     *
+     * @param EntityManagerInterface $entityManager
+     * @param LoggerInterface $informationLogger
+     */
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $informationLogger)
     {
         $this->em = $entityManager;
-        $this->statsLogger = $statsLogger;
+        $this->logger = $informationLogger;
     }
 
     /**
@@ -100,14 +106,14 @@ class IndexEventSubscriber implements EventSubscriberInterface
                 $this->em->getConnection()->commit();
             } catch (\Exception $exception) {
                 $this->em->getConnection()->rollBack();
-                $this->statsLogger->error('Database exception: '.get_class($exception), [
+                $this->logger->error('Database exception: '.get_class($exception), [
                     'service' => 'IndexEventSubscriber',
                     'message' => $exception->getMessage(),
                     'identifiers' => $material->getIdentifiers(),
                 ]);
             }
         } catch (ConnectionException $exception) {
-            $this->statsLogger->error('Database Connection Exception', [
+            $this->logger->error('Database Connection Exception', [
                 'service' => 'IndexEventSubscriber',
                 'message' => $exception->getMessage(),
                 'identifiers' => $material->getIdentifiers(),

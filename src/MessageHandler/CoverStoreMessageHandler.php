@@ -9,7 +9,6 @@ namespace App\MessageHandler;
 use App\Entity\Image;
 use App\Entity\Source;
 use App\Entity\Vendor;
-use App\Exception\CoverStoreAlreadyExistsException;
 use App\Exception\CoverStoreCredentialException;
 use App\Exception\CoverStoreException;
 use App\Exception\CoverStoreInvalidResourceException;
@@ -33,7 +32,7 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
 {
     private $em;
     private $bus;
-    private $statsLogger;
+    private $logger;
     private $coverStore;
 
     /**
@@ -41,14 +40,14 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
      *
      * @param EntityManagerInterface $entityManager
      * @param MessageBusInterface $bus
-     * @param LoggerInterface $statsLogger
+     * @param LoggerInterface $informationLogger
      * @param CoverStoreInterface $coverStore
      */
-    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, LoggerInterface $statsLogger, CoverStoreInterface $coverStore)
+    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, LoggerInterface $informationLogger, CoverStoreInterface $coverStore)
     {
         $this->em = $entityManager;
         $this->bus = $bus;
-        $this->statsLogger = $statsLogger;
+        $this->logger = $informationLogger;
         $this->coverStore = $coverStore;
     }
 
@@ -57,12 +56,6 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
      *
      * @return mixed
      *
-     * @throws CoverStoreAlreadyExistsException
-     * @throws CoverStoreCredentialException
-     * @throws CoverStoreException
-     * @throws CoverStoreNotFoundException
-     * @throws CoverStoreTooLargeFileException
-     * @throws CoverStoreUnexpectedException
      * @throws ReQueueMessageException
      */
     public function __invoke(CoverStoreMessage $message)
@@ -83,7 +76,7 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
             $item = $this->coverStore->upload($source->getOriginalFile(), $vendor->getName(), $identifier, [$identifier]);
         } catch (CoverStoreCredentialException $exception) {
             // Access issues.
-            $this->statsLogger->error('Access denied to cover store', [
+            $this->logger->error('Access denied to cover store', [
                 'service' => 'CoverStoreProcessor',
                 'message' => $exception->getMessage(),
                 'identifier' => $message->getIdentifier(),
@@ -98,7 +91,7 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
             $this->em->flush();
 
             // Log that the image did not exists.
-            $this->statsLogger->error('Cover store error - not found', [
+            $this->logger->error('Cover store error - not found', [
                 'service' => 'CoverStoreProcessor',
                 'message' => $exception->getMessage(),
                 'identifier' => $message->getIdentifier(),
@@ -107,7 +100,7 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
 
             throw new UnrecoverableMessageHandlingException('Cover store error - not found');
         } catch (CoverStoreTooLargeFileException $exception) {
-            $this->statsLogger->error('Cover was to large', [
+            $this->logger->error('Cover was to large', [
                 'service' => 'CoverStoreProcessor',
                 'message' => $exception->getMessage(),
                 'identifier' => $message->getIdentifier(),
@@ -116,7 +109,7 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
 
             throw new UnrecoverableMessageHandlingException('Cover was to large');
         } catch (CoverStoreUnexpectedException $exception) {
-            $this->statsLogger->error('Cover store unexpected error', [
+            $this->logger->error('Cover store unexpected error', [
                 'service' => 'CoverStoreProcessor',
                 'message' => $exception->getMessage(),
                 'identifier' => $message->getIdentifier(),
@@ -124,7 +117,7 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
 
             throw new UnrecoverableMessageHandlingException('Cover store unexpected error');
         } catch (CoverStoreInvalidResourceException $exception) {
-            $this->statsLogger->error('Cover store invalid resource error', [
+            $this->logger->error('Cover store invalid resource error', [
                 'service' => 'CoverStoreProcessor',
                 'message' => $exception->getMessage(),
                 'identifier' => $message->getIdentifier(),
@@ -132,7 +125,7 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
 
             throw new UnrecoverableMessageHandlingException('Cover store invalid resource error');
         } catch (CoverStoreException $exception) {
-            $this->statsLogger->error('Cover store error - retry', [
+            $this->logger->error('Cover store error - retry', [
                 'service' => 'CoverStoreProcessor',
                 'message' => $exception->getMessage(),
                 'identifier' => $message->getIdentifier(),
@@ -143,7 +136,7 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
         }
 
         // Log information about the image uploaded.
-        $this->statsLogger->info('Image cover stored', [
+        $this->logger->info('Image cover stored', [
             'service' => 'CoverStoreProcessor',
             'provider' => $item->getVendor(),
             'url' => $item->getUrl(),

@@ -28,7 +28,7 @@ class VendorImageMessageHandler implements MessageHandlerInterface
     private $em;
     private $imageValidator;
     private $bus;
-    private $statsLogger;
+    private $logger;
 
     /**
      * VendorImageProcessor constructor.
@@ -36,14 +36,14 @@ class VendorImageMessageHandler implements MessageHandlerInterface
      * @param EntityManagerInterface $entityManager
      * @param VendorImageValidatorService $imageValidator
      * @param MessageBusInterface $bus
-     * @param LoggerInterface $statsLogger
+     * @param LoggerInterface $informationLogger
      */
-    public function __construct(EntityManagerInterface $entityManager, VendorImageValidatorService $imageValidator, MessageBusInterface $bus, LoggerInterface $statsLogger)
+    public function __construct(EntityManagerInterface $entityManager, VendorImageValidatorService $imageValidator, MessageBusInterface $bus, LoggerInterface $informationLogger)
     {
         $this->em = $entityManager;
         $this->imageValidator = $imageValidator;
         $this->bus = $bus;
-        $this->statsLogger = $statsLogger;
+        $this->logger = $informationLogger;
     }
 
     /**
@@ -119,7 +119,7 @@ class VendorImageMessageHandler implements MessageHandlerInterface
             $this->em->flush();
 
             // Log that the image did not exists.
-            $this->statsLogger->error('Vendor image error - not found', [
+            $this->logger->error('Vendor image error - not found', [
                 'service' => 'VendorImageProcessor',
                 'identifier' => $message->getIdentifier(),
                 'url' => $item->getOriginalFile(),
