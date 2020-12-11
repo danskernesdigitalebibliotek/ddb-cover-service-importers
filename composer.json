@@ -9,7 +9,6 @@
         "ext-curl": "*",
         "ext-ftp": "*",
         "ext-iconv": "*",
-        "ext-imagick": "*",
         "ext-json": "*",
         "ext-redis": "*",
         "ext-xmlreader": "*",
