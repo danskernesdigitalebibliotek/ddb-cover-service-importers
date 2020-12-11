@@ -29,7 +29,7 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
 {
     private $em;
     private $dispatcher;
-    private $statsLogger;
+    private $logger;
 
     /** @var Vendor $vendor */
     private $vendor;
@@ -39,7 +39,7 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
      * CoverUploadProcessor constructor.
      *
      * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $statsLogger
+     * @param LoggerInterface $informationLogger
      * @param EventDispatcherInterface $eventDispatcher
      * @param SourceRepository $sourceRepo
      * @param VendorRepository $vendorRepo
@@ -47,10 +47,10 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
      * @throws IllegalVendorServiceException
      * @throws UnknownVendorServiceException
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $statsLogger, EventDispatcherInterface $eventDispatcher, SourceRepository $sourceRepo, VendorRepository $vendorRepo, UserUploadVendorService $userUploadVendorService)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $informationLogger, EventDispatcherInterface $eventDispatcher, SourceRepository $sourceRepo, VendorRepository $vendorRepo, UserUploadVendorService $userUploadVendorService)
     {
         $this->em = $entityManager;
-        $this->statsLogger = $statsLogger;
+        $this->logger = $informationLogger;
         $this->dispatcher = $eventDispatcher;
 
         $this->sourceRepo = $sourceRepo;

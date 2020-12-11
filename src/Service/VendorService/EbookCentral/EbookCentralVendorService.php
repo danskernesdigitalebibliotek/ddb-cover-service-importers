@@ -40,14 +40,14 @@ class EbookCentralVendorService extends AbstractBaseVendorService
      *   Dispatcher to trigger async jobs on import
      * @param entityManagerInterface $entityManager
      *   Doctrine entity manager
-     * @param loggerInterface $statsLogger
+     * @param loggerInterface $informationLogger
      *   Logger object to send stats to ES
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, string $resourcesDir)
+    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $informationLogger, string $resourcesDir)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($eventDispatcher, $entityManager, $informationLogger);
 
         $this->resourcesDir = $resourcesDir;
     }

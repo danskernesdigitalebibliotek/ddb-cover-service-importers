@@ -35,13 +35,13 @@ class DataWellVendorService extends AbstractBaseVendorService
      *
      * @param EventDispatcherInterface $eventDispatcher
      * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $statsLogger
+     * @param LoggerInterface $informationLogger
      * @param DataWellSearchService $datawell
      */
     public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager,
-                              LoggerInterface $statsLogger, DataWellSearchService $datawell)
+                                LoggerInterface $informationLogger, DataWellSearchService $datawell)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($eventDispatcher, $entityManager, $informationLogger);
 
         $this->datawell = $datawell;
     }

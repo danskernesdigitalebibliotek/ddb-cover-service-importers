@@ -54,18 +54,18 @@ class UploadServiceVendorService extends AbstractBaseVendorService
      *
      * @param EventDispatcherInterface $eventDispatcher
      * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $statsLogger
+     * @param LoggerInterface $informationLogger
      * @param CoverStoreInterface $store
      * @param MessageBusInterface $bus
      * @param SourceRepository $sourceRepository
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, CoverStoreInterface $store, MessageBusInterface $bus, SourceRepository $sourceRepository)
+    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $informationLogger, CoverStoreInterface $store, MessageBusInterface $bus, SourceRepository $sourceRepository)
     {
         $this->store = $store;
         $this->bus = $bus;
         $this->sourceRepository = $sourceRepository;
 
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($eventDispatcher, $entityManager, $informationLogger);
     }
 
     /**
@@ -81,7 +81,7 @@ class UploadServiceVendorService extends AbstractBaseVendorService
         foreach ($items as $item) {
             $filename = $this->extractFilename($item->getId());
             if (!$this->isValidFilename($filename)) {
-                $this->statsLogger->info($this->getVendorName().' invalid filename', [
+                $this->logger->info($this->getVendorName().' invalid filename', [
                     'service' => self::class,
                     'filename' => $filename,
                     'url' => $item->getUrl(),
@@ -96,7 +96,7 @@ class UploadServiceVendorService extends AbstractBaseVendorService
             try {
                 $item = $this->store->move($item->getId(), self::DESTINATION_FOLDER.'/'.$identifier);
                 $state = VendorState::INSERT;
-                $this->statsLogger->info($this->getVendorName().' image moved', [
+                $this->logger->info($this->getVendorName().' image moved', [
                     'service' => self::class,
                     'type' => $type,
                     'identifier' => $identifier,
@@ -107,14 +107,14 @@ class UploadServiceVendorService extends AbstractBaseVendorService
                     // Update the image as it already exists.
                     $item = $this->store->move($item->getId(), self::DESTINATION_FOLDER.'/'.$identifier, true);
                     $state = VendorState::UPDATE;
-                    $this->statsLogger->info($this->getVendorName().' image updated', [
+                    $this->logger->info($this->getVendorName().' image updated', [
                         'service' => self::class,
                         'type' => $type,
                         'identifier' => $identifier,
                         'url' => $item->getUrl(),
                     ]);
                 } catch (CoverStoreException $exception) {
-                    $this->statsLogger->error('Error moving image', [
+                    $this->logger->error('Error moving image', [
                         'service' => self::class,
                         'message' => $exception->getMessage(),
                         'identifier' => $identifier,
@@ -124,7 +124,7 @@ class UploadServiceVendorService extends AbstractBaseVendorService
                 }
             } catch (CoverStoreCredentialException $exception) {
                 // Access issues.
-                $this->statsLogger->error('Access denied to cover store', [
+                $this->logger->error('Access denied to cover store', [
                     'service' => self::class,
                     'message' => $exception->getMessage(),
                     'identifier' => $identifier,
@@ -132,35 +132,35 @@ class UploadServiceVendorService extends AbstractBaseVendorService
                 continue;
             } catch (CoverStoreNotFoundException $exception) {
                 // Log that the image did not exists.
-                $this->statsLogger->error('Cover store error - not found', [
+                $this->logger->error('Cover store error - not found', [
                     'service' => self::class,
                     'message' => $exception->getMessage(),
                     'identifier' => $identifier,
                 ]);
                 continue;
             } catch (CoverStoreTooLargeFileException $exception) {
-                $this->statsLogger->error('Cover was to large', [
+                $this->logger->error('Cover was to large', [
                     'service' => self::class,
                     'message' => $exception->getMessage(),
                     'identifier' => $identifier,
                 ]);
                 continue;
             } catch (CoverStoreUnexpectedException $exception) {
-                $this->statsLogger->error('Cover store unexpected error', [
+                $this->logger->error('Cover store unexpected error', [
                     'service' => self::class,
                     'message' => $exception->getMessage(),
                     'identifier' => $identifier,
                 ]);
                 continue;
             } catch (CoverStoreInvalidResourceException $exception) {
-                $this->statsLogger->error('Cover store invalid resource error', [
+                $this->logger->error('Cover store invalid resource error', [
                     'service' => self::class,
                     'message' => $exception->getMessage(),
                     'identifier' => $identifier,
                 ]);
                 continue;
             } catch (CoverStoreException $exception) {
-                $this->statsLogger->error('Cover store error - retry', [
+                $this->logger->error('Cover store error - retry', [
                     'service' => self::class,
                     'message' => $exception->getMessage(),
                     'identifier' => $identifier,
@@ -183,7 +183,7 @@ class UploadServiceVendorService extends AbstractBaseVendorService
                     $image = $source->getImage();
                 } else {
                     // Something un-expected happen here.
-                    $this->statsLogger->error($this->getVendorName().' error loading source', [
+                    $this->logger->error($this->getVendorName().' error loading source', [
                         'service' => self::class,
                         'type' => $type,
                         'identifier' => $identifier,

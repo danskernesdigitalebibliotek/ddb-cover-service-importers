@@ -36,9 +36,9 @@ class PublizonVendorService extends AbstractBaseVendorService
      * {@inheritdoc}
      */
     public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager,
-                                LoggerInterface $statsLogger, PublizonXmlReaderService $xmlReader)
+                                LoggerInterface $informationLogger, PublizonXmlReaderService $xmlReader)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($eventDispatcher, $entityManager, $informationLogger);
 
         $this->xml = $xmlReader;
     }

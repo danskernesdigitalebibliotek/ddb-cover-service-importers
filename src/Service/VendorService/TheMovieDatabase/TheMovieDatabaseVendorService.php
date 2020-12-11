@@ -44,16 +44,16 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
      *   The event dispatcher
      * @param EntityManagerInterface        $entityManager
      *   The entity manager
-     * @param LoggerInterface               $statsLogger
+     * @param LoggerInterface               $informationLogger
      *   The stats logger
      * @param theMovieDatabaseSearchService $dataWell
      *   The search service
      * @param TheMovieDatabaseApiService    $api
      *   The movie api service
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, TheMovieDatabaseSearchService $dataWell, TheMovieDatabaseApiService $api)
+    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $informationLogger, TheMovieDatabaseSearchService $dataWell, TheMovieDatabaseApiService $api)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($eventDispatcher, $entityManager, $informationLogger);
 
         $this->dataWell = $dataWell;
         $this->api = $api;

@@ -1,24 +1,9 @@
 services:
-  monolog.elastica.client:
-    class: Elastica\Client
-    arguments:
-      # Note that Ruflin\Elastica used by monolog requires a trailing slash
-      $config: { url: '%env(ELASTIC_URL)%/' }
 
 monolog:
-  channels: ["statistics", "information"]
+  channels: ["information"]
   handlers:
-    #
-    # Set new logger to log statistics information to ES.
-    #
-    statistics:
-      type: elasticsearch
-      elasticsearch:
-        id: monolog.elastica.client
-      index: '%env(ELASTIC_STATS_INDEX_PREFIX)%_%env(ELASTIC_STATS_INDEX)%'
-      channels: ["statistics"]
-
-    information:
+     information:
       type: stream
       path: "php://stdout"
       formatter: monolog.formatter.json

@@ -33,7 +33,7 @@ abstract class AbstractBaseVendorService
 
     protected $em;
     protected $dispatcher;
-    protected $statsLogger;
+    protected $logger;
 
     protected $dispatchToQueue = true;
     protected $withUpdates = false;
@@ -51,15 +51,14 @@ abstract class AbstractBaseVendorService
      *   Dispatcher to trigger async jobs on import
      * @param entityManagerInterface $entityManager
      *   Doctrine entity manager
-     * @param loggerInterface $statsLogger
+     * @param loggerInterface $informationLogger
      *   Logger object to send stats to ES
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager,
-                                LoggerInterface $statsLogger)
+    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $informationLogger)
     {
         $this->em = $entityManager;
         $this->dispatcher = $eventDispatcher;
-        $this->statsLogger = $statsLogger;
+        $this->logger = $informationLogger;
     }
 
     /**
@@ -316,7 +315,7 @@ abstract class AbstractBaseVendorService
         $className = substr(\get_class($this), strrpos(\get_class($this), '\\') + 1);
 
         // Stats logger.
-        $this->statsLogger->info($this->getVendorName().' records read', [
+        $this->logger->info($this->getVendorName().' records read', [
             'service' => $className,
             'records' => $this->totalIsIdentifiers,
             'updated' => $this->totalUpdated,

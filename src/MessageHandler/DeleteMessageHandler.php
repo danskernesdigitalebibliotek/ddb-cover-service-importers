@@ -24,20 +24,20 @@ use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 class DeleteMessageHandler implements MessageHandlerInterface
 {
     private $em;
-    private $statsLogger;
+    private $logger;
     private $coverStore;
 
     /**
      * DeleteProcessor constructor.
      *
      * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $statsLogger
+     * @param LoggerInterface $informationLogger
      * @param CoverStoreInterface $coverStore
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $statsLogger, CoverStoreInterface $coverStore)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $informationLogger, CoverStoreInterface $coverStore)
     {
         $this->em = $entityManager;
-        $this->statsLogger = $statsLogger;
+        $this->logger = $informationLogger;
         $this->coverStore = $coverStore;
     }
 
@@ -84,7 +84,7 @@ class DeleteMessageHandler implements MessageHandlerInterface
                     $this->em->flush();
                     $this->em->getConnection()->commit();
                 } else {
-                    $this->statsLogger->error('Source not found in the database', [
+                    $this->logger->error('Source not found in the database', [
                         'service' => 'DeleteProcessor',
                         'identifier' => $message->getIdentifier(),
                         'imageId' => $message->getImageId(),
@@ -93,14 +93,14 @@ class DeleteMessageHandler implements MessageHandlerInterface
             } catch (\Exception $exception) {
                 $this->em->getConnection()->rollBack();
 
-                $this->statsLogger->error('Database exception: '.get_class($exception), [
+                $this->logger->error('Database exception: '.get_class($exception), [
                     'service' => 'DeleteProcessor',
                     'message' => $exception->getMessage(),
                     'identifiers' => $message->getIdentifier(),
                 ]);
             }
         } catch (ConnectionException $exception) {
-            $this->statsLogger->error('Database Connection Exception', [
+            $this->logger->error('Database Connection Exception', [
                 'service' => 'DeleteProcessor',
                 'message' => $exception->getMessage(),
                 'identifier' => $message->getIdentifier(),
@@ -111,7 +111,7 @@ class DeleteMessageHandler implements MessageHandlerInterface
         try {
             $this->coverStore->remove($vendor->getName(), $message->getIdentifier());
         } catch (CoverStoreNotFoundException $exception) {
-            $this->statsLogger->error('Error removing cover store image - not found', [
+            $this->logger->error('Error removing cover store image - not found', [
                 'service' => 'DeleteProcessor',
                 'message' => $exception->getMessage(),
                 'identifier' => $message->getIdentifier(),
@@ -120,7 +120,7 @@ class DeleteMessageHandler implements MessageHandlerInterface
 
             throw new UnrecoverableMessageHandlingException('Error removing cover store image - not found');
         } catch (CoverStoreException $exception) {
-            $this->statsLogger->error('Error removing cover store image', [
+            $this->logger->error('Error removing cover store image', [
                 'service' => 'DeleteProcessor',
                 'message' => $exception->getMessage(),
                 'identifier' => $message->getIdentifier(),

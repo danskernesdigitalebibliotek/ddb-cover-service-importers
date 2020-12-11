@@ -42,12 +42,12 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      *   Flysystem adapter for remote ftp server
      * @param entityManagerInterface $entityManager
      *   Doctrine entity manager
-     * @param loggerInterface $statsLogger
+     * @param loggerInterface $informationLogger
      *   Logger object to send stats to ES
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, Filesystem $local, Filesystem $ftp, EntityManagerInterface $entityManager, LoggerInterface $statsLogger)
+    public function __construct(EventDispatcherInterface $eventDispatcher, Filesystem $local, Filesystem $ftp, EntityManagerInterface $entityManager, LoggerInterface $informationLogger)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($eventDispatcher, $entityManager, $informationLogger);
 
         $this->local = $local;
         $this->ftp = $ftp;

@@ -53,14 +53,14 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
      *   Flysystem adapter for remote ftp server
      * @param EntityManagerInterface $entityManager
      *   Doctrine entity manager
-     * @param LoggerInterface $statsLogger
+     * @param LoggerInterface $informationLogger
      *   Logger object to send stats to ES
      * @param AdapterInterface $cache
      *   Cache adapter for the application
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, Filesystem $local, Filesystem $ftp, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, AdapterInterface $cache)
+    public function __construct(EventDispatcherInterface $eventDispatcher, Filesystem $local, Filesystem $ftp, EntityManagerInterface $entityManager, LoggerInterface $informationLogger, AdapterInterface $cache)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($eventDispatcher, $entityManager, $informationLogger);
 
         $this->local = $local;
         $this->ftp = $ftp;

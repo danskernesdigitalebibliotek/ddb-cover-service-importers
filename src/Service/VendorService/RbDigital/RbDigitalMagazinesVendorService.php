@@ -38,13 +38,13 @@ class RbDigitalMagazinesVendorService extends AbstractBaseVendorService
      *
      * @param EventDispatcherInterface $eventDispatcher
      * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $statsLogger
+     * @param LoggerInterface $informationLogger
      * @param SearchService $searchService
      * @param \GuzzleHttp\ClientInterface $httpClient
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, SearchService $searchService, ClientInterface $httpClient)
+    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $informationLogger, SearchService $searchService, ClientInterface $httpClient)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($eventDispatcher, $entityManager, $informationLogger);
 
         $this->searchService = $searchService;
         $this->httpClient = $httpClient;

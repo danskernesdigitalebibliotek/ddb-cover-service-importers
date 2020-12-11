@@ -62,7 +62,6 @@ class SearchService
             throw new DataWellVendorException('Missing data well access configuration');
         }
 
-        $more = false;
         $pidArray = [];
 
         try {
