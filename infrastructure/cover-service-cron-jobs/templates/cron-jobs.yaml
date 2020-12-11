@@ -9,6 +9,7 @@ spec:
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: {{ .Values.cron.successfulLimit }}
   failedJobsHistoryLimit: {{ .Values.cron.failedLimit }}
+  startingDeadlineSeconds: {{ .Values.cron.startingDeadlineSeconds }}
   jobTemplate:
     spec:
       template:
