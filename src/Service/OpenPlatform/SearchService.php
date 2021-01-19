@@ -8,6 +8,7 @@
 namespace App\Service\OpenPlatform;
 
 use App\Exception\MaterialTypeException;
+use App\Exception\OpenPlatformSearchException;
 use App\Exception\PlatformAuthException;
 use App\Exception\PlatformSearchException;
 use App\Utils\OpenPlatform\Material;
@@ -248,8 +249,7 @@ class SearchService
      *   The results currently found. If recursion is completed all the results.
      *
      * @throws GuzzleException
-     * @throws \App\Exception\PlatformAuthException
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws OpenPlatformSearchException
      */
     private function recursiveSearch(string $token, string $identifier, string $type, int $offset = 0, array $results = []): array
     {
@@ -284,8 +284,19 @@ class SearchService
                 $query .= 'term.isbn='.$identifier;
                 break;
 
+            case IdentifierType::FAUST:
+                // Search after rec.id on basis and katelog posts only. This is to prevent match in rec.id between non
+                // related posts.
+                $query = 'rec.id='.$identifier.' and rec.id any "basis katalog"';
+                break;
+
+            case IdentifierType::ISSN:
+                $query = 'dkcclterm.in='.$identifier;
+                break;
+
             default:
-                $query = 'dkcclterm.is='.$identifier;
+                // This should not be possible
+                throw new OpenPlatformSearchException('Search with unknown identifier type ('.$type.')');
         }
 
         $response = $this->client->request('POST', $this->searchURL, [
