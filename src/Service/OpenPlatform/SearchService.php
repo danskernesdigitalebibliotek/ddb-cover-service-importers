@@ -50,6 +50,7 @@ class SearchService
     private $searchCacheTTL;
     private $searchURL;
     private $searchProfile;
+    private $searchLimit;
 
     /**
      * SearchService constructor.
@@ -78,6 +79,7 @@ class SearchService
         $this->searchURL = $this->params->get('openPlatform.search.url');
         $this->searchCacheTTL = (int) $this->params->get('openPlatform.search.ttl');
         $this->searchProfile = (string) $this->params->get('openPlatform.search.profile');
+        $this->searchLimit = (int) $this->params->get('openPlatform.search.ttl');
     }
 
     /**
@@ -332,8 +334,8 @@ class SearchService
             }
         }
 
-        // If there are more results get the next chunk.
-        if (isset($json['hitCount']) && false !== $json['more']) {
+        // If there are more results get the next chunk and results are smaller then the limit.
+        if (isset($json['hitCount']) && false !== $json['more'] && count($results) < $this->searchLimit) {
             $this->recursiveSearch($token, $identifier, $type, $offset + $this::SEARCH_LIMIT, $results);
         }
 
