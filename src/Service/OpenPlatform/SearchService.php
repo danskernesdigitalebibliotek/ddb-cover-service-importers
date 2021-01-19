@@ -8,6 +8,7 @@
 namespace App\Service\OpenPlatform;
 
 use App\Exception\MaterialTypeException;
+use App\Exception\OpenPlatformSearchException;
 use App\Exception\PlatformAuthException;
 use App\Exception\PlatformSearchException;
 use App\Utils\OpenPlatform\Material;
@@ -49,6 +50,7 @@ class SearchService
     private $searchCacheTTL;
     private $searchURL;
     private $searchProfile;
+    private $searchLimit;
 
     /**
      * SearchService constructor.
@@ -77,6 +79,7 @@ class SearchService
         $this->searchURL = $this->params->get('openPlatform.search.url');
         $this->searchCacheTTL = (int) $this->params->get('openPlatform.search.ttl');
         $this->searchProfile = (string) $this->params->get('openPlatform.search.profile');
+        $this->searchLimit = (int) $this->params->get('openPlatform.search.ttl');
     }
 
     /**
@@ -248,8 +251,7 @@ class SearchService
      *   The results currently found. If recursion is completed all the results.
      *
      * @throws GuzzleException
-     * @throws \App\Exception\PlatformAuthException
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws OpenPlatformSearchException
      */
     private function recursiveSearch(string $token, string $identifier, string $type, int $offset = 0, array $results = []): array
     {
@@ -284,8 +286,19 @@ class SearchService
                 $query .= 'term.isbn='.$identifier;
                 break;
 
+            case IdentifierType::FAUST:
+                // Search after rec.id on basis and katelog posts only. This is to prevent match in rec.id between non
+                // related posts.
+                $query = 'rec.id='.$identifier.' and rec.id any "basis katalog"';
+                break;
+
+            case IdentifierType::ISSN:
+                $query = 'dkcclterm.in='.$identifier;
+                break;
+
             default:
-                $query = 'dkcclterm.is='.$identifier;
+                // This should not be possible
+                throw new OpenPlatformSearchException('Search with unknown identifier type ('.$type.')');
         }
 
         $response = $this->client->request('POST', $this->searchURL, [
@@ -321,8 +334,8 @@ class SearchService
             }
         }
 
-        // If there are more results get the next chunk.
-        if (isset($json['hitCount']) && false !== $json['more']) {
+        // If there are more results get the next chunk and results are smaller then the limit.
+        if (isset($json['hitCount']) && false !== $json['more'] && count($results) < $this->searchLimit) {
             $this->recursiveSearch($token, $identifier, $type, $offset + $this::SEARCH_LIMIT, $results);
         }
 

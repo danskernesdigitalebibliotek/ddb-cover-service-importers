@@ -13,6 +13,7 @@ parameters:
     openPlatform.search.url: '%env(OPENPLATFORM_SEARCH_URL)%'
     openPlatform.search.ttl: '%env(OPENPLATFORM_SEARCH_TTL)%'
     openPlatform.search.profile: '%env(OPENPLATFORM_SEARCH_PROFILE)%'
+    openPlatform.search.limit: '%env(OPENPLATFORM_SEARCH_LIMIT)%'
     datawell.vendor.agency: '%env(DATAWELL_VENDOR_AGENCY)%'
     datawell.vendor.profile: '%env(DATAWELL_VENDOR_PROFILE)%'
     datawell.vendor.search_url: '%env(DATAWELL_VENDOR_SEARCH_URL)%'
