@@ -344,8 +344,9 @@ class SearchService
      *
      * @param string $isbn
      *   An ISBN10 or ISBN13 number
+     *
      * @return string|null
-     *   The opposite ISBN format or null if conversion not possible
+     *   The ISBN number converted to the opposite format or null if conversion not possible
      */
     private function convertIsbn(string $isbn): ?string
     {
