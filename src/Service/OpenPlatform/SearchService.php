@@ -360,7 +360,7 @@ class SearchService
                 $extraISBN = $tools->convertIsbn10to13($isbn);
             }
         } catch (\Exception $exception) {
-            // Exception is thrown if the ISBN conversion fail. Fallback to setting extra ISBN to false.
+            // Exception is thrown if the ISBN conversion fail. Fallback to setting extra ISBN to null.
         }
 
         return $extraISBN;
