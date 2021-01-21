@@ -181,7 +181,15 @@ class SearchService
 
                 case 'identifierISBN':
                     foreach ($items as $item) {
-                        $material->addIdentifier(IdentifierType::ISBN, $this->stripDashes($item));
+                        $isbn = $this->stripDashes($item);
+                        $material->addIdentifier(IdentifierType::ISBN, $isbn);
+
+                        // Always add the matching ISBN10/13 because we can't trust the datawell
+                        // to always provide both.
+                        $extraISBN = $this->convertIsbn($isbn);
+                        if (!is_null($extraISBN)) {
+                            $material->addIdentifier(IdentifierType::ISBN, $extraISBN);
+                        }
                     }
                     break;
 
@@ -262,25 +270,11 @@ class SearchService
                 break;
 
             case IdentifierType::ISBN:
-                $tools = new IsbnTools();
-
-                // Set it to false as default if the ISBN is not found to be valid by the tool.
-                $extraISBN = false;
-
                 // Try to get both ISBN-10 and ISBN-13 into query to match wider.
-                try {
-                    if ($tools->isValidIsbn13($identifier)) {
-                        // Only ISBN-13 numbers starting with 978 can be converted to an ISBN-10.
-                        $extraISBN = $tools->convertIsbn13to10($identifier);
-                    } elseif ($tools->isValidIsbn10($identifier)) {
-                        $extraISBN = $tools->convertIsbn10to13($identifier);
-                    }
-                } catch (\Exception $exception) {
-                    // Exception is thrown if the ISBN conversion fail. Fallback to setting extra ISBN to false.
-                }
+                $extraISBN = $this->convertIsbn($identifier);
 
                 $query = '';
-                if (false !== $extraISBN) {
+                if (!is_null($extraISBN)) {
                     $query = 'term.isbn='.$extraISBN.' OR ';
                 }
                 $query .= 'term.isbn='.$identifier;
@@ -340,5 +334,35 @@ class SearchService
         }
 
         return $results;
+    }
+
+    /**
+     * Convert ISBN to matching ISBN10 or ISBN13.
+     *
+     * Will convert the given isbn number to it's opposite format.
+     * E.g. convert ISBN10 to 13, and ISBN13 to 10 when possible.
+     *
+     * @param string $isbn
+     *   An ISBN10 or ISBN13 number
+     *
+     * @return string|null
+     *   The ISBN number converted to the opposite format or null if conversion not possible
+     */
+    private function convertIsbn(string $isbn): ?string
+    {
+        $extraISBN = null;
+        $tools = new IsbnTools();
+        try {
+            if ($tools->isValidIsbn13($isbn)) {
+                // Only ISBN-13 numbers starting with 978 can be converted to an ISBN-10.
+                $extraISBN = $tools->convertIsbn13to10($isbn);
+            } elseif ($tools->isValidIsbn10($isbn)) {
+                $extraISBN = $tools->convertIsbn10to13($isbn);
+            }
+        } catch (\Exception $exception) {
+            // Exception is thrown if the ISBN conversion fail. Fallback to setting extra ISBN to null.
+        }
+
+        return $extraISBN;
     }
 }
