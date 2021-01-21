@@ -187,7 +187,7 @@ class SearchService
                         // Always add the matching ISBN10/13 because we can't trust the datawell
                         // to always provide both.
                         $extraISBN = $this->convertIsbn($isbn);
-                        if ($extraISBN) {
+                        if (!is_null($extraISBN)) {
                             $material->addIdentifier(IdentifierType::ISBN, $extraISBN);
                         }
                     }
@@ -274,7 +274,7 @@ class SearchService
                 $extraISBN = $this->convertIsbn($identifier);
 
                 $query = '';
-                if ($extraISBN) {
+                if (!is_null($extraISBN)) {
                     $query = 'term.isbn='.$extraISBN.' OR ';
                 }
                 $query .= 'term.isbn='.$identifier;
