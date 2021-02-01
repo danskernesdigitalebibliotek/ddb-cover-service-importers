@@ -266,6 +266,12 @@ class SearchService
      */
     private function recursiveSearch(string $token, string $identifier, string $type, string $query = '', int $offset = 0, array $results = []): array
     {
+        // HACK HACK HACK.
+        // Temporary protection against non-real identifiers and search on library only ids.
+        if (empty($identifier) || strlen($identifier) <= 6) {
+            return $results;
+        }
+
         if ('' === $query) {
             switch ($type) {
                 case IdentifierType::PID:
