@@ -250,6 +250,9 @@ class SearchService
      *   The identifier to search for
      * @param string $type
      *   The identifier type
+     * @param string $query
+     *   Search query to execute. Defaults to empty string, which means that the function will build the query based on
+     *   the other parameters.
      * @param int $offset
      *   The offset to start getting results
      * @param array $results
@@ -261,38 +264,40 @@ class SearchService
      * @throws GuzzleException
      * @throws OpenPlatformSearchException
      */
-    private function recursiveSearch(string $token, string $identifier, string $type, int $offset = 0, array $results = []): array
+    private function recursiveSearch(string $token, string $identifier, string $type, string $query = '', int $offset = 0, array $results = []): array
     {
-        switch ($type) {
-            case IdentifierType::PID:
-                // If this is a search after a pid simply search for it and not in the search index.
-                $query = 'rec.id='.$identifier;
-                break;
+        if ('' === $query) {
+            switch ($type) {
+                case IdentifierType::PID:
+                    // If this is a search after a pid simply search for it and not in the search index.
+                    $query = 'rec.id='.$identifier;
+                    break;
 
-            case IdentifierType::ISBN:
-                // Try to get both ISBN-10 and ISBN-13 into query to match wider.
-                $extraISBN = $this->convertIsbn($identifier);
+                case IdentifierType::ISBN:
+                    // Try to get both ISBN-10 and ISBN-13 into query to match wider.
+                    $extraISBN = $this->convertIsbn($identifier);
 
-                $query = '';
-                if (!is_null($extraISBN)) {
-                    $query = 'term.isbn='.$extraISBN.' OR ';
-                }
-                $query .= 'term.isbn='.$identifier;
-                break;
+                    $query = '';
+                    if (!is_null($extraISBN)) {
+                        $query = 'term.isbn='.$extraISBN.' OR ';
+                    }
+                    $query .= 'term.isbn='.$identifier;
+                    break;
 
-            case IdentifierType::FAUST:
-                // Search after rec.id on basis posts only. This is to prevent match in rec.id between non
-                // related posts.
-                $query = 'rec.id=870970-basis:'.$identifier;
-                break;
+                case IdentifierType::FAUST:
+                    // Search after rec.id on basis posts only. This is to prevent match in rec.id between non
+                    // related posts.
+                    $query = 'rec.id=870970-basis:'.$identifier;
+                    break;
 
-            case IdentifierType::ISSN:
-                $query = 'dkcclterm.in='.$identifier;
-                break;
+                case IdentifierType::ISSN:
+                    $query = 'dkcclterm.in='.$identifier;
+                    break;
 
-            default:
-                // This should not be possible
-                throw new OpenPlatformSearchException('Search with unknown identifier type ('.$type.')');
+                default:
+                    // This should not be possible
+                    throw new OpenPlatformSearchException('Search with unknown identifier type ('.$type.')');
+            }
         }
 
         $response = $this->client->request('POST', $this->searchURL, [
@@ -330,7 +335,7 @@ class SearchService
 
         // If there are more results get the next chunk and results are smaller then the limit.
         if (isset($json['hitCount']) && false !== $json['more'] && count($results['pid']) < $this->searchLimit) {
-            $this->recursiveSearch($token, $identifier, $type, $offset + $this::SEARCH_LIMIT, $results);
+            $this->recursiveSearch($token, $identifier, $type, $query, $offset + $this::SEARCH_LIMIT, $results);
         }
 
         return $results;
