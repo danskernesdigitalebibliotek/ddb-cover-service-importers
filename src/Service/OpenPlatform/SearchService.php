@@ -281,9 +281,9 @@ class SearchService
                 break;
 
             case IdentifierType::FAUST:
-                // Search after rec.id on basis and katelog posts only. This is to prevent match in rec.id between non
+                // Search after rec.id on basis posts only. This is to prevent match in rec.id between non
                 // related posts.
-                $query = 'rec.id='.$identifier.' and rec.id any "basis katalog"';
+                $query = 'rec.id=870970-basis:'.$identifier;
                 break;
 
             case IdentifierType::ISSN:
@@ -329,7 +329,7 @@ class SearchService
         }
 
         // If there are more results get the next chunk and results are smaller then the limit.
-        if (isset($json['hitCount']) && false !== $json['more'] && count($results) < $this->searchLimit) {
+        if (isset($json['hitCount']) && false !== $json['more'] && count($results['pid']) < $this->searchLimit) {
             $this->recursiveSearch($token, $identifier, $type, $offset + $this::SEARCH_LIMIT, $results);
         }
 
