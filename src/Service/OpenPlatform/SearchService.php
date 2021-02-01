@@ -79,7 +79,7 @@ class SearchService
         $this->searchURL = $this->params->get('openPlatform.search.url');
         $this->searchCacheTTL = (int) $this->params->get('openPlatform.search.ttl');
         $this->searchProfile = (string) $this->params->get('openPlatform.search.profile');
-        $this->searchLimit = (int) $this->params->get('openPlatform.search.ttl');
+        $this->searchLimit = (int) $this->params->get('openPlatform.search.limit');
     }
 
     /**
