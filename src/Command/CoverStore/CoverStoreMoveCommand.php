@@ -56,5 +56,7 @@ class CoverStoreMoveCommand extends Command
 
         // If not moved exceptions should have been thrown.
         $output->writeln($item);
+
+        return 0;
     }
 }

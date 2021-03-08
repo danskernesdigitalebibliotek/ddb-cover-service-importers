@@ -1,27 +1,29 @@
 <?php
 /**
  * @file
- * Service for updating data from 'Bogportalen'.
+ * Abstract base class for the vendor services.
  */
 
 namespace App\Service\VendorService;
 
 use App\Entity\Source;
 use App\Entity\Vendor;
-use App\Event\VendorEvent;
 use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
+use App\Message\VendorImageMessage;
 use App\Repository\SourceRepository;
 use App\Utils\Message\VendorImportResultMessage;
-use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\QueryException;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Lock\Factory;
 use Symfony\Component\Lock\Store\SemaphoreStore;
+use Symfony\Component\Messenger\MessageBusInterface;
 
+/**
+ * Class AbstractBaseVendorService.
+ */
 abstract class AbstractBaseVendorService
 {
     protected const VENDOR_ID = 0;
@@ -34,6 +36,7 @@ abstract class AbstractBaseVendorService
     protected $em;
     protected $dispatcher;
     protected $statsLogger;
+    protected $bus;
 
     protected $dispatchToQueue = true;
     protected $withUpdates = false;
@@ -47,19 +50,18 @@ abstract class AbstractBaseVendorService
     /**
      * AbstractBaseVendorService constructor.
      *
-     * @param eventDispatcherInterface $eventDispatcher
-     *   Dispatcher to trigger async jobs on import
      * @param entityManagerInterface $entityManager
      *   Doctrine entity manager
      * @param loggerInterface $statsLogger
      *   Logger object to send stats to ES
+     * @param messageBusInterface $bus
+     *   Job queue bus
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager,
-                                LoggerInterface $statsLogger)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $statsLogger, MessageBusInterface $bus)
     {
         $this->em = $entityManager;
-        $this->dispatcher = $eventDispatcher;
         $this->statsLogger = $statsLogger;
+        $this->bus = $bus;
     }
 
     /**
@@ -281,13 +283,27 @@ abstract class AbstractBaseVendorService
     private function sendCoverImportEvents(array $updatedIdentifiers, array $insertedIdentifiers, string $identifierType): void
     {
         if ($this->dispatchToQueue) {
+            $vendorId = $this->vendor->getId();
+
             if (!empty($insertedIdentifiers)) {
-                $event = new VendorEvent(VendorState::INSERT, $insertedIdentifiers, $identifierType, $this->vendor->getId());
-                $this->dispatcher->dispatch($event::NAME, $event);
+                foreach ($insertedIdentifiers as $identifier) {
+                    $message = new VendorImageMessage();
+                    $message->setOperation(VendorState::INSERT)
+                        ->setIdentifier($identifier)
+                        ->setVendorId($vendorId)
+                        ->setIdentifierType($identifierType);
+                    $this->bus->dispatch($message);
+                }
             }
             if (!empty($updatedIdentifiers) && $this->withUpdates) {
-                $event = new VendorEvent(VendorState::UPDATE, $updatedIdentifiers, $identifierType, $this->vendor->getId());
-                $this->dispatcher->dispatch($event::NAME, $event);
+                foreach ($updatedIdentifiers as $identifier) {
+                    $message = new VendorImageMessage();
+                    $message->setOperation(VendorState::UPDATE)
+                        ->setIdentifier($identifier)
+                        ->setVendorId($vendorId)
+                        ->setIdentifierType($identifierType);
+                    $this->bus->dispatch($message);
+                }
             }
 
             // @TODO: DELETED event???

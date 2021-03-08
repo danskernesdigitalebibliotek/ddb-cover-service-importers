@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Index event subscripter that updates the searches database table thereby ensuring that the material gets indexed into
+ * Index event subscriber that updates the searches database table thereby ensuring that the material gets indexed into
  * the search engine.
  */
 
@@ -19,7 +19,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
- * Class VendorEventSubscriber.
+ * Class IndexEventSubscriber.
  */
 class IndexEventSubscriber implements EventSubscriberInterface
 {

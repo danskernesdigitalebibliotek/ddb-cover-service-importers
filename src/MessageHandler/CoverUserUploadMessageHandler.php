@@ -9,18 +9,19 @@ namespace App\MessageHandler;
 
 use App\Entity\Source;
 use App\Entity\Vendor;
-use App\Event\VendorEvent;
 use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
 use App\Message\CoverUserUploadMessage;
+use App\Message\DeleteMessage;
+use App\Message\VendorImageMessage;
 use App\Repository\SourceRepository;
 use App\Repository\VendorRepository;
 use App\Service\VendorService\UserUpload\UserUploadVendorService;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class CoverUploadProcessor.
@@ -28,7 +29,7 @@ use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 class CoverUserUploadMessageHandler implements MessageHandlerInterface
 {
     private $em;
-    private $dispatcher;
+    private $bus;
     private $statsLogger;
 
     /** @var Vendor $vendor */
@@ -40,18 +41,18 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
      *
      * @param EntityManagerInterface $entityManager
      * @param LoggerInterface $statsLogger
-     * @param EventDispatcherInterface $eventDispatcher
+     * @param MessageBusInterface $bus
      * @param SourceRepository $sourceRepo
      * @param VendorRepository $vendorRepo
      *
      * @throws IllegalVendorServiceException
      * @throws UnknownVendorServiceException
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $statsLogger, EventDispatcherInterface $eventDispatcher, SourceRepository $sourceRepo, VendorRepository $vendorRepo, UserUploadVendorService $userUploadVendorService)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $statsLogger, MessageBusInterface $bus, SourceRepository $sourceRepo, VendorRepository $vendorRepo, UserUploadVendorService $userUploadVendorService)
     {
         $this->em = $entityManager;
         $this->statsLogger = $statsLogger;
-        $this->dispatcher = $eventDispatcher;
+        $this->dispatcher = $bus;
 
         $this->sourceRepo = $sourceRepo;
 
@@ -60,34 +61,37 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
     }
 
     /**
-     * @param CoverUserUploadMessage $message
+     * @param CoverUserUploadMessage $UserUploadMessage
      *
      * @throws \Doctrine\ORM\Query\QueryException
      */
-    public function __invoke(CoverUserUploadMessage $message)
+    public function __invoke(CoverUserUploadMessage $UserUploadMessage)
     {
-        $identifier = $message->getIdentifier();
+        $identifier = $UserUploadMessage->getIdentifier();
 
         /** @var Source[] $sources */
-        $sources = $this->sourceRepo->findByMatchIdList($message->getIdentifierType(), [$identifier => ''], $this->vendor);
+        $sources = $this->sourceRepo->findByMatchIdList($UserUploadMessage->getIdentifierType(), [$identifier => ''], $this->vendor);
 
-        $event = new VendorEvent(VendorState::UNKNOWN, [$identifier], $message->getIdentifierType(), $this->vendor->getId());
-
-        switch ($message->getOperation()) {
+        switch ($UserUploadMessage->getOperation()) {
             case VendorState::UPDATE:
             case VendorState::INSERT:
-                $event->changeType(VendorState::UPDATE);
-                if ($this->createUpdateSource($identifier, $sources, $message)) {
-                    $event->changeType(VendorState::INSERT);
+                $message = new VendorImageMessage();
+                $message->setOperation(VendorState::UPDATE);
+                if ($this->createUpdateSource($identifier, $sources, $UserUploadMessage)) {
+                    $message->setOperation(VendorState::INSERT);
                 }
                 break;
 
             case VendorState::DELETE:
-                $event->changeType(VendorState::DELETE);
+                $message = new DeleteMessage();
+                $message->setOperation(VendorState::DELETE);
                 break;
         }
 
-        $this->dispatcher->dispatch($event, $event::NAME);
+        $message->setIdentifier($identifier)
+            ->setVendorId($this->vendor->getId())
+            ->setIdentifierType($UserUploadMessage->getIdentifierType());
+        $this->bus->dispatch($message);
     }
 
     /**

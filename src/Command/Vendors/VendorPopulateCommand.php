@@ -53,7 +53,9 @@ class VendorPopulateCommand extends Command
         } catch (Exception $exception) {
             $io->error('👎 '.$exception->getMessage());
 
-            return;
+            return -1;
         }
+
+        return 0;
     }
 }

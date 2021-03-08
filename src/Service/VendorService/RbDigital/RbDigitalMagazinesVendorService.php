@@ -16,7 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class RbDigitalBooksVendorService.
@@ -36,15 +36,15 @@ class RbDigitalMagazinesVendorService extends AbstractBaseVendorService
     /**
      * RbDigitalMagazinesVendorService constructor.
      *
-     * @param EventDispatcherInterface $eventDispatcher
+     * @param MessageBusInterface $bus
      * @param EntityManagerInterface $entityManager
      * @param LoggerInterface $statsLogger
      * @param SearchService $searchService
      * @param \GuzzleHttp\ClientInterface $httpClient
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, SearchService $searchService, ClientInterface $httpClient)
+    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, SearchService $searchService, ClientInterface $httpClient)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($entityManager, $statsLogger, $bus);
 
         $this->searchService = $searchService;
         $this->httpClient = $httpClient;

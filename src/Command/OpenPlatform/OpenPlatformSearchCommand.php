@@ -60,5 +60,7 @@ class OpenPlatformSearchCommand extends Command
 
         $material = $this->search->search($is, $type, $withOutSearchCache);
         $output->writeln($material);
+
+        return 0;
     }
 }

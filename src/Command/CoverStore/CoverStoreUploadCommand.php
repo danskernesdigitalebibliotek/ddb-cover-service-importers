@@ -59,5 +59,7 @@ class CoverStoreUploadCommand extends Command
         );
 
         $output->writeln($item);
+
+        return 0;
     }
 }
