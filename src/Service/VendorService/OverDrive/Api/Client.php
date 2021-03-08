@@ -182,7 +182,7 @@ class Client
         $item = $this->cache->getItem('overdrive.api.access_token');
 
         if ($item->isHit()) {
-            $authorization =  $item->get();
+            $authorization = $item->get();
         } else {
             $authorization = base64_encode($this->clientId.':'.$this->clientSecret);
 
