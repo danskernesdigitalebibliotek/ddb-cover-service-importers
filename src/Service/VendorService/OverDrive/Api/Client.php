@@ -142,7 +142,7 @@ class Client
         $item = $this->cache->getItem('overdrive.api.productsEndpoint');
 
         if ($item->isHit()) {
-            return $item->get();
+            $endpoint = $item->get();
         } else {
             $endpoint = self::LIBRARY_ACCOUNT_ENDPOINT.'/'.$this->libraryId;
             $response = $this->httpClient->request('GET', $endpoint, [
@@ -160,8 +160,10 @@ class Client
             $item->set($json->links->products->href);
             $this->cache->save($item);
 
-            return $json->links->products->href;
+            $endpoint = $json->links->products->href;
         }
+
+        return $endpoint;
     }
 
     /**
@@ -180,7 +182,7 @@ class Client
         $item = $this->cache->getItem('overdrive.api.access_token');
 
         if ($item->isHit()) {
-            return $item->get();
+            $authorization =  $item->get();
         } else {
             $authorization = base64_encode($this->clientId.':'.$this->clientSecret);
 
@@ -203,9 +205,9 @@ class Client
             $item->expiresAfter($json['expires_in']);
             $item->set($authorization);
             $this->cache->save($item);
-
-            return $authorization;
         }
+
+        return $authorization;
     }
 
     /**
