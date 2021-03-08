@@ -40,7 +40,8 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
      * @param EntityManagerInterface $entityManager
      * @param LoggerInterface $statsLogger
      * @param SearchService $searchService
-     * @param \GuzzleHttp\ClientInterface $httpClient
+     * @param ClientInterface $httpClient
+     * @param Client $apiClient
      */
     public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, SearchService $searchService, ClientInterface $httpClient, Client $apiClient)
     {
