@@ -12,6 +12,9 @@ use Doctrine\Migrations\AbstractMigration;
  */
 final class Version20210309173347 extends AbstractMigration
 {
+    /**
+     * {@inheritdoc}
+     */
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
@@ -20,6 +23,9 @@ final class Version20210309173347 extends AbstractMigration
         $this->addSql("UPDATE vendor SET class = 'App\\\Service\\\VendorService\\\OverDrive\\\OverDriveBooksVendorService', name = 'OverDriveBooks' WHERE id = 14");
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs

@@ -44,6 +44,8 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
      *   Doctrine entity manager
      * @param loggerInterface $statsLogger
      *   Logger object to send stats to ES
+     * @param SearchService $searchService
+     *   Datawell search service
      * @param ClientInterface $httpClient
      *   Http client to send api requests
      * @param Client $apiClient
