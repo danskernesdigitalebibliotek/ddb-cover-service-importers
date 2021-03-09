@@ -20,7 +20,7 @@ use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Scriptotek\Marc\Collection;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class RbDigitalBooksVendorService.
@@ -45,8 +45,8 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
     /**
      * RbDigitalVendorService constructor.
      *
-     * @param eventDispatcherInterface $eventDispatcher
-     *   Dispatcher to trigger async jobs on import
+     * @param MessageBusInterface $bus
+     *   Message queue bus
      * @param Filesystem $local
      *   Flysystem adapter for local filesystem
      * @param Filesystem $ftp
@@ -58,9 +58,9 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
      * @param AdapterInterface $cache
      *   Cache adapter for the application
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, Filesystem $local, Filesystem $ftp, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, AdapterInterface $cache)
+    public function __construct(MessageBusInterface $bus, Filesystem $local, Filesystem $ftp, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, AdapterInterface $cache)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($entityManager, $statsLogger, $bus);
 
         $this->local = $local;
         $this->ftp = $ftp;

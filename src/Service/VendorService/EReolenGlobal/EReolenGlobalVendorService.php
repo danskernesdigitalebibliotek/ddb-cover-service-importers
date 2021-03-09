@@ -16,7 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class EReolenGlobalVendorService.
@@ -37,8 +37,8 @@ class EReolenGlobalVendorService extends AbstractBaseVendorService
     /**
      * EReolenGlobalVendorService constructor.
      *
-     * @param eventDispatcherInterface $eventDispatcher
-     *   Dispatcher to trigger async jobs on import
+     * @param MessageBusInterface $bus
+     *   Message queue bus
      * @param entityManagerInterface $entityManager
      *   Doctrine entity manager
      * @param loggerInterface $statsLogger
@@ -46,9 +46,9 @@ class EReolenGlobalVendorService extends AbstractBaseVendorService
      * @param ClientInterface $httpClient
      *   Http client to send api requests
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, ClientInterface $httpClient)
+    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, ClientInterface $httpClient)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($entityManager, $statsLogger, $bus);
 
         $this->httpClient = $httpClient;
     }

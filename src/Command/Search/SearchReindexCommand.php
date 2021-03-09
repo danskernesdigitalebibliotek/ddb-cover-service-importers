@@ -118,5 +118,7 @@ class SearchReindexCommand extends Command
         }
 
         $this->progressFinish();
+
+        return 0;
     }
 }

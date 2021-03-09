@@ -18,7 +18,7 @@ use Box\Spout\Reader\XLSX\Reader;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class SaxoVendorService.
@@ -37,8 +37,8 @@ class SaxoVendorService extends AbstractBaseVendorService
     /**
      * SaxoVendorService constructor.
      *
-     * @param eventDispatcherInterface $eventDispatcher
-     *   Dispatcher to trigger async jobs on import
+     * @param MessageBusInterface $bus
+     *   Message queue bus
      * @param entityManagerInterface $entityManager
      *   Doctrine entity manager
      * @param loggerInterface $statsLogger
@@ -46,9 +46,9 @@ class SaxoVendorService extends AbstractBaseVendorService
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, string $resourcesDir)
+    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, string $resourcesDir)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($entityManager, $statsLogger, $bus);
 
         $this->resourcesDir = $resourcesDir;
     }

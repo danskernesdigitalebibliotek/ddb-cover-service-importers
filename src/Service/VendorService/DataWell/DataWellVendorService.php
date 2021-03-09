@@ -16,7 +16,7 @@ use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class DataWellVendorService.
@@ -33,15 +33,14 @@ class DataWellVendorService extends AbstractBaseVendorService
     /**
      * DataWellVendorService constructor.
      *
-     * @param EventDispatcherInterface $eventDispatcher
+     * @param MessageBusInterface $bus
      * @param EntityManagerInterface $entityManager
      * @param LoggerInterface $statsLogger
      * @param DataWellSearchService $datawell
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager,
-                              LoggerInterface $statsLogger, DataWellSearchService $datawell)
+    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, DataWellSearchService $datawell)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($entityManager, $statsLogger, $bus);
 
         $this->datawell = $datawell;
     }

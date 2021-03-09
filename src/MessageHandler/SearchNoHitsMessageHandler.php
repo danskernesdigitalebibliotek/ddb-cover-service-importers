@@ -9,12 +9,12 @@ namespace App\MessageHandler;
 
 use App\Entity\Search;
 use App\Entity\Source;
-use App\Event\VendorEvent;
 use App\Exception\MaterialTypeException;
 use App\Exception\PlatformAuthException;
 use App\Exception\PlatformSearchException;
 use App\Message\SearchMessage;
 use App\Message\SearchNoHitsMessage;
+use App\Message\VendorImageMessage;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\OpenPlatform\SearchService;
 use App\Service\VendorService\VendorImageValidatorService;
@@ -27,7 +27,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -43,7 +42,6 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
     private $statsLogger;
     private $searchService;
     private $validatorService;
-    private $dispatcher;
 
     const VENDOR = 'Unknown';
 
@@ -56,9 +54,8 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
      * @param LoggerInterface $statsLogger
      * @param SearchService $searchService
      * @param VendorImageValidatorService $validatorService
-     * @param EventDispatcherInterface $eventDispatcher
      */
-    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $coverStore, MessageBusInterface $bus, LoggerInterface $statsLogger, SearchService $searchService, VendorImageValidatorService $validatorService, EventDispatcherInterface $eventDispatcher)
+    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $coverStore, MessageBusInterface $bus, LoggerInterface $statsLogger, SearchService $searchService, VendorImageValidatorService $validatorService)
     {
         $this->em = $entityManager;
         $this->coverStore = $coverStore;
@@ -66,7 +63,6 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
         $this->statsLogger = $statsLogger;
         $this->searchService = $searchService;
         $this->validatorService = $validatorService;
-        $this->dispatcher = $eventDispatcher;
     }
 
     /**
@@ -180,8 +176,12 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                         }
 
                         if ($item->isFound()) {
-                            $event = new VendorEvent(VendorState::UPDATE, [$source->getMatchId()], $source->getMatchType(), $source->getVendor()->getId());
-                            $this->dispatcher->dispatch($event, $event::NAME);
+                            $message = new VendorImageMessage();
+                            $message->setOperation(VendorState::UPDATE)
+                                ->setIdentifier($source->getMatchId())
+                                ->setVendorId($source->getVendor()->getId())
+                                ->setIdentifierType($source->getMatchType());
+                            $this->bus->dispatch($message);
                         }
                     }
                 }

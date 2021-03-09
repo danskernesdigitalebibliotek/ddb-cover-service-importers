@@ -19,13 +19,11 @@ use App\Repository\SourceRepository;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
-use App\Utils\Message\ProcessMessage;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
@@ -43,29 +41,25 @@ class UploadServiceVendorService extends AbstractBaseVendorService
     /** @var CoverStoreInterface $store */
     private $store;
 
-    /** @var MessageBusInterface $bus */
-    private $bus;
-
     /** @var SourceRepository $sourceRepository */
     private $sourceRepository;
 
     /**
      * CoverStoreSearchCommand constructor.
      *
-     * @param EventDispatcherInterface $eventDispatcher
+     * @param MessageBusInterface $bus
      * @param EntityManagerInterface $entityManager
      * @param LoggerInterface $statsLogger
      * @param CoverStoreInterface $store
-     * @param MessageBusInterface $bus
      * @param SourceRepository $sourceRepository
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, CoverStoreInterface $store, MessageBusInterface $bus, SourceRepository $sourceRepository)
+    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, CoverStoreInterface $store, SourceRepository $sourceRepository)
     {
         $this->store = $store;
         $this->bus = $bus;
         $this->sourceRepository = $sourceRepository;
 
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($entityManager, $statsLogger, $bus);
     }
 
     /**

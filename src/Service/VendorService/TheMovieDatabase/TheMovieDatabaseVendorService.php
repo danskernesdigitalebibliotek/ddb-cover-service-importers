@@ -8,9 +8,9 @@
 namespace App\Service\VendorService\TheMovieDatabase;
 
 use App\Entity\Source;
-use App\Event\VendorEvent;
 use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
+use App\Message\VendorImageMessage;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Message\VendorImportResultMessage;
@@ -19,7 +19,7 @@ use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class DataWellVendorService.
@@ -40,20 +40,20 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
     /**
      * TheMovieDatabaseVendorService constructor.
      *
-     * @param EventDispatcherInterface      $eventDispatcher
-     *   The event dispatcher
-     * @param EntityManagerInterface        $entityManager
+     * @param MessageBusInterface $bus
+     *   Message queue bus
+     * @param EntityManagerInterface $entityManager
      *   The entity manager
-     * @param LoggerInterface               $statsLogger
+     * @param LoggerInterface $statsLogger
      *   The stats logger
      * @param theMovieDatabaseSearchService $dataWell
      *   The search service
-     * @param TheMovieDatabaseApiService    $api
+     * @param TheMovieDatabaseApiService $api
      *   The movie api service
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, TheMovieDatabaseSearchService $dataWell, TheMovieDatabaseApiService $api)
+    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, TheMovieDatabaseSearchService $dataWell, TheMovieDatabaseApiService $api)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($entityManager, $statsLogger, $bus);
 
         $this->dataWell = $dataWell;
         $this->api = $api;
@@ -177,8 +177,12 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
                     $this->em->flush();
 
                     // Create vendor event.
-                    $event = new VendorEvent(VendorState::INSERT, [$source->getMatchId()], $source->getMatchType(), $source->getVendor()->getId());
-                    $this->dispatcher->dispatch($event::NAME, $event);
+                    $message = new VendorImageMessage();
+                    $message->setOperation(VendorState::INSERT)
+                        ->setIdentifier($source->getMatchId())
+                        ->setVendorId($source->getVendor()->getId())
+                        ->setIdentifierType($source->getMatchType());
+                    $this->bus->dispatch($message);
                 }
             }
         }

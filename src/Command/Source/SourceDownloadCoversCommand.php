@@ -8,7 +8,7 @@
 namespace App\Command\Source;
 
 use App\Entity\Source;
-use App\Event\VendorEvent;
+use App\Message\VendorImageMessage;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
@@ -19,7 +19,7 @@ use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class SourceDownloadCoversCommand.
@@ -32,7 +32,7 @@ class SourceDownloadCoversCommand extends Command
 
     private $em;
     private $validator;
-    private $dispatcher;
+    private $bus;
 
     /**
      * SourceDownloadCoversCommand constructor.
@@ -41,14 +41,14 @@ class SourceDownloadCoversCommand extends Command
      *   The entity manager to access that database
      * @param VendorImageValidatorService $validator
      *   Image validation service used to detected remote cover
-     * @param EventDispatcherInterface $eventDispatcher
-     *   Send event into the system
+     * @param MessageBusInterface $bus
+     *   Message bus to send messages (jobs)
      */
-    public function __construct(EntityManagerInterface $entityManager, VendorImageValidatorService $validator, EventDispatcherInterface $eventDispatcher)
+    public function __construct(EntityManagerInterface $entityManager, VendorImageValidatorService $validator, MessageBusInterface $bus)
     {
         $this->em = $entityManager;
         $this->validator = $validator;
-        $this->dispatcher = $eventDispatcher;
+        $this->bus = $bus;
 
         parent::__construct();
     }
@@ -101,8 +101,12 @@ class SourceDownloadCoversCommand extends Command
 
             if ($item->isFound()) {
                 ++$found;
-                $event = new VendorEvent(VendorState::UPDATE, [$source->getMatchId()], $source->getMatchType(), $source->getVendor()->getId());
-                $this->dispatcher->dispatch($event, $event::NAME);
+                $message = new VendorImageMessage();
+                $message->setOperation(VendorState::UPDATE)
+                    ->setIdentifier($source->getMatchId())
+                    ->setVendorId($source->getVendor()->getId())
+                    ->setIdentifierType($source->getMatchType());
+                $this->bus->dispatch($message);
             }
 
             $this->progressAdvance();

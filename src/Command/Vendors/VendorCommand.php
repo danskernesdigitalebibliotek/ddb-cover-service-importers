@@ -95,6 +95,8 @@ class VendorCommand extends Command
         }
 
         $this->outputTable($results, $output);
+
+        return 0;
     }
 
     /**

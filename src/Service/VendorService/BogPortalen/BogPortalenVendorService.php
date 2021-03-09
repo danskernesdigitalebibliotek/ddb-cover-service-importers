@@ -15,8 +15,8 @@ use App\Utils\Types\IdentifierType;
 use Doctrine\ORM\EntityManagerInterface;
 use League\Flysystem\Filesystem;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class BogPortalenVendorService.
@@ -34,8 +34,8 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     /**
      * BogPortalenVendorService constructor.
      *
-     * @param eventDispatcherInterface $eventDispatcher
-     *   Dispatcher to trigger async jobs on import
+     * @param messageBusInterface $bus
+     *   Job queue bus
      * @param filesystem $local
      *   Flysystem adapter for local filesystem
      * @param filesystem $ftp
@@ -45,9 +45,9 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      * @param loggerInterface $statsLogger
      *   Logger object to send stats to ES
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, Filesystem $local, Filesystem $ftp, EntityManagerInterface $entityManager, LoggerInterface $statsLogger)
+    public function __construct(MessageBusInterface $bus, Filesystem $local, Filesystem $ftp, EntityManagerInterface $entityManager, LoggerInterface $statsLogger)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($entityManager, $statsLogger, $bus);
 
         $this->local = $local;
         $this->ftp = $ftp;
@@ -101,7 +101,7 @@ class BogPortalenVendorService extends AbstractBaseVendorService
                 }
 
                 $this->local->delete($archive);
-            } catch (InvalidArgumentException $e) {
+            } catch (\InvalidArgumentException $e) {
                 return VendorImportResultMessage::error($e->getMessage());
             } catch (\Exception $e) {
                 return VendorImportResultMessage::error($e->getMessage());

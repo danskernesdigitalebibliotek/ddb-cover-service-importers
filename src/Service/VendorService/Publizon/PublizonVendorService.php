@@ -16,7 +16,7 @@ use App\Utils\Types\IdentifierType;
 use App\Utils\Types\OnixOutputDefinition;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class PublizonVendorService.
@@ -35,10 +35,9 @@ class PublizonVendorService extends AbstractBaseVendorService
     /**
      * {@inheritdoc}
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager,
-                                LoggerInterface $statsLogger, PublizonXmlReaderService $xmlReader)
+    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, PublizonXmlReaderService $xmlReader)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
+        parent::__construct($entityManager, $statsLogger, $bus);
 
         $this->xml = $xmlReader;
     }
