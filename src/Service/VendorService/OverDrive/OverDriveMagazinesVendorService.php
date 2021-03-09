@@ -6,6 +6,8 @@
 
 namespace App\Service\VendorService\OverDrive;
 
+use App\Exception\IllegalVendorServiceException;
+use App\Exception\UnknownVendorServiceException;
 use App\Service\DataWell\SearchService;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\OverDrive\Api\Client;
@@ -36,12 +38,16 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
     /**
      * OverDriveMagazinesVendorService constructor.
      *
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $statsLogger
-     * @param SearchService $searchService
+     * @param eventDispatcherInterface $eventDispatcher
+     *   Dispatcher to trigger async jobs on import
+     * @param entityManagerInterface $entityManager
+     *   Doctrine entity manager
+     * @param loggerInterface $statsLogger
+     *   Logger object to send stats to ES
      * @param ClientInterface $httpClient
+     *   Http client to send api requests
      * @param Client $apiClient
+     *   Api client for the OverDrive API
      */
     public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, SearchService $searchService, ClientInterface $httpClient, Client $apiClient)
     {
@@ -60,6 +66,8 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
         if (!$this->acquireLock()) {
             return VendorImportResultMessage::error(parent::ERROR_RUNNING);
         }
+
+        $this->loadConfig();
 
         $this->progressStart('Search data well for: "'.self::VENDOR_SEARCH_TERM.'"');
 
@@ -95,6 +103,21 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
         } catch (\Exception $exception) {
             return VendorImportResultMessage::error($exception->getMessage());
         }
+    }
+
+    /**
+     * Set config from service from DB vendor object.
+     *
+     * @throws UnknownVendorServiceException
+     * @throws IllegalVendorServiceException
+     */
+    private function loadConfig(): void
+    {
+        $libraryAccountEndpoint = $this->getVendor()->getDataServerURI();
+        $clientId = $this->getVendor()->getDataServerUser();
+        $clientSecret = $this->getVendor()->getDataServerPassword();
+
+        $this->apiClient->setCredentials($libraryAccountEndpoint, $clientId, $clientSecret);
     }
 
     /**

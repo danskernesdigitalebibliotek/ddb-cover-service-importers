@@ -8,6 +8,7 @@
 
 namespace App\Service\VendorService\OverDrive\Api;
 
+use App\Service\VendorService\OverDrive\Api\Exception\AuthException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Cache\InvalidArgumentException;
@@ -21,11 +22,10 @@ class Client
     private const MAX_RETRIES = 5;
 
     private const OAUTH_URL = 'https://oauth.overdrive.com/token';
-    private const LIBRARY_ACCOUNT_ENDPOINT = 'https://api.overdrive.com/v1/libraries';
     private const USER_AGENT = 'cover.dandigbib.org';
 
     /** @var string */
-    private $libraryId;
+    private $libraryAccountEndpoint;
 
     /** @var string */
     private $clientId;
@@ -48,20 +48,33 @@ class Client
     /**
      * Client constructor.
      *
-     * @param string $libraryId
-     * @param string $clientId
-     * @param string $clientSecret
      * @param AdapterInterface $cache
      * @param ClientInterface $httpClient
      */
-    public function __construct(string $libraryId, string $clientId, string $clientSecret, AdapterInterface $cache, ClientInterface $httpClient)
+    public function __construct(AdapterInterface $cache, ClientInterface $httpClient)
     {
-        $this->libraryId = $libraryId;
-        $this->clientId = $clientId;
-        $this->clientSecret = $clientSecret;
-
         $this->cache = $cache;
         $this->httpClient = $httpClient;
+    }
+
+    /**
+     * Set OverDrive authentication credentials.
+     *
+     * @see https://developer.overdrive.com/apis/client-auth
+     * @see https://developer.overdrive.com/apis/library-account
+     *
+     * @param string $libraryAccountEndpoint
+     *   The custom endpoint for the account used
+     * @param string $clientId
+     *   Client id
+     * @param string $clientSecret
+     *   Client secret
+     */
+    public function setCredentials(string $libraryAccountEndpoint, string $clientId, string $clientSecret): void
+    {
+        $this->libraryAccountEndpoint = $libraryAccountEndpoint;
+        $this->clientId = $clientId;
+        $this->clientSecret = $clientSecret;
     }
 
     /**
@@ -74,6 +87,8 @@ class Client
      *   The cover url or null
      *
      * @throws GuzzleException
+     * @throws AuthException
+     * @throws InvalidArgumentException
      */
     public function getCoverUrl(string $crossRefId): ?string
     {
@@ -85,14 +100,10 @@ class Client
         // If the products key is missing we retry the request 'MAX_RETRIES' times
         do {
             $response = $this->httpClient->request('GET', $this->getProductsEndpoint(), [
-                    'headers' => [
-                        'User-Agent' => self::USER_AGENT,
-                        'Content-Type' => 'application/json',
-                        'Authorization' => $this->getAuthorization(),
-                    ],
-                    'query' => [
-                        'crossRefId' => $crossRefId,
-                    ],
+                'headers' => $this->getHeaders(),
+                'query' => [
+                    'crossRefId' => $crossRefId,
+                ],
             ]);
 
             $content = $response->getBody()->getContents();
@@ -109,6 +120,75 @@ class Client
     }
 
     /**
+     * Get products from the overdrive api.
+     *
+     * @param int $limit
+     *   The number of products to fetch
+     * @param int $offset
+     *   The offset to fetch from
+     *
+     * @return array
+     *   Array of 'products' serialized as stdClass
+     *
+     * @throws AuthException
+     * @throws GuzzleException
+     * @throws InvalidArgumentException
+     */
+    public function getProducts(int $limit, int $offset): array
+    {
+        $response = $this->httpClient->request('GET', $this->getProductsEndpoint(), [
+            'headers' => $this->getHeaders(),
+            'query' => ['limit' => $limit, 'offset' => $offset],
+        ]);
+
+        $content = $response->getBody()->getContents();
+        $content = json_decode($content);
+
+        return $content->products;
+    }
+
+    /**
+     * Get the total number of products from the overdrive api ('totalItems' field in the response).
+     *
+     * @return int
+     *   The total number of products
+     *
+     * @throws AuthException
+     * @throws GuzzleException
+     * @throws InvalidArgumentException
+     */
+    public function getTotalProducts(): int
+    {
+        $response = $this->httpClient->request('GET', $this->getProductsEndpoint(), [
+            'headers' => $this->getHeaders(),
+        ]);
+
+        $content = $response->getBody()->getContents();
+        $content = json_decode($content);
+
+        return $content->totalItems;
+    }
+
+    /**
+     * Get the headers for OverDrive api calls.
+     *
+     * @return string[]
+     *   Array of headers
+     *
+     * @throws AuthException
+     * @throws GuzzleException
+     * @throws InvalidArgumentException
+     */
+    private function getHeaders(): array
+    {
+        return [
+            'User-Agent' => self::USER_AGENT,
+            'Content-Type' => 'application/json',
+            'Authorization' => $this->getAuthorization(),
+        ];
+    }
+
+    /**
      * Get the products endpoint for the account used.
      *
      * @return string
@@ -116,6 +196,7 @@ class Client
      *
      * @throws GuzzleException
      * @throws InvalidArgumentException
+     * @throws AuthException
      */
     private function getProductsEndpoint(): string
     {
@@ -136,6 +217,7 @@ class Client
      *
      * @throws GuzzleException
      * @throws InvalidArgumentException
+     * @throws AuthException
      */
     private function fetchProductsEndpoint(): string
     {
@@ -144,13 +226,8 @@ class Client
         if ($item->isHit()) {
             $endpoint = $item->get();
         } else {
-            $endpoint = self::LIBRARY_ACCOUNT_ENDPOINT.'/'.$this->libraryId;
-            $response = $this->httpClient->request('GET', $endpoint, [
-                    'headers' => [
-                        'User-Agent' => self::USER_AGENT,
-                        'Content-Type' => 'application/json',
-                        'Authorization' => $this->getAuthorization(),
-                    ],
+            $response = $this->httpClient->request('GET', $this->libraryAccountEndpoint, [
+                    'headers' => $this->getHeaders(),
             ]);
 
             $content = $response->getBody()->getContents();
@@ -176,9 +253,14 @@ class Client
      *
      * @throws GuzzleException
      * @throws InvalidArgumentException
+     * @throws AuthException
      */
     private function authenticate(): string
     {
+        if (!$this->libraryAccountEndpoint || !$this->clientId || !$this->clientSecret) {
+            throw new AuthException('Credentials missing. Please set libraryAccountEndpoint, ClientId and ClientSecret');
+        }
+
         $item = $this->cache->getItem('overdrive.api.access_token');
 
         if ($item->isHit()) {
@@ -221,6 +303,7 @@ class Client
      *
      * @throws GuzzleException
      * @throws InvalidArgumentException
+     * @throws AuthException
      */
     private function getAuthorization(): string
     {
