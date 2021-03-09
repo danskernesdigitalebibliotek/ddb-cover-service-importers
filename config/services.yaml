@@ -68,12 +68,6 @@ services:
         arguments:
             $apiKey: '%env(THEMOVIEDATABASE_APIKEY)%'
 
-    App\Service\VendorService\OverDrive\Api\Client:
-        arguments:
-            $libraryId: '%env(OVERDRIVE_LIBRARY_ID)%'
-            $clientId: '%env(OVERDRIVE_CLIENT_ID)%'
-            $clientSecret: '%env(OVERDRIVE_CLIENT_SECRET)%'
-
     Enqueue\Bundle\Consumption\Extension\DoctrinePingConnectionExtension:
         public: false
         arguments:
