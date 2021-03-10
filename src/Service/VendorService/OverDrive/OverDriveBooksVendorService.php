@@ -15,6 +15,8 @@ use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\ClientInterface;
+use GuzzleHttp\Exception\GuzzleException;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -54,6 +56,11 @@ class OverDriveBooksVendorService extends AbstractBaseVendorService
 
     /**
      * {@inheritdoc}
+     *
+     * @throws IllegalVendorServiceException
+     * @throws UnknownVendorServiceException
+     * @throws GuzzleException
+     * @throws InvalidArgumentException
      */
     public function load(): VendorImportResultMessage
     {

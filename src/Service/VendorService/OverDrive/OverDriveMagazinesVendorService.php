@@ -32,7 +32,6 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
     private const VENDOR_MAGAZINE_URL_BASE = 'http://link.overdrive.com/';
 
     private $searchService;
-    private $httpClient;
     private $apiClient;
 
     /**
@@ -46,17 +45,14 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
      *   Logger object to send stats to ES
      * @param SearchService $searchService
      *   Datawell search service
-     * @param ClientInterface $httpClient
-     *   Http client to send api requests
      * @param Client $apiClient
      *   Api client for the OverDrive API
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, SearchService $searchService, ClientInterface $httpClient, Client $apiClient)
+    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, SearchService $searchService, Client $apiClient)
     {
         parent::__construct($eventDispatcher, $entityManager, $statsLogger);
 
         $this->searchService = $searchService;
-        $this->httpClient = $httpClient;
         $this->apiClient = $apiClient;
     }
 
@@ -79,19 +75,19 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
                 $this->progressMessage('Search data well for: "'.self::VENDOR_SEARCH_TERM.'" (Offset: '.$offset.')');
 
                 // Search the data well for material with acSource set to "ereolen magazines".
-                [$pidArray, $more, $offset] = $this->searchService->search(self::VENDOR_SEARCH_TERM, $offset);
+                [$pidResultArray, $more, $offset] = $this->searchService->search(self::VENDOR_SEARCH_TERM, $offset);
 
                 // Get the OverDrive APIs title urls from the results
-                $pidArray = $this->getTitleUrls($pidArray);
+                $pidTitleUrlArray = array_map('self::getTitleUrlFromDatableIdentifiers', $pidResultArray);
 
                 // Get the OverDrive APIs crossRefIds from the results
-                $pidArray = $this->getTitleIds($pidArray);
+                $pidTitleIdArray = array_map('self::getTitleIdFromUrl', $pidTitleUrlArray);
 
                 // Get the OverDrive cover urls
-                $pidArray = $this->getCoverUrls($pidArray);
+                $pidCoverUrlArray = array_map('self::getCoverUrl', $pidTitleIdArray);
 
-                $batchSize = \count($pidArray);
-                $this->updateOrInsertMaterials($pidArray, IdentifierType::PID, $batchSize);
+                $batchSize = \count($pidCoverUrlArray);
+                $this->updateOrInsertMaterials($pidCoverUrlArray, IdentifierType::PID, $batchSize);
 
                 $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
                 $this->progressAdvance();
@@ -124,67 +120,6 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
     }
 
     /**
-     * Get the title urls for all results in array.
-     *
-     * @param array $pidArray
-     *   An array of pid => result to be converted
-     *
-     * @return array
-     *   Array of pid => title url
-     */
-    private function getTitleUrls(array $pidArray): array
-    {
-        $result = [];
-        foreach ($pidArray as $pid => $item) {
-            $result[$pid] = $this->getTitleUrlFromResult($item['record']['identifier']);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get the OverDrive title id for all results in array.
-     *
-     * @param array $pidArray
-     *   An array of pid => title url to be converted
-     *
-     * @return array
-     *   Array of pid => title id
-     */
-    private function getTitleIds(array $pidArray): array
-    {
-        $result = [];
-        foreach ($pidArray as $pid => $titleUrl) {
-            $result[$pid] = $this->getTitleIdFromUrl($titleUrl);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get the image urls for all results in array.
-     *
-     * @param array $pidArray
-     *   An array of pid => title id to be converted
-     *
-     * @return array
-     *   Array of pid => cover url
-     *
-     * @throws Api\Exception\AuthException
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Psr\Cache\InvalidArgumentException
-     */
-    private function getCoverUrls(array $pidArray): array
-    {
-        $result = [];
-        foreach ($pidArray as $pid => $crossRefID) {
-            $result[$pid] = $this->apiClient->getCoverUrl($crossRefID);
-        }
-
-        return $result;
-    }
-
-    /**
      * Get the OverDrive title urls from the data well result.
      *
      * @param array $result
@@ -193,12 +128,14 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
      * @return string|null
      *   Title url or null
      */
-    private function getTitleUrlFromResult(array $result): ?string
+    private function getTitleUrlFromDatableIdentifiers(array $result): ?string
     {
-        foreach ($result as $item) {
-            $pos = strpos($item['$'], self::VENDOR_MAGAZINE_URL_BASE);
+        $identifiers = $result['record']['identifier'];
+
+        foreach ($identifiers as $identifier) {
+            $pos = strpos($identifier['$'], self::VENDOR_MAGAZINE_URL_BASE);
             if (false !== $pos) {
-                return $item['$'];
+                return $identifier['$'];
             }
         }
 
@@ -222,5 +159,23 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
         parse_str($urlQuery, $result);
 
         return $result['titleID'] ?? null;
+    }
+
+    /**
+     * Get cover url from OverDrive crossRefId.
+     *
+     * @param string $crossRefID
+     *   The OverDrive crossRefID
+     *
+     * @return string|null
+     *   The cover url or null
+     *
+     * @throws Api\Exception\AuthException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Psr\Cache\InvalidArgumentException
+     */
+    private function getCoverUrl(string $crossRefID): ?string
+    {
+        return $this->apiClient->getCoverUrl($crossRefID);
     }
 }
