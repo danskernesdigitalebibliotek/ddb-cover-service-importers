@@ -86,6 +86,9 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
                 // Get the OverDrive cover urls
                 $pidCoverUrlArray = array_map('self::getCoverUrl', $pidTitleIdArray);
 
+                // Remove null values
+                array_filter($pidCoverUrlArray);
+
                 $batchSize = \count($pidCoverUrlArray);
                 $this->updateOrInsertMaterials($pidCoverUrlArray, IdentifierType::PID, $batchSize);
 
