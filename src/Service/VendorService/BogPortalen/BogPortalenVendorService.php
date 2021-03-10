@@ -10,18 +10,18 @@ use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorCoreService;
+use App\Service\VendorService\VendorServiceInterface;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\Types\VendorStatus;
 use League\Flysystem\Filesystem;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class BogPortalenVendorService.
  */
-class BogPortalenVendorService extends AbstractBaseVendorService
+class BogPortalenVendorService extends AbstractBaseVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
 
@@ -34,20 +34,16 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     /**
      * BogPortalenVendorService constructor.
      *
-     * @param messageBusInterface $bus
-     *   Job queue bus
+     * @param vendorCoreService $vendorCoreService
+     *   Service with shared vendor functions
      * @param filesystem $local
      *   Flysystem adapter for local filesystem
      * @param filesystem $ftp
      *   Flysystem adapter for remote ftp server
-     * @param entityManagerInterface $entityManager
-     *   Doctrine entity manager
-     * @param loggerInterface $statsLogger
-     *   Logger object to send stats to ES
      */
-    public function __construct(MessageBusInterface $bus, Filesystem $local, Filesystem $ftp, EntityManagerInterface $entityManager, LoggerInterface $statsLogger)
+    public function __construct(VendorCoreService $vendorCoreService, Filesystem $local, Filesystem $ftp)
     {
-        parent::__construct($entityManager, $statsLogger, $bus);
+        parent::__construct($vendorCoreService);
 
         $this->local = $local;
         $this->ftp = $ftp;
@@ -64,6 +60,8 @@ class BogPortalenVendorService extends AbstractBaseVendorService
 
         // We're lazy loading the config to avoid errors from missing config values on dependency injection
         $this->loadConfig();
+
+        $status = new VendorStatus();
 
         foreach (self::VENDOR_ARCHIVE_NAMES as $archive) {
             try {
@@ -92,9 +90,9 @@ class BogPortalenVendorService extends AbstractBaseVendorService
                     $isbnBatch = \array_slice($isbnList, $offset, self::BATCH_SIZE, true);
 
                     $isbnImageUrlArray = $this->buildIsbnImageUrlArray($isbnBatch);
-                    $this->updateOrInsertMaterials($isbnImageUrlArray, IdentifierType::ISBN);
+                    $this->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN);
 
-                    $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                    $this->progressMessageFormatted($status);
                     $this->progressAdvance();
 
                     $offset += self::BATCH_SIZE;
@@ -108,11 +106,9 @@ class BogPortalenVendorService extends AbstractBaseVendorService
             }
         }
 
-        $this->logStatistics();
-
         $this->progressFinish();
 
-        return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted, $this->totalDeleted);
+        return VendorImportResultMessage::success($status);
     }
 
     /**

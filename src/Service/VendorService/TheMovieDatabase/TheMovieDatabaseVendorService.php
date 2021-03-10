@@ -11,14 +11,16 @@ use App\Entity\Source;
 use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
 use App\Message\VendorImageMessage;
+use App\Repository\SourceRepository;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorCoreService;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
+use App\Utils\Types\VendorStatus;
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Exception\GuzzleException;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
@@ -30,6 +32,8 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
 
     protected const VENDOR_ID = 6;
 
+    private $em;
+    private $bus;
     private $dataWell;
     private $api;
     private $queries = [
@@ -40,21 +44,23 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
     /**
      * TheMovieDatabaseVendorService constructor.
      *
+     * @param EntityManagerInterface $em
+     *   Database entity manager
      * @param MessageBusInterface $bus
-     *   Message queue bus
-     * @param EntityManagerInterface $entityManager
-     *   The entity manager
-     * @param LoggerInterface $statsLogger
-     *   The stats logger
+     *   Message bus for the queue system
+     * @param VendorCoreService $vendorCoreService
+     *   Service with shared vendor functions
      * @param theMovieDatabaseSearchService $dataWell
      *   The search service
      * @param TheMovieDatabaseApiService $api
      *   The movie api service
      */
-    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, TheMovieDatabaseSearchService $dataWell, TheMovieDatabaseApiService $api)
+    public function __construct(EntityManagerInterface $em, MessageBusInterface $bus, VendorCoreService $vendorCoreService, TheMovieDatabaseSearchService $dataWell, TheMovieDatabaseApiService $api)
     {
-        parent::__construct($entityManager, $statsLogger, $bus);
+        parent::__construct($vendorCoreService);
 
+        $this->em = $em;
+        $this->bus = $bus;
         $this->dataWell = $dataWell;
         $this->api = $api;
     }
@@ -70,6 +76,8 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
 
         // We're lazy loading the config to avoid errors from missing config values on dependency injection
         $this->loadConfig();
+
+        $status = new VendorStatus();
 
         $this->progressStart('Search data well for movies');
 
@@ -95,6 +103,8 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
 
                     // @TODO: this should be handled in updateOrInsertMaterials, which should take which event and job
                     //        it should call. Default is now CoverStore (upload image), which we do not know yet.
+
+                    /** @var SourceRepository $sourceRepo */
                     $sourceRepo = $this->em->getRepository(Source::class);
                     $batchOffset = 0;
                     while ($batchOffset < $batchSize) {
@@ -104,14 +114,19 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
                         $this->postProcess($updatedIdentifiers, $resultArray);
                         $this->postProcess($insertedIdentifiers, $resultArray);
 
+                        // Update status.
+                        $status->addUpdated(count($updatedIdentifiers));
+                        $status->addInserted(count($insertedIdentifiers));
+                        $status->addRecords(count($updatedIdentifiers) + count($insertedIdentifiers));
+
                         $batchOffset += $batchSize;
                     }
 
                     // @TODO: How to handle multiple queries with progress bar.
-                    $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                    $this->progressMessageFormatted($status);
                     $this->progressAdvance();
 
-                    if ($this->limit && $this->totalIsIdentifiers >= $this->limit) {
+                    if ($this->limit && $status->records >= $this->limit) {
                         $more = false;
                     }
                 } while ($more);
@@ -121,7 +136,7 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
 
             $this->progressFinish();
 
-            return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted, $this->totalDeleted);
+            return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
             return VendorImportResultMessage::error($exception->getMessage());
         }
@@ -155,6 +170,7 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
      */
     private function postProcess(array $pids, array $searchResults)
     {
+        /** @var SourceRepository $sourceRepo */
         $sourceRepo = $this->em->getRepository(Source::class);
 
         foreach ($pids as $pid) {

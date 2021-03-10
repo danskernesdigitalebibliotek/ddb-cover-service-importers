@@ -9,20 +9,20 @@ namespace App\Service\VendorService\EbookCentral;
 use App\Exception\UnknownVendorResourceFormatException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorCoreService;
+use App\Service\VendorService\VendorServiceInterface;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
+use App\Utils\Types\VendorStatus;
 use Box\Spout\Common\Exception\IOException;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Reader\XLSX\Reader;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class EbookCentralVendorService.
  */
-class EbookCentralVendorService extends AbstractBaseVendorService
+class EbookCentralVendorService extends AbstractBaseVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
 
@@ -36,18 +36,14 @@ class EbookCentralVendorService extends AbstractBaseVendorService
     /**
      * EbookCentralVendorService constructor.
      *
-     * @param MessageBusInterface $bus
-     *   Message queue bus
-     * @param entityManagerInterface $entityManager
-     *   Doctrine entity manager
-     * @param loggerInterface $statsLogger
-     *   Logger object to send stats to ES
+     * @param vendorCoreService $vendorCoreService
+     *   Service with shared vendor functions
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, string $resourcesDir)
+    public function __construct(VendorCoreService $vendorCoreService, string $resourcesDir)
     {
-        parent::__construct($entityManager, $statsLogger, $bus);
+        parent::__construct($vendorCoreService);
 
         $this->resourcesDir = $resourcesDir;
     }
@@ -70,6 +66,7 @@ class EbookCentralVendorService extends AbstractBaseVendorService
             $consecutivelyEmptyRows = 0;
 
             $isbnArray = [];
+            $status = new VendorStatus();
 
             foreach ($reader->getSheetIterator() as $sheet) {
                 foreach ($sheet->getRowIterator() as $row) {
@@ -106,12 +103,10 @@ class EbookCentralVendorService extends AbstractBaseVendorService
                     }
 
                     if (0 === $totalRows % 100) {
-                        $this->updateOrInsertMaterials($isbnArray, IdentifierType::ISBN);
-
-                        $this->totalIsIdentifiers += \count($isbnArray);
+                        $this->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN);
                         $isbnArray = [];
 
-                        $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $totalRows);
+                        $this->progressMessageFormatted($status);
                         $this->progressAdvance();
                     }
 
@@ -128,13 +123,11 @@ class EbookCentralVendorService extends AbstractBaseVendorService
                 }
             }
 
-            $this->updateOrInsertMaterials($isbnArray, IdentifierType::ISBN);
-
-            $this->logStatistics();
+            $this->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN);
 
             $this->progressFinish();
 
-            return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted);
+            return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
             return VendorImportResultMessage::error($exception->getMessage());
         }

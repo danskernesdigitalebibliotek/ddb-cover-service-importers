@@ -7,11 +7,12 @@
 namespace App\Service\VendorService\EBP;
 
 use App\Service\VendorService\AbstractTsvVendorService;
+use App\Service\VendorService\VendorServiceInterface;
 
 /**
  * Class EBPVendorService.
  */
-class EBPVendorService extends AbstractTsvVendorService
+class EBPVendorService extends AbstractTsvVendorService implements VendorServiceInterface
 {
     protected const VENDOR_ID = 13;
 

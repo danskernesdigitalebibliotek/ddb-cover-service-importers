@@ -112,7 +112,7 @@ class MetricsService
      * @return string
      *   Render matrices in a single string
      */
-    public function render()
+    public function render(): string
     {
         $renderer = new RenderTextFormat();
 

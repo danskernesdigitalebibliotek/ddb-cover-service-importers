@@ -12,16 +12,16 @@ use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\DataWell\DataConverter\IversePublicUrlConverter;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorCoreService;
+use App\Service\VendorService\VendorServiceInterface;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
+use App\Utils\Types\VendorStatus;
 
 /**
  * Class DataWellVendorService.
  */
-class DataWellVendorService extends AbstractBaseVendorService
+class DataWellVendorService extends AbstractBaseVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
 
@@ -33,14 +33,14 @@ class DataWellVendorService extends AbstractBaseVendorService
     /**
      * DataWellVendorService constructor.
      *
-     * @param MessageBusInterface $bus
-     * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $statsLogger
-     * @param DataWellSearchService $datawell
+     * @param vendorCoreService $vendorCoreService
+     *   Service with shared vendor functions
+     * @param dataWellSearchService $datawell
+     *   For searching the data well
      */
-    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, DataWellSearchService $datawell)
+    public function __construct(VendorCoreService $vendorCoreService, DataWellSearchService $datawell)
     {
-        parent::__construct($entityManager, $statsLogger, $bus);
+        parent::__construct($vendorCoreService);
 
         $this->datawell = $datawell;
     }
@@ -57,6 +57,8 @@ class DataWellVendorService extends AbstractBaseVendorService
         // We're lazy loading the config to avoid errors from missing config values on dependency injection
         $this->loadConfig();
 
+        $status = new VendorStatus();
+
         $this->progressStart('Search data well for: "'.self::VENDOR_ARCHIVE_NAME.'"');
 
         $offset = 1;
@@ -69,17 +71,17 @@ class DataWellVendorService extends AbstractBaseVendorService
                 IversePublicUrlConverter::convertArrayValues($pidArray);
 
                 $batchSize = \count($pidArray);
-                $this->updateOrInsertMaterials($pidArray, IdentifierType::PID, $batchSize);
+                $this->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $batchSize);
 
-                $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                $this->progressMessageFormatted($status);
                 $this->progressAdvance();
 
-                if ($this->limit && $this->totalIsIdentifiers >= $this->limit) {
+                if ($this->limit && $status->records >= $this->limit) {
                     $more = false;
                 }
             } while ($more);
 
-            return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted, $this->totalDeleted);
+            return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
             return VendorImportResultMessage::error($exception->getMessage());
         }

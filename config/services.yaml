@@ -39,7 +39,7 @@ services:
             $bindElasticStatsIndexPrefix: '%env(ELASTIC_STATS_INDEX_PREFIX)%'
 
     _instanceof:
-        App\Service\VendorService\AbstractBaseVendorService:
+        App\Service\VendorService\VendorServiceInterface:
             tags: [app.vendor.service]
 
     # makes classes in src/ available to be used as services

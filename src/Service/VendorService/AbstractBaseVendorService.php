@@ -6,23 +6,22 @@
 
 namespace App\Service\VendorService;
 
-use App\Entity\Source;
 use App\Entity\Vendor;
 use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
-use App\Message\VendorImageMessage;
 use App\Repository\SourceRepository;
-use App\Utils\Message\VendorImportResultMessage;
-use App\Utils\Types\VendorState;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\Types\VendorStatus;
 use Doctrine\ORM\Query\QueryException;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Lock\Factory;
-use Symfony\Component\Lock\Store\SemaphoreStore;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class AbstractBaseVendorService.
+ *
+ * This class is basically an wrapper class for CoreVendorService to ensure that shared dependencies is not required to
+ * be changed in every vendor in the constructors of the child classes when they change in CoreVendorService.
+ *
+ * For the implementation details see the CoreVendorService class.
+ *
+ * @see VendorCoreService
  */
 abstract class AbstractBaseVendorService
 {
@@ -31,45 +30,19 @@ abstract class AbstractBaseVendorService
     protected const BATCH_SIZE = 200;
     protected const ERROR_RUNNING = 'Import already running';
 
-    private $vendor;
-
-    protected $em;
-    protected $dispatcher;
-    protected $statsLogger;
-    protected $bus;
-
-    protected $dispatchToQueue = true;
-    protected $withUpdates = false;
     protected $limit = 0;
 
-    protected $totalUpdated = 0;
-    protected $totalInserted = 0;
-    protected $totalDeleted = 0;
-    protected $totalIsIdentifiers = 0;
+    private $coreVendorService;
 
     /**
      * AbstractBaseVendorService constructor.
      *
-     * @param entityManagerInterface $entityManager
-     *   Doctrine entity manager
-     * @param loggerInterface $statsLogger
-     *   Logger object to send stats to ES
-     * @param messageBusInterface $bus
-     *   Job queue bus
+     * @param VendorCoreService $vendorCoreService
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $statsLogger, MessageBusInterface $bus)
+    public function __construct(VendorCoreService $vendorCoreService)
     {
-        $this->em = $entityManager;
-        $this->statsLogger = $statsLogger;
-        $this->bus = $bus;
+        $this->coreVendorService = $vendorCoreService;
     }
-
-    /**
-     * Load new data from vendor.
-     *
-     * @return VendorImportResultMessage
-     */
-    abstract public function load(): VendorImportResultMessage;
 
     /**
      * Set dispatch to queue.
@@ -77,9 +50,9 @@ abstract class AbstractBaseVendorService
      * @param bool $dispatchToQueue
      *   If true send events into queue system (default: true)
      */
-    final public function setDispatchToQueue(bool $dispatchToQueue)
+    final public function setDispatchToQueue(bool $dispatchToQueue): void
     {
-        $this->dispatchToQueue = $dispatchToQueue;
+        $this->coreVendorService->setDispatchToQueue($dispatchToQueue);
     }
 
     /**
@@ -88,9 +61,9 @@ abstract class AbstractBaseVendorService
      * @param bool $withUpdates
      *   If true existing covers are updated (default: false)
      */
-    final public function setWithUpdates(bool $withUpdates)
+    final public function setWithUpdates(bool $withUpdates): void
     {
-        $this->withUpdates = $withUpdates;
+        $this->coreVendorService->setWithUpdates($withUpdates);
     }
 
     /**
@@ -99,9 +72,10 @@ abstract class AbstractBaseVendorService
      * @param int $limit
      *   The limit to use (default: 0 - no limit)
      */
-    final public function setLimit(int $limit)
+    final public function setLimit(int $limit): void
     {
         $this->limit = $limit;
+        $this->coreVendorService->setLimit($limit);
     }
 
     /**
@@ -113,11 +87,7 @@ abstract class AbstractBaseVendorService
      */
     final public function getVendorId(): int
     {
-        if (!is_int($this::VENDOR_ID) || $this::VENDOR_ID <= 0) {
-            throw new IllegalVendorServiceException('VENDOR_ID must be a positive non-zero integer. Illegal value detected.');
-        }
-
-        return $this::VENDOR_ID;
+        return $this->coreVendorService->getVendorId();
     }
 
     /**
@@ -130,7 +100,7 @@ abstract class AbstractBaseVendorService
      */
     final public function getVendorName(): string
     {
-        return $this->getVendor()->getName();
+        return $this->coreVendorService->getVendorName();
     }
 
     /**
@@ -143,18 +113,7 @@ abstract class AbstractBaseVendorService
      */
     final public function getVendor(): Vendor
     {
-        // If a subclass has cleared all from the entity manager we reload the
-        // vendor from the DB.
-        if (!$this->vendor || !$this->em->contains($this->vendor)) {
-            $vendorRepos = $this->em->getRepository(Vendor::class);
-            $this->vendor = $vendorRepos->findOneById($this->getVendorId());
-        }
-
-        if (!$this->vendor || empty($this->vendor)) {
-            throw new UnknownVendorServiceException('Vendor with ID: '.$this->getVendorId().' not found in DB');
-        }
-
-        return $this->vendor;
+        return $this->coreVendorService->getVendor();
     }
 
     /**
@@ -167,45 +126,26 @@ abstract class AbstractBaseVendorService
      */
     protected function acquireLock(): bool
     {
-        $store = new SemaphoreStore();
-        $factory = new Factory($store);
-
-        $lock = $factory->createLock('app-vendor-service-load-'.$this->getVendorId());
-
-        return $lock->acquire();
+        return $this->coreVendorService->acquireLock();
     }
 
     /**
      * Update or insert source materials.
      *
+     * @param VendorStatus $status
+     *   The status counts for changes in inserts/update/delete
      * @param array $identifierImageUrlArray
      *   Array with identifier numbers => image URLs as key/value to update or insert
      * @param string $identifierType
      *   The type of identifier
      * @param int $batchSize
-     *   The number of records to flush to the database pr. batch.
+     *   The number of records to flush to the database pr. batch
      *
      * @throws \Exception
      */
-    protected function updateOrInsertMaterials(array &$identifierImageUrlArray, string $identifierType, int $batchSize = self::BATCH_SIZE): void
+    protected function updateOrInsertMaterials(VendorStatus $status, array &$identifierImageUrlArray, string $identifierType, int $batchSize = self::BATCH_SIZE): void
     {
-        $sourceRepo = $this->em->getRepository(Source::class);
-
-        $offset = 0;
-        $count = \count($identifierImageUrlArray);
-
-        while ($offset < $count) {
-            // Update or insert in batches. Because doctrine lacks
-            // 'INSERT ON DUPLICATE KEY UPDATE' we need to search for and load
-            // sources already in the db.
-            $batch = \array_slice($identifierImageUrlArray, $offset, self::BATCH_SIZE, true);
-            [$updatedIdentifiers, $insertedIdentifiers] = $this->processBatch($batch, $sourceRepo, $identifierType);
-
-            // Send event with the last batch to the job processors.
-            $this->sendCoverImportEvents($updatedIdentifiers, $insertedIdentifiers, $identifierType);
-
-            $offset += $batchSize;
-        }
+        $this->coreVendorService->updateOrInsertMaterials($status, $identifierImageUrlArray, $identifierType, $batchSize);
     }
 
     /**
@@ -227,87 +167,7 @@ abstract class AbstractBaseVendorService
      */
     protected function processBatch(array $batch, SourceRepository $sourceRepo, string $identifierType): array
     {
-        // Split into to results arrays (updated and inserted).
-        $updatedIdentifiers = [];
-        $insertedIdentifiers = [];
-
-        // Load batch from database to enable updates.
-        $sources = $sourceRepo->findByMatchIdList($identifierType, $batch, $this->getVendor());
-
-        foreach ($batch as $identifier => $imageUrl) {
-            if (array_key_exists($identifier, $sources)) {
-                if ($this->withUpdates) {
-                    /* @var Source $source */
-                    $source = $sources[$identifier];
-                    $source->setMatchType($identifierType)
-                        ->setMatchId($identifier)
-                        ->setVendor($this->vendor)
-                        ->setDate(new \DateTime())
-                        ->setOriginalFile($imageUrl);
-                    ++$this->totalUpdated;
-                    $updatedIdentifiers[] = $identifier;
-                }
-            } else {
-                $source = new Source();
-                $source->setMatchType($identifierType)
-                    ->setMatchId($identifier)
-                    ->setVendor($this->vendor)
-                    ->setDate(new \DateTime())
-                    ->setOriginalFile($imageUrl);
-                $this->em->persist($source);
-                ++$this->totalInserted;
-                $insertedIdentifiers[] = $identifier;
-            }
-
-            ++$this->totalIsIdentifiers;
-        }
-
-        $this->em->flush();
-        $this->em->clear();
-
-        gc_collect_cycles();
-
-        return [$updatedIdentifiers, $insertedIdentifiers];
-    }
-
-    /**
-     * Send events to the job queue with identifiers to process.
-     *
-     * @param array $updatedIdentifiers
-     *   Updated identifiers
-     * @param array $insertedIdentifiers
-     *   Inserted identifiers
-     * @param string $identifierType
-     *   The type of identifiers in to be processed
-     */
-    private function sendCoverImportEvents(array $updatedIdentifiers, array $insertedIdentifiers, string $identifierType): void
-    {
-        if ($this->dispatchToQueue) {
-            $vendorId = $this->vendor->getId();
-
-            if (!empty($insertedIdentifiers)) {
-                foreach ($insertedIdentifiers as $identifier) {
-                    $message = new VendorImageMessage();
-                    $message->setOperation(VendorState::INSERT)
-                        ->setIdentifier($identifier)
-                        ->setVendorId($vendorId)
-                        ->setIdentifierType($identifierType);
-                    $this->bus->dispatch($message);
-                }
-            }
-            if (!empty($updatedIdentifiers) && $this->withUpdates) {
-                foreach ($updatedIdentifiers as $identifier) {
-                    $message = new VendorImageMessage();
-                    $message->setOperation(VendorState::UPDATE)
-                        ->setIdentifier($identifier)
-                        ->setVendorId($vendorId)
-                        ->setIdentifierType($identifierType);
-                    $this->bus->dispatch($message);
-                }
-            }
-
-            // @TODO: DELETED event???
-        }
+        return $this->coreVendorService->processBatch($batch, $sourceRepo, $identifierType);
     }
 
     /**
@@ -321,23 +181,6 @@ abstract class AbstractBaseVendorService
      */
     protected function deleteRemovedMaterials(array &$identifierArray): int
     {
-        // @TODO implement queueing jobs for DeleteProcessor
-    }
-
-    /**
-     * Log statistics.
-     */
-    protected function logStatistics(): void
-    {
-        $className = substr(\get_class($this), strrpos(\get_class($this), '\\') + 1);
-
-        // Stats logger.
-        $this->statsLogger->info($this->getVendorName().' records read', [
-            'service' => $className,
-            'records' => $this->totalIsIdentifiers,
-            'updated' => $this->totalUpdated,
-            'inserted' => $this->totalInserted,
-            'deleted' => $this->totalDeleted,
-        ]);
+        return $this->coreVendorService->deleteRemovedMaterials($identifierArray);
     }
 }

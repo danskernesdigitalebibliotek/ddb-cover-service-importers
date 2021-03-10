@@ -12,13 +12,12 @@ use App\Service\DataWell\SearchService;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\OverDrive\Api\Client;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorCoreService;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\Types\VendorStatus;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Cache\InvalidArgumentException;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class OverDriveMagazinesVendorService.
@@ -38,20 +37,16 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
     /**
      * OverDriveMagazinesVendorService constructor.
      *
-     * @param MessageBusInterface $bus
-     *   Job queue bus
-     * @param EntityManagerInterface $entityManager
-     *   Doctrine entity manager
-     * @param LoggerInterface $statsLogger
-     *   Logger object to send stats to ES
+     * @param vendorCoreService $vendorCoreService
+     *   Service with shared vendor functions
      * @param SearchService $searchService
      *   Datawell search service
      * @param Client $apiClient
      *   Api client for the OverDrive API
      */
-    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, SearchService $searchService, Client $apiClient)
+    public function __construct(VendorCoreService $vendorCoreService, SearchService $searchService, Client $apiClient)
     {
-        parent::__construct($entityManager, $statsLogger, $bus);
+        parent::__construct($vendorCoreService);
 
         $this->searchService = $searchService;
         $this->apiClient = $apiClient;
@@ -67,6 +62,8 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
         }
 
         $this->loadConfig();
+
+        $status = new VendorStatus();
 
         $this->progressStart('Search data well for: "'.self::VENDOR_SEARCH_TERM.'"');
 
@@ -91,17 +88,17 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
                 array_filter($pidCoverUrlArray);
 
                 $batchSize = \count($pidCoverUrlArray);
-                $this->updateOrInsertMaterials($pidCoverUrlArray, IdentifierType::PID, $batchSize);
+                $this->updateOrInsertMaterials($status, $pidCoverUrlArray, IdentifierType::PID, $batchSize);
 
-                $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                $this->progressMessageFormatted($status);
                 $this->progressAdvance();
 
-                if ($this->limit && $this->totalIsIdentifiers >= $this->limit) {
+                if ($this->limit && $status->records >= $this->limit) {
                     $more = false;
                 }
             } while ($more);
 
-            return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted, $this->totalDeleted);
+            return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
             return VendorImportResultMessage::error($exception->getMessage());
         }

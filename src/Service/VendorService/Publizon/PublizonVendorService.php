@@ -11,35 +11,40 @@ use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorCoreService;
+use App\Service\VendorService\VendorServiceInterface;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\OnixOutputDefinition;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
+use App\Utils\Types\VendorStatus;
 
 /**
  * Class PublizonVendorService.
  */
-class PublizonVendorService extends AbstractBaseVendorService
+class PublizonVendorService extends AbstractBaseVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
 
     protected const VENDOR_ID = 5;
 
-    private $xml;
+    private $xmlReader;
 
     private $apiEndpoint;
     private $apiServiceKey;
 
     /**
-     * {@inheritdoc}
+     * PublizonVendorService constructor.
+     *
+     * @param vendorCoreService $vendorCoreService
+     *   Service with shared vendor functions
+     * @param publizonXmlReaderService $xmlReader
+     *   XML reader service to Publizon API
      */
-    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, PublizonXmlReaderService $xmlReader)
+    public function __construct(VendorCoreService $vendorCoreService, PublizonXmlReaderService $xmlReader)
     {
-        parent::__construct($entityManager, $statsLogger, $bus);
+        parent::__construct($vendorCoreService);
 
-        $this->xml = $xmlReader;
+        $this->xmlReader = $xmlReader;
     }
 
     /**
@@ -53,9 +58,10 @@ class PublizonVendorService extends AbstractBaseVendorService
 
         $this->loadConfig();
 
+        $status = new VendorStatus();
         $this->progressStart('Opening xml resource stream from: '.$this->apiEndpoint);
 
-        $this->xml->open($this->apiServiceKey, $this->apiEndpoint);
+        $this->xmlReader->open($this->apiServiceKey, $this->apiEndpoint);
 
         $totalProducts = 0;
         $isbnArray = [];
@@ -90,44 +96,44 @@ class PublizonVendorService extends AbstractBaseVendorService
          * hold a complete element in memory.
          */
 
-        while ($this->xml->read()) {
+        while ($this->xmlReader->read()) {
             $productIDType = $idValue = null;
             $resourceContentType = $resourceMode = $resourceForm = $resourceLink = null;
 
-            if ($this->xml->isAtElementStart('Product')) {
-                while ($this->xml->readUntilElementEnd('Product')) {
-                    if ($this->xml->isAtElementStart('ProductIdentifier')) {
-                        while ($this->xml->readUntilElementEnd('ProductIdentifier')) {
-                            if ($this->xml->isAtElementStart('ProductIDType')) {
-                                $productIDType = $this->xml->getNextElementValue();
+            if ($this->xmlReader->isAtElementStart('Product')) {
+                while ($this->xmlReader->readUntilElementEnd('Product')) {
+                    if ($this->xmlReader->isAtElementStart('ProductIdentifier')) {
+                        while ($this->xmlReader->readUntilElementEnd('ProductIdentifier')) {
+                            if ($this->xmlReader->isAtElementStart('ProductIDType')) {
+                                $productIDType = $this->xmlReader->getNextElementValue();
                             }
 
-                            if ($this->xml->isAtElementStart('IDValue')) {
-                                $idValue = $this->xml->getNextElementValue();
+                            if ($this->xmlReader->isAtElementStart('IDValue')) {
+                                $idValue = $this->xmlReader->getNextElementValue();
                             }
                         }
                     }
 
-                    if ($this->xml->isAtElementStart('CollateralDetail')) {
-                        while ($this->xml->readUntilElementEnd('CollateralDetail')) {
-                            if ($this->xml->isAtElementStart('SupportingResource')) {
-                                while ($this->xml->readUntilElementEnd('SupportingResource')) {
-                                    if ($this->xml->isAtElementStart('ResourceContentType')) {
-                                        $resourceContentType = $this->xml->getNextElementValue();
+                    if ($this->xmlReader->isAtElementStart('CollateralDetail')) {
+                        while ($this->xmlReader->readUntilElementEnd('CollateralDetail')) {
+                            if ($this->xmlReader->isAtElementStart('SupportingResource')) {
+                                while ($this->xmlReader->readUntilElementEnd('SupportingResource')) {
+                                    if ($this->xmlReader->isAtElementStart('ResourceContentType')) {
+                                        $resourceContentType = $this->xmlReader->getNextElementValue();
                                     }
 
-                                    if ($this->xml->isAtElementStart('ResourceMode')) {
-                                        $resourceMode = $this->xml->getNextElementValue();
+                                    if ($this->xmlReader->isAtElementStart('ResourceMode')) {
+                                        $resourceMode = $this->xmlReader->getNextElementValue();
                                     }
 
-                                    if ($this->xml->isAtElementStart('ResourceVersion')) {
-                                        while ($this->xml->readUntilElementEnd('ResourceVersion')) {
-                                            if ($this->xml->isAtElementStart('ResourceForm')) {
-                                                $resourceForm = $this->xml->getNextElementValue();
+                                    if ($this->xmlReader->isAtElementStart('ResourceVersion')) {
+                                        while ($this->xmlReader->readUntilElementEnd('ResourceVersion')) {
+                                            if ($this->xmlReader->isAtElementStart('ResourceForm')) {
+                                                $resourceForm = $this->xmlReader->getNextElementValue();
                                             }
 
-                                            if ($this->xml->isAtElementStart('ResourceLink')) {
-                                                $resourceLink = $this->xml->getNextElementValue();
+                                            if ($this->xmlReader->isAtElementStart('ResourceLink')) {
+                                                $resourceLink = $this->xmlReader->getNextElementValue();
                                             }
                                         }
                                     }
@@ -150,22 +156,20 @@ class PublizonVendorService extends AbstractBaseVendorService
             }
 
             if (0 === $totalProducts % 100) {
-                $this->updateOrInsertMaterials($isbnArray, IdentifierType::ISBN);
+                $this->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN);
 
                 $isbnArray = [];
 
-                $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $totalProducts);
+                $this->progressMessageFormatted($status);
                 $this->progressAdvance();
             }
         }
 
-        $this->updateOrInsertMaterials($isbnArray, IdentifierType::ISBN);
-
-        $this->logStatistics();
+        $this->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN);
 
         $this->progressFinish();
 
-        return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted);
+        return VendorImportResultMessage::success($status);
     }
 
     /**

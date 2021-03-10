@@ -6,6 +6,7 @@
 
 namespace App\Service\VendorService;
 
+use App\Utils\Types\VendorStatus;
 use Symfony\Component\Console\Helper\ProgressBar;
 
 /**
@@ -71,14 +72,13 @@ trait ProgressBarTrait
      * @param int $inserted
      * @param int $records
      */
-    private function progressMessageFormatted(int $updated, int $inserted, int $records): void
+    private function progressMessageFormatted(VendorStatus $status): void
     {
         if ($this->progressBar) {
-            $updatedFormatted = number_format($updated, 0, ',', '.');
-            $insertedFormatted = number_format($inserted, 0, ',', '.');
-            $recordsFormatted = number_format($records, 0, ',', '.');
-            $message = sprintf('Updating DB: %s/%s identifications updated/inserted from %s records.',
-                                $updatedFormatted, $insertedFormatted, $recordsFormatted);
+            $updatedFormatted = number_format($status->updated, 0, ',', '.');
+            $insertedFormatted = number_format($status->inserted, 0, ',', '.');
+            $recordsFormatted = number_format($status->records, 0, ',', '.');
+            $message = sprintf('Updating DB: %s/%s identifications updated/inserted from %s records.', $updatedFormatted, $insertedFormatted, $recordsFormatted);
 
             $this->progressMessage($message);
         }
