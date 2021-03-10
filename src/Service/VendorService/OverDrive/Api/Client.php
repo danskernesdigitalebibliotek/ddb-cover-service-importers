@@ -117,19 +117,24 @@ class Client
         // from the response body.
         // If the products key is missing we retry the request 'MAX_RETRIES' times
         do {
-            $response = $this->httpClient->request('GET', $this->getProductsEndpoint(), [
-                'headers' => $this->getHeaders(),
-                'query' => [
-                    'crossRefId' => $crossRefId,
-                ],
-            ]);
+            try {
+                $response = $this->httpClient->request('GET', $this->getProductsEndpoint(), [
+                    'headers' => $this->getHeaders(),
+                    'query' => [
+                        'crossRefId' => $crossRefId,
+                    ],
+                ]);
 
-            $content = $response->getBody()->getContents();
-            $json = json_decode($content, false);
+                $content = $response->getBody()->getContents();
+                $json = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
 
-            // Check for the product and images keys.
-            $product = isset($json->products) && is_array($json->products) ? array_shift($json->products) : null;
-            $images = $product->images ?? null;
+                // Check for the product and images keys.
+                $product = isset($json->products) && is_array($json->products) ? array_shift($json->products) : null;
+                $images = $product->images ?? null;
+            } catch (GuzzleException | \JsonException $exception) {
+                // Ignore
+                $images = null;
+            }
 
             ++$requests;
         } while (!$images && $requests < self::MAX_RETRIES);
@@ -154,15 +159,19 @@ class Client
      */
     public function getProducts(int $limit, int $offset): array
     {
-        $response = $this->httpClient->request('GET', $this->getProductsEndpoint(), [
-            'headers' => $this->getHeaders(),
-            'query' => ['limit' => $limit, 'offset' => $offset],
-        ]);
+        try {
+            $response = $this->httpClient->request('GET', $this->getProductsEndpoint(), [
+                'headers' => $this->getHeaders(),
+                'query' => ['limit' => $limit, 'offset' => $offset],
+            ]);
 
-        $content = $response->getBody()->getContents();
-        $content = json_decode($content);
+            $content = $response->getBody()->getContents();
+            $content = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
+        } catch (GuzzleException | \JsonException $exception) {
+            // Ignore
+        }
 
-        return $content->products;
+        return $content->products ?? [];
     }
 
     /**
@@ -172,19 +181,23 @@ class Client
      *   The total number of products
      *
      * @throws AuthException
-     * @throws GuzzleException
      * @throws InvalidArgumentException
+     * @throws IdentityProviderException
      */
     public function getTotalProducts(): int
     {
-        $response = $this->httpClient->request('GET', $this->getProductsEndpoint(), [
-            'headers' => $this->getHeaders(),
-        ]);
+        try {
+            $response = $this->httpClient->request('GET', $this->getProductsEndpoint(), [
+                'headers' => $this->getHeaders(),
+            ]);
 
-        $content = $response->getBody()->getContents();
-        $content = json_decode($content);
+            $content = $response->getBody()->getContents();
+            $content = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
+        } catch (GuzzleException | \JsonException $exception) {
+            // Ignore
+        }
 
-        return $content->totalItems;
+        return $content->totalItems ?? 0;
     }
 
     /**
@@ -195,6 +208,7 @@ class Client
      *
      * @throws AuthException
      * @throws GuzzleException
+     * @throws IdentityProviderException
      * @throws InvalidArgumentException
      */
     private function getHeaders(): array
@@ -212,9 +226,11 @@ class Client
      * @return string
      *   The complete URI for the products endpoint
      *
+     * @throws AccountException
+     * @throws AuthException
      * @throws GuzzleException
      * @throws InvalidArgumentException
-     * @throws AuthException
+     * @throws \JsonException
      */
     private function getProductsEndpoint(): string
     {
@@ -237,6 +253,8 @@ class Client
      * @throws InvalidArgumentException
      * @throws AuthException
      * @throws AccountException
+     * @throws \JsonException
+     * @throws IdentityProviderException
      */
     private function fetchProductsEndpoint(): string
     {
@@ -254,7 +272,7 @@ class Client
             ]);
 
             $content = $response->getBody()->getContents();
-            $json = json_decode($content, false);
+            $json = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
 
             // Store products endpoint in local cache.
             $item->set($json->links->products->href);
@@ -271,13 +289,12 @@ class Client
      *
      * @see https://developer.overdrive.com/apis/client-auth
      *
-     * @return string
-     *   The value for the authentication header
+     * @return AccessTokenInterface
+     *   The access token
      *
-     * @throws GuzzleException
-     * @throws InvalidArgumentException
      * @throws AuthException
      * @throws IdentityProviderException
+     * @throws InvalidArgumentException
      */
     private function authenticate(): AccessTokenInterface
     {
