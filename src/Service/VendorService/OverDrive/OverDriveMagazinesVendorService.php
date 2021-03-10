@@ -132,6 +132,8 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
     {
         $identifiers = $result['record']['identifier'];
 
+        // Loop through identifiers to look for urls starting with 'http://link.overdrive.com/'
+        // E.g. http://link.overdrive.com/?websiteID=100515&titleID=5849553
         foreach ($identifiers as $identifier) {
             $pos = strpos($identifier['$'], self::VENDOR_MAGAZINE_URL_BASE);
             if (false !== $pos) {
