@@ -216,7 +216,7 @@ class Client
         return [
             'User-Agent' => self::USER_AGENT,
             'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer '.$this->getAccessToken()->getToken()
+            'Authorization' => 'Bearer '.$this->getAccessToken()->getToken(),
         ];
     }
 
@@ -306,7 +306,7 @@ class Client
             $accessToken = $this->getAuthProvider()->getAccessToken('client_credentials');
 
             // Store authorization in local cache.
-            $item->expiresAfter( $accessToken->getExpires() - time());
+            $item->expiresAfter($accessToken->getExpires() - time());
             $item->set($accessToken);
             $this->cache->save($item);
         }
@@ -314,10 +314,10 @@ class Client
         // Get refresh token if needed
         if ($accessToken->hasExpired()) {
             $accessToken = $this->getAuthProvider()->getAccessToken('refresh_token', [
-                'refresh_token' => $accessToken->getRefreshToken()
+                'refresh_token' => $accessToken->getRefreshToken(),
             ]);
 
-            $item->expiresAfter( $accessToken->getExpires() - time());
+            $item->expiresAfter($accessToken->getExpires() - time());
             $item->set($accessToken);
             $this->cache->save($item);
         }
@@ -349,10 +349,11 @@ class Client
     }
 
     /**
-     * Get OverDrive OAuth authentication provider
+     * Get OverDrive OAuth authentication provider.
      *
      * @return GenericProvider
      *   The authentication provider
+     *
      * @throws AuthException
      */
     private function getAuthProvider(): GenericProvider
@@ -368,6 +369,5 @@ class Client
             'urlAccessToken' => self::OAUTH_URL_BASE.'/token',
             'urlResourceOwnerDetails' => self::OAUTH_URL_BASE.'/resource',
         ]);
-
     }
 }

@@ -15,7 +15,6 @@ use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\ClientInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
