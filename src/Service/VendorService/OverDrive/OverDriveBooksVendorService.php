@@ -116,9 +116,10 @@ class OverDriveBooksVendorService extends AbstractBaseVendorService
     private function loadConfig(): void
     {
         $libraryAccountEndpoint = $this->getVendor()->getDataServerURI();
+        $this->apiClient->setLibraryAccountEndpoint($libraryAccountEndpoint);
+
         $clientId = $this->getVendor()->getDataServerUser();
         $clientSecret = $this->getVendor()->getDataServerPassword();
-
-        $this->apiClient->setCredentials($libraryAccountEndpoint, $clientId, $clientSecret);
+        $this->apiClient->setCredentials($clientId, $clientSecret);
     }
 }

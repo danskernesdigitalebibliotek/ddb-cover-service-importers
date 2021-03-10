@@ -212,6 +212,9 @@
     "league/mime-type-detection": {
         "version": "1.5.1"
     },
+    "league/oauth2-client": {
+        "version": "2.6.0"
+    },
     "microsoft/tolerant-php-parser": {
         "version": "v0.0.18"
     },

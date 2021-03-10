@@ -116,10 +116,11 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
     private function loadConfig(): void
     {
         $libraryAccountEndpoint = $this->getVendor()->getDataServerURI();
+        $this->apiClient->setLibraryAccountEndpoint($libraryAccountEndpoint);
+
         $clientId = $this->getVendor()->getDataServerUser();
         $clientSecret = $this->getVendor()->getDataServerPassword();
-
-        $this->apiClient->setCredentials($libraryAccountEndpoint, $clientId, $clientSecret);
+        $this->apiClient->setCredentials($clientId, $clientSecret);
     }
 
     /**
@@ -168,6 +169,10 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
      *
      * @return array
      *   Array of pid => cover url
+     *
+     * @throws Api\Exception\AuthException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     private function getCoverUrls(array $pidArray): array
     {

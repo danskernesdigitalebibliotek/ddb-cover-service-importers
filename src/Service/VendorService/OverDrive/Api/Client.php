@@ -8,9 +8,13 @@
 
 namespace App\Service\VendorService\OverDrive\Api;
 
+use App\Service\VendorService\OverDrive\Api\Exception\AccountException;
 use App\Service\VendorService\OverDrive\Api\Exception\AuthException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+use League\OAuth2\Client\Provider\GenericProvider;
+use League\OAuth2\Client\Token\AccessTokenInterface;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 
@@ -21,7 +25,7 @@ class Client
 {
     private const MAX_RETRIES = 5;
 
-    private const OAUTH_URL = 'https://oauth.overdrive.com/token';
+    private const OAUTH_URL_BASE = 'https://oauth.overdrive.com';
     private const USER_AGENT = 'cover.dandigbib.org';
 
     /** @var string */
@@ -39,8 +43,8 @@ class Client
     /** @var ClientInterface */
     private $httpClient;
 
-    /** @var string */
-    private $authorization;
+    /** @var AccessTokenInterface */
+    private $accessToken;
 
     /** @var string */
     private $productsEndpoint;
@@ -49,7 +53,9 @@ class Client
      * Client constructor.
      *
      * @param AdapterInterface $cache
+     *   Cache adapter for using the application cache
      * @param ClientInterface $httpClient
+     *   Http client for api calls
      */
     public function __construct(AdapterInterface $cache, ClientInterface $httpClient)
     {
@@ -58,21 +64,33 @@ class Client
     }
 
     /**
-     * Set OverDrive authentication credentials.
+     * Set OverDrive Library account endpoint credentials.
      *
-     * @see https://developer.overdrive.com/apis/client-auth
+     * The account endpoint is custom to the account and contains
+     * the library account id.
+     *
      * @see https://developer.overdrive.com/apis/library-account
      *
      * @param string $libraryAccountEndpoint
      *   The custom endpoint for the account used
+     */
+    public function setLibraryAccountEndpoint(string $libraryAccountEndpoint): void
+    {
+        $this->libraryAccountEndpoint = $libraryAccountEndpoint;
+    }
+
+    /**
+     * Set OverDrive authentication credentials.
+     *
+     * @see https://developer.overdrive.com/apis/client-auth
+     *
      * @param string $clientId
      *   Client id
      * @param string $clientSecret
      *   Client secret
      */
-    public function setCredentials(string $libraryAccountEndpoint, string $clientId, string $clientSecret): void
+    public function setCredentials(string $clientId, string $clientSecret): void
     {
-        $this->libraryAccountEndpoint = $libraryAccountEndpoint;
         $this->clientId = $clientId;
         $this->clientSecret = $clientSecret;
     }
@@ -184,7 +202,7 @@ class Client
         return [
             'User-Agent' => self::USER_AGENT,
             'Content-Type' => 'application/json',
-            'Authorization' => $this->getAuthorization(),
+            'Authorization' => 'Bearer '.$this->getAccessToken()->getToken()
         ];
     }
 
@@ -218,6 +236,7 @@ class Client
      * @throws GuzzleException
      * @throws InvalidArgumentException
      * @throws AuthException
+     * @throws AccountException
      */
     private function fetchProductsEndpoint(): string
     {
@@ -226,6 +245,10 @@ class Client
         if ($item->isHit()) {
             $endpoint = $item->get();
         } else {
+            if (!$this->libraryAccountEndpoint) {
+                throw new AccountException('Credentials missing. Please set libraryAccountEndpoint, ClientId and ClientSecret');
+            }
+
             $response = $this->httpClient->request('GET', $this->libraryAccountEndpoint, [
                     'headers' => $this->getHeaders(),
             ]);
@@ -254,42 +277,35 @@ class Client
      * @throws GuzzleException
      * @throws InvalidArgumentException
      * @throws AuthException
+     * @throws IdentityProviderException
      */
-    private function authenticate(): string
+    private function authenticate(): AccessTokenInterface
     {
-        if (!$this->libraryAccountEndpoint || !$this->clientId || !$this->clientSecret) {
-            throw new AuthException('Credentials missing. Please set libraryAccountEndpoint, ClientId and ClientSecret');
-        }
-
         $item = $this->cache->getItem('overdrive.api.access_token');
 
         if ($item->isHit()) {
-            $authorization = $item->get();
+            $accessToken = $item->get();
         } else {
-            $authorization = base64_encode($this->clientId.':'.$this->clientSecret);
-
-            $response = $this->httpClient->request('POST', self::OAUTH_URL, [
-                    'headers' => [
-                        'Authorization' => 'Basic '.$authorization,
-                        'Content-Type' => 'application/x-www-form-urlencoded;charset=UTF-8',
-                    ],
-                    'form_params' => [
-                        'grant_type' => 'client_credentials',
-                    ],
-            ]);
-
-            $content = $response->getBody()->getContents();
-            $json = json_decode($content, true);
+            $accessToken = $this->getAuthProvider()->getAccessToken('client_credentials');
 
             // Store authorization in local cache.
-            $authorization = $json['token_type'].' '.$json['access_token'];
-
-            $item->expiresAfter($json['expires_in']);
-            $item->set($authorization);
+            $item->expiresAfter( $accessToken->getExpires() - time());
+            $item->set($accessToken);
             $this->cache->save($item);
         }
 
-        return $authorization;
+        // Get refresh token if needed
+        if ($accessToken->hasExpired()) {
+            $accessToken = $this->getAuthProvider()->getAccessToken('refresh_token', [
+                'refresh_token' => $accessToken->getRefreshToken()
+            ]);
+
+            $item->expiresAfter( $accessToken->getExpires() - time());
+            $item->set($accessToken);
+            $this->cache->save($item);
+        }
+
+        return $accessToken;
     }
 
     /**
@@ -298,19 +314,43 @@ class Client
      * If not in local cache an request to OverDrive for a new authorization will
      * be executed.
      *
-     * @return string
+     * @return AccessTokenInterface
      *   The value for the authentication header
      *
      * @throws GuzzleException
      * @throws InvalidArgumentException
      * @throws AuthException
+     * @throws IdentityProviderException
      */
-    private function getAuthorization(): string
+    private function getAccessToken(): AccessTokenInterface
     {
-        if (empty($this->authorization)) {
-            $this->authorization = $this->authenticate();
+        if (empty($this->accessToken) || $this->accessToken->hasExpired()) {
+            $this->accessToken = $this->authenticate();
         }
 
-        return $this->authorization;
+        return $this->accessToken;
+    }
+
+    /**
+     * Get OverDrive OAuth authentication provider
+     *
+     * @return GenericProvider
+     *   The authentication provider
+     * @throws AuthException
+     */
+    private function getAuthProvider(): GenericProvider
+    {
+        if (!$this->libraryAccountEndpoint || !$this->clientId || !$this->clientSecret) {
+            throw new AuthException('Credentials missing. Please set ClientId and ClientSecret');
+        }
+
+        return new GenericProvider([
+            'clientId' => $this->clientId,
+            'clientSecret' => $this->clientSecret,
+            'urlAuthorize' => self::OAUTH_URL_BASE.'/authorize',
+            'urlAccessToken' => self::OAUTH_URL_BASE.'/token',
+            'urlResourceOwnerDetails' => self::OAUTH_URL_BASE.'/resource',
+        ]);
+
     }
 }
