@@ -11,7 +11,6 @@ use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorCoreService;
-use App\Service\VendorService\VendorServiceInterface;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
@@ -21,7 +20,7 @@ use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 /**
  * Class BogPortalenVendorService.
  */
-class BogPortalenVendorService extends AbstractBaseVendorService implements VendorServiceInterface
+class BogPortalenVendorService extends AbstractBaseVendorService
 {
     use ProgressBarTrait;
 

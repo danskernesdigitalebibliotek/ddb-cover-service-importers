@@ -10,6 +10,7 @@ use App\Entity\Vendor;
 use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
 use App\Repository\SourceRepository;
+use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\VendorStatus;
 use Doctrine\ORM\Query\QueryException;
 
@@ -43,6 +44,13 @@ abstract class AbstractBaseVendorService
     {
         $this->coreVendorService = $vendorCoreService;
     }
+
+    /**
+     * Load new data from vendor.
+     *
+     * @return VendorImportResultMessage
+     */
+    abstract public function load(): VendorImportResultMessage;
 
     /**
      * Set dispatch to queue.

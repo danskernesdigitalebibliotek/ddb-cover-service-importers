@@ -7,12 +7,11 @@
 namespace App\Service\VendorService\Chandos;
 
 use App\Service\VendorService\AbstractTsvVendorService;
-use App\Service\VendorService\VendorServiceInterface;
 
 /**
  * Class ChandosVendorService.
  */
-class ChandosVendorService extends AbstractTsvVendorService implements VendorServiceInterface
+class ChandosVendorService extends AbstractTsvVendorService
 {
     protected const VENDOR_ID = 10;
 

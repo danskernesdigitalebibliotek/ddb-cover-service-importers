@@ -13,7 +13,6 @@ use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\DataWell\DataConverter\IversePublicUrlConverter;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorCoreService;
-use App\Service\VendorService\VendorServiceInterface;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
@@ -21,7 +20,7 @@ use App\Utils\Types\VendorStatus;
 /**
  * Class DataWellVendorService.
  */
-class DataWellVendorService extends AbstractBaseVendorService implements VendorServiceInterface
+class DataWellVendorService extends AbstractBaseVendorService
 {
     use ProgressBarTrait;
 
