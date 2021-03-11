@@ -23,6 +23,8 @@ use Doctrine\ORM\Query\QueryException;
  * For the implementation details see the CoreVendorService class.
  *
  * @see VendorCoreService
+ * 
+ * @deprecated removed since now
  */
 abstract class AbstractBaseVendorService
 {
@@ -43,6 +45,7 @@ abstract class AbstractBaseVendorService
     public function __construct(VendorCoreService $vendorCoreService)
     {
         $this->coreVendorService = $vendorCoreService;
+        $this->coreVendorService->setVendorId($this::VENDOR_ID);
     }
 
     /**
@@ -83,7 +86,6 @@ abstract class AbstractBaseVendorService
     final public function setLimit(int $limit): void
     {
         $this->limit = $limit;
-        $this->coreVendorService->setLimit($limit);
     }
 
     /**

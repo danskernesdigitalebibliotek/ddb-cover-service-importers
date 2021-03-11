@@ -6,11 +6,11 @@
 
 namespace App\Service\VendorService\BogPortalen;
 
-use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorCoreService;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
@@ -20,13 +20,15 @@ use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 /**
  * Class BogPortalenVendorService.
  */
-class BogPortalenVendorService extends AbstractBaseVendorService
+class BogPortalenVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
-    protected const VENDOR_ID = 1;
+    private const VENDOR_ID = 1;
     private const VENDOR_ARCHIVE_NAMES = ['BOP-ProductAll.zip', 'BOP-ProductAll-EXT.zip', 'BOP-Actual.zip', 'BOP-Actual-EXT.zip'];
 
+    private $vendorCoreService;
     private $local;
     private $ftp;
 
@@ -42,10 +44,27 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      */
     public function __construct(VendorCoreService $vendorCoreService, Filesystem $local, Filesystem $ftp)
     {
-        parent::__construct($vendorCoreService);
-
+        $this->vendorCoreService = $vendorCoreService;
         $this->local = $local;
         $this->ftp = $ftp;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * Note: this is not placed in the vendor service traits as it can not have const.
+     */
+    public function getVendorId(): int
+    {
+        return self::VENDOR_ID;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getVendorName(): string
+    {
+        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**
@@ -53,13 +72,11 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId())) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
-        // We're lazy loading the config to avoid errors from missing config values on dependency injection
         $this->loadConfig();
-
         $status = new VendorStatus();
 
         foreach (self::VENDOR_ARCHIVE_NAMES as $archive) {
@@ -89,7 +106,7 @@ class BogPortalenVendorService extends AbstractBaseVendorService
                     $isbnBatch = \array_slice($isbnList, $offset, self::BATCH_SIZE, true);
 
                     $isbnImageUrlArray = $this->buildIsbnImageUrlArray($isbnBatch);
-                    $this->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN);
+                    $this->vendorCoreService->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
 
                     $this->progressMessageFormatted($status);
                     $this->progressAdvance();
@@ -98,8 +115,6 @@ class BogPortalenVendorService extends AbstractBaseVendorService
                 }
 
                 $this->local->delete($archive);
-            } catch (\InvalidArgumentException $e) {
-                return VendorImportResultMessage::error($e->getMessage());
             } catch (\Exception $e) {
                 return VendorImportResultMessage::error($e->getMessage());
             }
@@ -114,15 +129,16 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      * Set config from service from DB vendor object.
      *
      * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function loadConfig(): void
     {
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
         // Set FTP adapter configuration.
         $adapter = $this->ftp->getAdapter();
-        $adapter->setUsername($this->getVendor()->getDataServerUser());
-        $adapter->setPassword($this->getVendor()->getDataServerPassword());
-        $adapter->setHost($this->getVendor()->getDataServerURI());
+        $adapter->setUsername($vendor->getDataServerUser());
+        $adapter->setPassword($vendor->getDataServerPassword());
+        $adapter->setHost($vendor->getDataServerURI());
     }
 
     /**
@@ -132,7 +148,7 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      *
      * @return array
      *
-     * @throws \Exception
+     * @throws UnknownVendorServiceException
      */
     private function buildIsbnImageUrlArray(array &$isbnList): array
     {
@@ -152,11 +168,12 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      * @return string
      *
      * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function getVendorsImageUrl(string $isbn): string
     {
-        return $this->getVendor()->getImageServerURI().$isbn.'.jpg';
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
+        return $vendor->getImageServerURI().$isbn.'.jpg';
     }
 
     /**

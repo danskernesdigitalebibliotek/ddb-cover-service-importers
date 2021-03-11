@@ -9,7 +9,7 @@ namespace App\Service;
 use Prometheus\CollectorRegistry;
 use Prometheus\Exception\MetricsRegistrationException;
 use Prometheus\RenderTextFormat;
-use Prometheus\Storage\APC;
+use Prometheus\Storage\Redis;
 
 /**
  * Class MetricsService.
@@ -24,7 +24,10 @@ class MetricsService
      */
     public function __construct()
     {
-        $adapter = new APC();
+        $adapter = new Redis([
+            'host' => 'redis',
+            'port' => 6379,
+        ]);
         $this->registry = new CollectorRegistry($adapter);
     }
 

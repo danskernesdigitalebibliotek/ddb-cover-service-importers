@@ -6,8 +6,8 @@
 
 namespace App\Command\Vendors;
 
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\VendorServiceFactory;
+use App\Service\VendorService\VendorServiceInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -19,16 +19,16 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
- * Class VendorCommand.
+ * Class VendorLoadCommand.
  */
-class VendorCommand extends Command
+class VendorLoadCommand extends Command
 {
     protected static $defaultName = 'app:vendor:load';
 
     private $vendorFactory;
 
     /**
-     * VendorCommand constructor.
+     * VendorLoadCommand constructor.
      *
      * @param VendorServiceFactory $vendorFactory
      */
@@ -83,8 +83,8 @@ class VendorCommand extends Command
         $results = [];
         foreach ($vendorServices as $vendorService) {
             try {
-                /* @var AbstractBaseVendorService $vendorService */
-                $vendorService->setDispatchToQueue($dispatchToQueue);
+                /* @var VendorServiceInterface $vendorService */
+                $vendorService->setWithoutQueue($dispatchToQueue);
                 $vendorService->setWithUpdates($withUpdates);
                 $vendorService->setLimit($limit);
                 $vendorService->setProgressBar($progressBarSheet);
