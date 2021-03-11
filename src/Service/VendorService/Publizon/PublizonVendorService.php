@@ -7,11 +7,10 @@
 
 namespace App\Service\VendorService\Publizon;
 
-use App\Exception\IllegalVendorServiceException;
-use App\Exception\UnknownVendorServiceException;
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorCoreService;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\OnixOutputDefinition;
@@ -20,14 +19,16 @@ use App\Utils\Types\VendorStatus;
 /**
  * Class PublizonVendorService.
  */
-class PublizonVendorService extends AbstractBaseVendorService
+class PublizonVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected const VENDOR_ID = 5;
 
     private $xmlReader;
 
+    private $vendorCoreService;
     private $apiEndpoint;
     private $apiServiceKey;
 
@@ -41,9 +42,26 @@ class PublizonVendorService extends AbstractBaseVendorService
      */
     public function __construct(VendorCoreService $vendorCoreService, PublizonXmlReaderService $xmlReader)
     {
-        parent::__construct($vendorCoreService);
-
+        $this->vendorCoreService = $vendorCoreService;
         $this->xmlReader = $xmlReader;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * Note: this is not placed in the vendor service traits as it can not have const.
+     */
+    public function getVendorId(): int
+    {
+        return self::VENDOR_ID;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getVendorName(): string
+    {
+        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**
@@ -51,8 +69,8 @@ class PublizonVendorService extends AbstractBaseVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId())) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         $this->loadConfig();
@@ -95,44 +113,46 @@ class PublizonVendorService extends AbstractBaseVendorService
          * hold a complete element in memory.
          */
 
-        while ($this->xmlReader->read()) {
-            $productIDType = $idValue = null;
-            $resourceContentType = $resourceMode = $resourceForm = $resourceLink = null;
+        try {
+            while ($this->xmlReader->read()) {
+                $productIDType = $idValue = null;
+                $resourceContentType = $resourceMode = $resourceForm = $resourceLink = null;
 
-            if ($this->xmlReader->isAtElementStart('Product')) {
-                while ($this->xmlReader->readUntilElementEnd('Product')) {
-                    if ($this->xmlReader->isAtElementStart('ProductIdentifier')) {
-                        while ($this->xmlReader->readUntilElementEnd('ProductIdentifier')) {
-                            if ($this->xmlReader->isAtElementStart('ProductIDType')) {
-                                $productIDType = $this->xmlReader->getNextElementValue();
-                            }
+                if ($this->xmlReader->isAtElementStart('Product')) {
+                    while ($this->xmlReader->readUntilElementEnd('Product')) {
+                        if ($this->xmlReader->isAtElementStart('ProductIdentifier')) {
+                            while ($this->xmlReader->readUntilElementEnd('ProductIdentifier')) {
+                                if ($this->xmlReader->isAtElementStart('ProductIDType')) {
+                                    $productIDType = $this->xmlReader->getNextElementValue();
+                                }
 
-                            if ($this->xmlReader->isAtElementStart('IDValue')) {
-                                $idValue = $this->xmlReader->getNextElementValue();
+                                if ($this->xmlReader->isAtElementStart('IDValue')) {
+                                    $idValue = $this->xmlReader->getNextElementValue();
+                                }
                             }
                         }
-                    }
 
-                    if ($this->xmlReader->isAtElementStart('CollateralDetail')) {
-                        while ($this->xmlReader->readUntilElementEnd('CollateralDetail')) {
-                            if ($this->xmlReader->isAtElementStart('SupportingResource')) {
-                                while ($this->xmlReader->readUntilElementEnd('SupportingResource')) {
-                                    if ($this->xmlReader->isAtElementStart('ResourceContentType')) {
-                                        $resourceContentType = $this->xmlReader->getNextElementValue();
-                                    }
+                        if ($this->xmlReader->isAtElementStart('CollateralDetail')) {
+                            while ($this->xmlReader->readUntilElementEnd('CollateralDetail')) {
+                                if ($this->xmlReader->isAtElementStart('SupportingResource')) {
+                                    while ($this->xmlReader->readUntilElementEnd('SupportingResource')) {
+                                        if ($this->xmlReader->isAtElementStart('ResourceContentType')) {
+                                            $resourceContentType = $this->xmlReader->getNextElementValue();
+                                        }
 
-                                    if ($this->xmlReader->isAtElementStart('ResourceMode')) {
-                                        $resourceMode = $this->xmlReader->getNextElementValue();
-                                    }
+                                        if ($this->xmlReader->isAtElementStart('ResourceMode')) {
+                                            $resourceMode = $this->xmlReader->getNextElementValue();
+                                        }
 
-                                    if ($this->xmlReader->isAtElementStart('ResourceVersion')) {
-                                        while ($this->xmlReader->readUntilElementEnd('ResourceVersion')) {
-                                            if ($this->xmlReader->isAtElementStart('ResourceForm')) {
-                                                $resourceForm = $this->xmlReader->getNextElementValue();
-                                            }
+                                        if ($this->xmlReader->isAtElementStart('ResourceVersion')) {
+                                            while ($this->xmlReader->readUntilElementEnd('ResourceVersion')) {
+                                                if ($this->xmlReader->isAtElementStart('ResourceForm')) {
+                                                    $resourceForm = $this->xmlReader->getNextElementValue();
+                                                }
 
-                                            if ($this->xmlReader->isAtElementStart('ResourceLink')) {
-                                                $resourceLink = $this->xmlReader->getNextElementValue();
+                                                if ($this->xmlReader->isAtElementStart('ResourceLink')) {
+                                                    $resourceLink = $this->xmlReader->getNextElementValue();
+                                                }
                                             }
                                         }
                                     }
@@ -140,31 +160,33 @@ class PublizonVendorService extends AbstractBaseVendorService
                             }
                         }
                     }
+
+                    // Check if the we have found an ISBN number and a matching front cover
+                    if (OnixOutputDefinition::ISBN_13 === $productIDType && OnixOutputDefinition::FRONT_COVER === $resourceContentType
+                        && OnixOutputDefinition::LINKABLE_RESOURCE === $resourceForm && OnixOutputDefinition::IMAGE === $resourceMode) {
+                        $isbnArray[$idValue] = $resourceLink;
+                    }
+                    ++$totalProducts;
                 }
 
-                // Check if the we have found an ISBN number and a matching front cover
-                if (OnixOutputDefinition::ISBN_13 === $productIDType && OnixOutputDefinition::FRONT_COVER === $resourceContentType
-                    && OnixOutputDefinition::LINKABLE_RESOURCE === $resourceForm && OnixOutputDefinition::IMAGE === $resourceMode) {
-                    $isbnArray[$idValue] = $resourceLink;
+                if ($this->limit && $totalProducts >= $this->limit) {
+                    break;
                 }
-                ++$totalProducts;
+
+                if (0 === $totalProducts % 100) {
+                    $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
+
+                    $isbnArray = [];
+
+                    $this->progressMessageFormatted($status);
+                    $this->progressAdvance();
+                }
             }
 
-            if ($this->limit && $totalProducts >= $this->limit) {
-                break;
-            }
-
-            if (0 === $totalProducts % 100) {
-                $this->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN);
-
-                $isbnArray = [];
-
-                $this->progressMessageFormatted($status);
-                $this->progressAdvance();
-            }
+            $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
+        } catch (\Exception $e) {
+            return VendorImportResultMessage::error($e->getMessage());
         }
-
-        $this->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN);
 
         $this->progressFinish();
 
@@ -173,13 +195,12 @@ class PublizonVendorService extends AbstractBaseVendorService
 
     /**
      * Set config from service from DB vendor object.
-     *
-     * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function loadConfig(): void
     {
-        $this->apiServiceKey = $this->getVendor()->getDataServerPassword();
-        $this->apiEndpoint = $this->getVendor()->getDataServerURI();
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
+        $this->apiServiceKey = $vendor->getDataServerPassword();
+        $this->apiEndpoint = $vendor->getDataServerURI();
     }
 }

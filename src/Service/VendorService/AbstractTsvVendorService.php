@@ -18,13 +18,15 @@ use Symfony\Component\Config\FileLocator;
 /**
  * Class AbstractTsvVendorService.
  */
-abstract class AbstractTsvVendorService extends AbstractBaseVendorService
+abstract class AbstractTsvVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected $vendorArchiveDir = 'AbstractTsvVendor';
     protected $vendorArchiveName = 'covers.tsv';
 
+    private $vendorCoreService;
     private $resourcesDir;
 
     private $tsvBatchSize = 100;
@@ -39,9 +41,26 @@ abstract class AbstractTsvVendorService extends AbstractBaseVendorService
      */
     public function __construct(VendorCoreService $vendorCoreService, string $resourcesDir)
     {
-        parent::__construct($vendorCoreService);
-
+        $this->vendorCoreService = $vendorCoreService;
         $this->resourcesDir = $resourcesDir;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * Note: this is not placed in the vendor service traits as it can not have const.
+     */
+    public function getVendorId(): int
+    {
+        return $this::VENDOR_ID;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getVendorName(): string
+    {
+        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**
@@ -49,8 +68,8 @@ abstract class AbstractTsvVendorService extends AbstractBaseVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId())) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         try {
@@ -91,7 +110,7 @@ abstract class AbstractTsvVendorService extends AbstractBaseVendorService
                     }
 
                     if (0 === $totalRows % $this->tsvBatchSize) {
-                        $this->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID);
+                        $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
 
                         $pidArray = [];
 
@@ -101,7 +120,7 @@ abstract class AbstractTsvVendorService extends AbstractBaseVendorService
                 }
             }
 
-            $this->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID);
+            $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
             $this->progressFinish();
 
             return VendorImportResultMessage::success($status);

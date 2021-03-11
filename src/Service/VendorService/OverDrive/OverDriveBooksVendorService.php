@@ -9,10 +9,11 @@ namespace App\Service\VendorService\OverDrive;
 
 use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\OverDrive\Api\Client;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorCoreService;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
@@ -23,12 +24,14 @@ use Psr\Cache\InvalidArgumentException;
 /**
  * Class OverDriveBooksVendorService.
  */
-class OverDriveBooksVendorService extends AbstractBaseVendorService
+class OverDriveBooksVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected const VENDOR_ID = 14;
 
+    private $vendorCoreService;
     private $apiClient;
     private $httpClient;
 
@@ -44,10 +47,27 @@ class OverDriveBooksVendorService extends AbstractBaseVendorService
      */
     public function __construct(VendorCoreService $vendorCoreService, ClientInterface $httpClient, Client $apiClient)
     {
-        parent::__construct($vendorCoreService);
-
+        $this->vendorCoreService = $vendorCoreService;
         $this->httpClient = $httpClient;
         $this->apiClient = $apiClient;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * Note: this is not placed in the vendor service traits as it can not have const.
+     */
+    public function getVendorId(): int
+    {
+        return self::VENDOR_ID;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getVendorName(): string
+    {
+        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**
@@ -60,8 +80,8 @@ class OverDriveBooksVendorService extends AbstractBaseVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId())) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         $this->loadConfig();
@@ -94,7 +114,7 @@ class OverDriveBooksVendorService extends AbstractBaseVendorService
                     }
                 }
 
-                $this->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN);
+                $this->vendorCoreService->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
 
                 $this->progressMessageFormatted($status);
                 $this->progressAdvance();
@@ -114,15 +134,16 @@ class OverDriveBooksVendorService extends AbstractBaseVendorService
      * Set config from service from DB vendor object.
      *
      * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function loadConfig(): void
     {
-        $libraryAccountEndpoint = $this->getVendor()->getDataServerURI();
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
+        $libraryAccountEndpoint = $vendor->getDataServerURI();
         $this->apiClient->setLibraryAccountEndpoint($libraryAccountEndpoint);
 
-        $clientId = $this->getVendor()->getDataServerUser();
-        $clientSecret = $this->getVendor()->getDataServerPassword();
+        $clientId = $vendor->getDataServerUser();
+        $clientSecret = $vendor->getDataServerPassword();
         $this->apiClient->setCredentials($clientId, $clientSecret);
     }
 }

@@ -6,11 +6,11 @@
 
 namespace App\Service\VendorService\Saxo;
 
-use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorCoreService;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
@@ -22,15 +22,17 @@ use Symfony\Component\Config\FileLocator;
 /**
  * Class SaxoVendorService.
  */
-class SaxoVendorService extends AbstractBaseVendorService
+class SaxoVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected const VENDOR_ID = 3;
 
     private const VENDOR_ARCHIVE_DIR = 'Saxo';
     private const VENDOR_ARCHIVE_NAME = 'Danske bogforsider.xlsx';
 
+    private $vendorCoreService;
     private $resourcesDir;
 
     /**
@@ -43,9 +45,26 @@ class SaxoVendorService extends AbstractBaseVendorService
      */
     public function __construct(VendorCoreService $vendorCoreService, string $resourcesDir)
     {
-        parent::__construct($vendorCoreService);
-
+        $this->vendorCoreService = $vendorCoreService;
         $this->resourcesDir = $resourcesDir;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * Note: this is not placed in the vendor service traits as it can not have const.
+     */
+    public function getVendorId(): int
+    {
+        return self::VENDOR_ID;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getVendorName(): string
+    {
+        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**
@@ -53,8 +72,8 @@ class SaxoVendorService extends AbstractBaseVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId())) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         try {
@@ -82,7 +101,7 @@ class SaxoVendorService extends AbstractBaseVendorService
                     }
 
                     if (0 === $totalRows % 100) {
-                        $this->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN);
+                        $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
 
                         $isbnArray = [];
 
@@ -92,7 +111,7 @@ class SaxoVendorService extends AbstractBaseVendorService
                 }
             }
 
-            $this->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN);
+            $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
             $this->progressFinish();
 
             return VendorImportResultMessage::success($status);
@@ -109,11 +128,12 @@ class SaxoVendorService extends AbstractBaseVendorService
      * @return string
      *
      * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function getVendorsImageUrl(string $isbn): string
     {
-        return $this->getVendor()->getImageServerURI().'_'.$isbn.'/0x0';
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
+        return $vendor->getImageServerURI().'_'.$isbn.'/0x0';
     }
 
     /**

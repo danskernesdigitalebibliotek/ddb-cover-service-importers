@@ -18,9 +18,10 @@ use App\Exception\CoverStoreUnexpectedException;
 use App\Message\VendorImageMessage;
 use App\Repository\SourceRepository;
 use App\Service\CoverStore\CoverStoreInterface;
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorCoreService;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
@@ -31,9 +32,10 @@ use Symfony\Component\Messenger\MessageBusInterface;
 /**
  * Class UploadServiceVendorService.
  */
-class UploadServiceVendorService extends AbstractBaseVendorService
+class UploadServiceVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected const VENDOR_ID = 12;
 
@@ -45,7 +47,7 @@ class UploadServiceVendorService extends AbstractBaseVendorService
 
     /** @var SourceRepository $sourceRepository */
     private $sourceRepository;
-
+    private $vendorCoreService;
     private $bus;
     private $em;
 
@@ -64,12 +66,29 @@ class UploadServiceVendorService extends AbstractBaseVendorService
      */
     public function __construct(MessageBusInterface $bus, EntityManagerInterface $em, VendorCoreService $vendorCoreService, CoverStoreInterface $store, SourceRepository $sourceRepository)
     {
-        parent::__construct($vendorCoreService);
-
+        $this->vendorCoreService = $vendorCoreService;
         $this->bus = $bus;
         $this->em = $em;
         $this->store = $store;
         $this->sourceRepository = $sourceRepository;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * Note: this is not placed in the vendor service traits as it can not have const.
+     */
+    public function getVendorId(): int
+    {
+        return self::VENDOR_ID;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getVendorName(): string
+    {
+        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**
@@ -182,7 +201,7 @@ class UploadServiceVendorService extends AbstractBaseVendorService
                 $source = $this->sourceRepository->findOneBy([
                     'matchType' => $type,
                     'matchId' => $identifier,
-                    'vendor' => $this->getVendor(),
+                    'vendor' => $this->vendorCoreService->getVendor($this->getVendorId()),
                 ]);
                 if (false !== $source) {
                     $image = $source->getImage();
@@ -208,7 +227,7 @@ class UploadServiceVendorService extends AbstractBaseVendorService
             // Set source entity information.
             $source->setMatchType($type)
                 ->setMatchId($identifier)
-                ->setVendor($this->getVendor())
+                ->setVendor($this->vendorCoreService->getVendor($this->getVendorId()))
                 ->setDate(new \DateTime())
                 ->setOriginalFile($item->getUrl())
                 ->setOriginalContentLength($item->getSize())

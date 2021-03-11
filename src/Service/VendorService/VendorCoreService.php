@@ -148,7 +148,8 @@ final class VendorCoreService
      *
      * @TODO: Split into update and insert function. One function one job.
      *
-     * @throws \Exception
+     * @throws QueryException
+     * @throws UnknownVendorServiceException
      */
     public function updateOrInsertMaterials(VendorStatus $status, array &$identifierImageUrlArray, string $identifierType, int $vendorId, bool $withUpdates = false, bool $withoutQueue = false, int $batchSize = 200): void
     {

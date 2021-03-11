@@ -6,13 +6,13 @@
 
 namespace App\Service\VendorService\OverDrive;
 
-use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
 use App\Service\DataWell\SearchService;
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\OverDrive\Api\Client;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorCoreService;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
@@ -22,15 +22,17 @@ use Psr\Cache\InvalidArgumentException;
 /**
  * Class OverDriveMagazinesVendorService.
  */
-class OverDriveMagazinesVendorService extends AbstractBaseVendorService
+class OverDriveMagazinesVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected const VENDOR_ID = 16;
 
     private const VENDOR_SEARCH_TERM = 'facet.acSource="ereolen magazines"';
     private const VENDOR_MAGAZINE_URL_BASE = 'http://link.overdrive.com/';
 
+    private $vendorCoreService;
     private $searchService;
     private $apiClient;
 
@@ -46,10 +48,27 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
      */
     public function __construct(VendorCoreService $vendorCoreService, SearchService $searchService, Client $apiClient)
     {
-        parent::__construct($vendorCoreService);
-
+        $this->vendorCoreService = $vendorCoreService;
         $this->searchService = $searchService;
         $this->apiClient = $apiClient;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * Note: this is not placed in the vendor service traits as it can not have const.
+     */
+    public function getVendorId(): int
+    {
+        return self::VENDOR_ID;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getVendorName(): string
+    {
+        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**
@@ -57,8 +76,8 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId())) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         $this->loadConfig();
@@ -88,7 +107,7 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
                 array_filter($pidCoverUrlArray);
 
                 $batchSize = \count($pidCoverUrlArray);
-                $this->updateOrInsertMaterials($status, $pidCoverUrlArray, IdentifierType::PID, $batchSize);
+                $this->vendorCoreService->updateOrInsertMaterials($status, $pidCoverUrlArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, $batchSize);
 
                 $this->progressMessageFormatted($status);
                 $this->progressAdvance();
@@ -108,15 +127,16 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
      * Set config from service from DB vendor object.
      *
      * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function loadConfig(): void
     {
-        $libraryAccountEndpoint = $this->getVendor()->getDataServerURI();
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
+        $libraryAccountEndpoint = $vendor->getDataServerURI();
         $this->apiClient->setLibraryAccountEndpoint($libraryAccountEndpoint);
 
-        $clientId = $this->getVendor()->getDataServerUser();
-        $clientSecret = $this->getVendor()->getDataServerPassword();
+        $clientId = $vendor->getDataServerUser();
+        $clientSecret = $vendor->getDataServerPassword();
         $this->apiClient->setCredentials($clientId, $clientSecret);
     }
 

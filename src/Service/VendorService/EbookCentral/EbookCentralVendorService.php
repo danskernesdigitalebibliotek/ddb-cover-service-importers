@@ -7,9 +7,10 @@
 namespace App\Service\VendorService\EbookCentral;
 
 use App\Exception\UnknownVendorResourceFormatException;
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorCoreService;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
@@ -21,15 +22,17 @@ use Symfony\Component\Config\FileLocator;
 /**
  * Class EbookCentralVendorService.
  */
-class EbookCentralVendorService extends AbstractBaseVendorService
+class EbookCentralVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected const VENDOR_ID = 2;
 
     private const VENDOR_ARCHIVE_DIR = 'EbookCentral';
     private const VENDOR_ARCHIVE_NAME = 'cover images title list ddbdk.xlsx';
 
+    private $vendorCoreService;
     private $resourcesDir;
 
     /**
@@ -42,9 +45,26 @@ class EbookCentralVendorService extends AbstractBaseVendorService
      */
     public function __construct(VendorCoreService $vendorCoreService, string $resourcesDir)
     {
-        parent::__construct($vendorCoreService);
-
+        $this->vendorCoreService = $vendorCoreService;
         $this->resourcesDir = $resourcesDir;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * Note: this is not placed in the vendor service traits as it can not have const.
+     */
+    public function getVendorId(): int
+    {
+        return self::VENDOR_ID;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getVendorName(): string
+    {
+        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**
@@ -52,8 +72,8 @@ class EbookCentralVendorService extends AbstractBaseVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId())) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         try {
@@ -102,7 +122,7 @@ class EbookCentralVendorService extends AbstractBaseVendorService
                     }
 
                     if (0 === $totalRows % 100) {
-                        $this->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN);
+                        $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
                         $isbnArray = [];
 
                         $this->progressMessageFormatted($status);
@@ -122,7 +142,7 @@ class EbookCentralVendorService extends AbstractBaseVendorService
                 }
             }
 
-            $this->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN);
+            $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
 
             $this->progressFinish();
 

@@ -12,9 +12,10 @@ use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
 use App\Message\VendorImageMessage;
 use App\Repository\SourceRepository;
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorCoreService;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
@@ -26,12 +27,14 @@ use Symfony\Component\Messenger\MessageBusInterface;
 /**
  * Class DataWellVendorService.
  */
-class TheMovieDatabaseVendorService extends AbstractBaseVendorService
+class TheMovieDatabaseVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected const VENDOR_ID = 6;
 
+    private $vendorCoreService;
     private $em;
     private $bus;
     private $dataWell;
@@ -57,8 +60,7 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
      */
     public function __construct(EntityManagerInterface $em, MessageBusInterface $bus, VendorCoreService $vendorCoreService, TheMovieDatabaseSearchService $dataWell, TheMovieDatabaseApiService $api)
     {
-        parent::__construct($vendorCoreService);
-
+        $this->vendorCoreService = $vendorCoreService;
         $this->em = $em;
         $this->bus = $bus;
         $this->dataWell = $dataWell;
@@ -66,12 +68,30 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
     }
 
     /**
+     * {@inheritdoc}
+     *
+     * Note: this is not placed in the vendor service traits as it can not have const.
+     */
+    public function getVendorId(): int
+    {
+        return self::VENDOR_ID;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getVendorName(): string
+    {
+        return $this->vendorCoreService->getVendorName($this->getVendorId());
+    }
+
+    /**
      * @{@inheritdoc}
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId())) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         // We're lazy loading the config to avoid errors from missing config values on dependency injection
@@ -109,7 +129,7 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
                     $batchOffset = 0;
                     while ($batchOffset < $batchSize) {
                         $batch = \array_slice($pidArray, $batchOffset, self::BATCH_SIZE, true);
-                        [$updatedIdentifiers, $insertedIdentifiers] = $this->processBatch($batch, $sourceRepo, IdentifierType::PID);
+                        [$updatedIdentifiers, $insertedIdentifiers] = $this->vendorCoreService->processBatch($batch, $sourceRepo, IdentifierType::PID, $this->getVendorId(), $this->withUpdates);
 
                         $this->postProcess($updatedIdentifiers, $resultArray);
                         $this->postProcess($insertedIdentifiers, $resultArray);
@@ -117,7 +137,7 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
                         // Update status.
                         $status->addUpdated(count($updatedIdentifiers));
                         $status->addInserted(count($insertedIdentifiers));
-                        $status->addRecords(count($updatedIdentifiers) + count($insertedIdentifiers));
+                        $status->addRecords(count($batch));
 
                         $batchOffset += $batchSize;
                     }
@@ -144,16 +164,15 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
 
     /**
      * Set config fro service from DB vendor object.
-     *
-     * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function loadConfig(): void
     {
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
         // Set the service access configuration from the vendor.
-        $this->dataWell->setSearchUrl($this->getVendor()->getDataServerURI());
-        $this->dataWell->setUser($this->getVendor()->getDataServerUser());
-        $this->dataWell->setPassword($this->getVendor()->getDataServerPassword());
+        $this->dataWell->setSearchUrl($vendor->getDataServerURI());
+        $this->dataWell->setUser($vendor->getDataServerUser());
+        $this->dataWell->setPassword($vendor->getDataServerPassword());
     }
 
     /**
@@ -180,7 +199,7 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
             $source = $sourceRepo->findOneBy([
                 'matchId' => $pid,
                 'matchType' => IdentifierType::PID,
-                'vendor' => $this->getVendor(),
+                'vendor' => $this->vendorCoreService->getVendor($this->getVendorId()),
             ]);
 
             if (null !== $source) {
