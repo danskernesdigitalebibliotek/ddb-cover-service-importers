@@ -14,6 +14,7 @@ trait VendorServiceTrait
     private $limit = 0;
     private $withoutQueue = false;
     private $withUpdates = false;
+    private $ignoreLock = false;
 
     /**
      * {@inheritdoc}
@@ -37,5 +38,13 @@ trait VendorServiceTrait
     public function setWithUpdates(bool $withUpdates = false)
     {
         $this->withUpdates = $withUpdates;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setIgnoreLock(bool $force = false)
+    {
+        $this->ignoreLock = $force;
     }
 }

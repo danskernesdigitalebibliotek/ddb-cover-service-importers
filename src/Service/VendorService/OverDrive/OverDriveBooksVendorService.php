@@ -80,7 +80,7 @@ class OverDriveBooksVendorService implements VendorServiceInterface
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->vendorCoreService->acquireLock($this->getVendorId())) {
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
             return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
@@ -123,6 +123,8 @@ class OverDriveBooksVendorService implements VendorServiceInterface
             } while ($offset < $totalCount);
 
             $this->progressFinish();
+
+            $this->vendorCoreService->releaseLock($this->getVendorId());
 
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {

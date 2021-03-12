@@ -90,7 +90,7 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->vendorCoreService->acquireLock($this->getVendorId())) {
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
             return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
@@ -155,6 +155,8 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
             }
 
             $this->progressFinish();
+
+            $this->vendorCoreService->releaseLock($this->getVendorId());
 
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {

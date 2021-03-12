@@ -13,7 +13,6 @@ use App\Utils\Types\VendorStatus;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\QueryException;
 use Symfony\Component\Lock\LockFactory;
-use Symfony\Component\Lock\Store\SemaphoreStore;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
@@ -24,8 +23,10 @@ final class VendorCoreService
     private $em;
     private $metricsService;
     private $bus;
+    private $lockFactory;
 
     private $vendors = [];
+    private $locks = [];
 
     /**
      * CoreVendorService constructor.
@@ -36,34 +37,15 @@ final class VendorCoreService
      *   Job queue bus
      * @param metricsService $metricsService
      *   Metrics collection service
+     * @param LockFactory $vendorLockFactory
+     *   Vendor lock-factory used to prevent more that one instance of import at one time
      */
-    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, MetricsService $metricsService)
+    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, MetricsService $metricsService, LockFactory $vendorLockFactory)
     {
         $this->em = $entityManager;
         $this->metricsService = $metricsService;
         $this->bus = $bus;
-    }
-
-    /**
-     * Set dispatch to queue.
-     *
-     * @param bool $dispatchToQueue
-     *   If true send events into queue system (default: true)
-     */
-    public function setDispatchToQueue(bool $dispatchToQueue)
-    {
-        $this->dispatchToQueue = $dispatchToQueue;
-    }
-
-    /**
-     * Set with updates.
-     *
-     * @param bool $withUpdates
-     *   If true existing covers are updated (default: false)
-     */
-    public function setWithUpdates(bool $withUpdates)
-    {
-        $this->withUpdates = $withUpdates;
+        $this->lockFactory = $vendorLockFactory;
     }
 
     /**
@@ -114,18 +96,31 @@ final class VendorCoreService
      *
      * @param int $vendorId
      *   Using the vendor ID to identify the lock
+     * @param bool $ingnore
+     *   Ignore the lock if not acquired
      *
      * @return bool
      *   Whether or not the lock had been acquired
      */
-    public function acquireLock(int $vendorId): bool
+    public function acquireLock(int $vendorId, bool $ingnore = false): bool
     {
-        $store = new SemaphoreStore();
-        $factory = new LockFactory($store);
+        $this->locks[$vendorId] = $this->lockFactory->createLock('app-vendor-service-load-'.$vendorId, 1800, false);
+        $acquired = $this->locks[$vendorId]->acquire();
 
-        $lock = $factory->createLock('app-vendor-service-load-'.$vendorId);
+        return $ingnore ? true : $acquired;
+    }
 
-        return $lock->acquire();
+    /**
+     * Release lock.
+     *
+     * @param int $vendorId
+     *   The vendor ID to release
+     */
+    public function releaseLock(int $vendorId)
+    {
+        if (isset($this->locks[$vendorId])) {
+            $this->locks[$vendorId]->release();
+        }
     }
 
     /**

@@ -13,7 +13,7 @@ use Symfony\Component\Console\Helper\ProgressBar;
 interface VendorServiceInterface
 {
     public const BATCH_SIZE = 200;
-    public const ERROR_RUNNING = 'Import already running';
+    public const ERROR_RUNNING = 'Could not require locks - import may already be running';
 
     /**
      * Loading data from the vendor for processing.
@@ -66,6 +66,14 @@ interface VendorServiceInterface
      *  If true updates to existing covers are executed
      */
     public function setWithUpdates(bool $withUpdates = false);
+
+    /**
+     * Set force/ignore locks.
+     *
+     * @param bool $force
+     *   Default locks are not ignored
+     */
+    public function setIgnoreLock(bool $force = false);
 
     /**
      * Set progress bar.

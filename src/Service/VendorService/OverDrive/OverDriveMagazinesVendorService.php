@@ -76,7 +76,7 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->vendorCoreService->acquireLock($this->getVendorId())) {
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
             return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
@@ -116,6 +116,8 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
                     $more = false;
                 }
             } while ($more);
+
+            $this->vendorCoreService->releaseLock($this->getVendorId());
 
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {

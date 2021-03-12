@@ -68,7 +68,7 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->vendorCoreService->acquireLock($this->getVendorId())) {
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
             return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
@@ -122,6 +122,8 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
 
             $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
             $this->progressFinish();
+
+            $this->vendorCoreService->releaseLock($this->getVendorId());
 
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
