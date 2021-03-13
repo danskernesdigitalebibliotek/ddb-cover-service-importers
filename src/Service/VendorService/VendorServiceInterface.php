@@ -16,6 +16,14 @@ interface VendorServiceInterface
     public const ERROR_RUNNING = 'Could not require locks - import may already be running';
 
     /**
+     * Set the Vendor Core Service.
+     *
+     * @param VendorCoreService $vendorCoreService
+     *   The Vendor core service
+     */
+    public function setVendorCoreService(VendorCoreService $vendorCoreService): void;
+
+    /**
      * Loading data from the vendor for processing.
      *
      * @return VendorImportResultMessage

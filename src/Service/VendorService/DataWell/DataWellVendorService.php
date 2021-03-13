@@ -9,7 +9,6 @@ namespace App\Service\VendorService\DataWell;
 
 use App\Service\VendorService\DataWell\DataConverter\IversePublicUrlConverter;
 use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorCoreService;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
@@ -33,33 +32,12 @@ class DataWellVendorService implements VendorServiceInterface
     /**
      * DataWellVendorService constructor.
      *
-     * @param vendorCoreService $vendorCoreService
-     *   Service with shared vendor functions
      * @param dataWellSearchService $datawell
      *   For searching the data well
      */
-    public function __construct(VendorCoreService $vendorCoreService, DataWellSearchService $datawell)
+    public function __construct(DataWellSearchService $datawell)
     {
-        $this->vendorCoreService = $vendorCoreService;
         $this->datawell = $datawell;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * Note: this is not placed in the vendor service traits as it can not have const.
-     */
-    public function getVendorId(): int
-    {
-        return self::VENDOR_ID;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getVendorName(): string
-    {
-        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**

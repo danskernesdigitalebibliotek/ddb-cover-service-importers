@@ -7,11 +7,9 @@
 
 namespace App\Service\VendorService\OverDrive;
 
-use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\OverDrive\Api\Client;
 use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorCoreService;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
@@ -38,16 +36,13 @@ class OverDriveBooksVendorService implements VendorServiceInterface
     /**
      * OverDriveBooksVendorService constructor.
      *
-     * @param vendorCoreService $vendorCoreService
-     *   Service with shared vendor functions
      * @param ClientInterface $httpClient
      *   Http client to send api requests
      * @param Client $apiClient
      *   Api client for the OverDrive API
      */
-    public function __construct(VendorCoreService $vendorCoreService, ClientInterface $httpClient, Client $apiClient)
+    public function __construct(ClientInterface $httpClient, Client $apiClient)
     {
-        $this->vendorCoreService = $vendorCoreService;
         $this->httpClient = $httpClient;
         $this->apiClient = $apiClient;
     }
@@ -55,28 +50,9 @@ class OverDriveBooksVendorService implements VendorServiceInterface
     /**
      * {@inheritdoc}
      *
-     * Note: this is not placed in the vendor service traits as it can not have const.
-     */
-    public function getVendorId(): int
-    {
-        return self::VENDOR_ID;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getVendorName(): string
-    {
-        return $this->vendorCoreService->getVendorName($this->getVendorId());
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @throws IllegalVendorServiceException
-     * @throws UnknownVendorServiceException
      * @throws GuzzleException
      * @throws InvalidArgumentException
+     * @throws UnknownVendorServiceException
      */
     public function load(): VendorImportResultMessage
     {

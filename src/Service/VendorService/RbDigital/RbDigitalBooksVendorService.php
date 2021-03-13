@@ -10,7 +10,6 @@ use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\RbDigital\DataConverter\RbDigitalBooksPublicUrlConverter;
-use App\Service\VendorService\VendorCoreService;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
@@ -47,8 +46,6 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
     /**
      * RbDigitalVendorService constructor.
      *
-     * @param vendorCoreService $vendorCoreService
-     *   Service with shared vendor functions
      * @param Filesystem $local
      *   Flysystem adapter for local filesystem
      * @param Filesystem $ftp
@@ -56,9 +53,8 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
      * @param AdapterInterface $cache
      *   Cache adapter for the application
      */
-    public function __construct(VendorCoreService $vendorCoreService, Filesystem $local, Filesystem $ftp, AdapterInterface $cache)
+    public function __construct(Filesystem $local, Filesystem $ftp, AdapterInterface $cache)
     {
-        $this->vendorCoreService = $vendorCoreService;
         $this->local = $local;
         $this->ftp = $ftp;
         $this->cache = $cache;

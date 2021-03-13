@@ -10,7 +10,6 @@ use App\Exception\UnknownVendorServiceException;
 use App\Service\DataWell\SearchService;
 use App\Service\VendorService\OverDrive\Api\Client;
 use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorCoreService;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
@@ -39,36 +38,15 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
     /**
      * OverDriveMagazinesVendorService constructor.
      *
-     * @param vendorCoreService $vendorCoreService
-     *   Service with shared vendor functions
      * @param SearchService $searchService
      *   Datawell search service
      * @param Client $apiClient
      *   Api client for the OverDrive API
      */
-    public function __construct(VendorCoreService $vendorCoreService, SearchService $searchService, Client $apiClient)
+    public function __construct(SearchService $searchService, Client $apiClient)
     {
-        $this->vendorCoreService = $vendorCoreService;
         $this->searchService = $searchService;
         $this->apiClient = $apiClient;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * Note: this is not placed in the vendor service traits as it can not have const.
-     */
-    public function getVendorId(): int
-    {
-        return self::VENDOR_ID;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getVendorName(): string
-    {
-        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**

@@ -19,7 +19,6 @@ use App\Message\VendorImageMessage;
 use App\Repository\SourceRepository;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorCoreService;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
@@ -58,37 +57,16 @@ class UploadServiceVendorService implements VendorServiceInterface
      *   Message queue bus
      * @param EntityManagerInterface $em
      *   Database entity manager
-     * @param VendorCoreService $vendorCoreService
-     *   Service with shared vendor functions
      * @param CoverStoreInterface $store
      *   Cover store access
      * @param SourceRepository $sourceRepository
      */
-    public function __construct(MessageBusInterface $bus, EntityManagerInterface $em, VendorCoreService $vendorCoreService, CoverStoreInterface $store, SourceRepository $sourceRepository)
+    public function __construct(MessageBusInterface $bus, EntityManagerInterface $em, CoverStoreInterface $store, SourceRepository $sourceRepository)
     {
-        $this->vendorCoreService = $vendorCoreService;
         $this->bus = $bus;
         $this->em = $em;
         $this->store = $store;
         $this->sourceRepository = $sourceRepository;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * Note: this is not placed in the vendor service traits as it can not have const.
-     */
-    public function getVendorId(): int
-    {
-        return self::VENDOR_ID;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getVendorName(): string
-    {
-        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**

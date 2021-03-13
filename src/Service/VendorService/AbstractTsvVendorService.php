@@ -34,33 +34,12 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
     /**
      * AbstractTsvVendorService constructor.
      *
-     * @param vendorCoreService $vendorCoreService
-     *   Service with shared vendor functions
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(VendorCoreService $vendorCoreService, string $resourcesDir)
+    public function __construct(string $resourcesDir)
     {
-        $this->vendorCoreService = $vendorCoreService;
         $this->resourcesDir = $resourcesDir;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * Note: this is not placed in the vendor service traits as it can not have const.
-     */
-    public function getVendorId(): int
-    {
-        return $this::VENDOR_ID;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getVendorName(): string
-    {
-        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**

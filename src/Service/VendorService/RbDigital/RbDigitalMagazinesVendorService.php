@@ -25,24 +25,6 @@ class RbDigitalMagazinesVendorService implements VendorServiceInterface
 
     /**
      * {@inheritdoc}
-     *
-     * Note: this is not placed in the vendor service traits as it can not have const.
-     */
-    public function getVendorId(): int
-    {
-        return self::VENDOR_ID;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getVendorName(): string
-    {
-        return 'RbDigitalMagazines (deprecated)';
-    }
-
-    /**
-     * {@inheritdoc}
      */
     public function load(): VendorImportResultMessage
     {

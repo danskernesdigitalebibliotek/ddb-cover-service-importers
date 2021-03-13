@@ -8,7 +8,6 @@ namespace App\Service\VendorService\Saxo;
 
 use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorCoreService;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
@@ -38,33 +37,12 @@ class SaxoVendorService implements VendorServiceInterface
     /**
      * SaxoVendorService constructor.
      *
-     * @param vendorCoreService $vendorCoreService
-     *   Service with shared vendor functions
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(VendorCoreService $vendorCoreService, string $resourcesDir)
+    public function __construct(string $resourcesDir)
     {
-        $this->vendorCoreService = $vendorCoreService;
         $this->resourcesDir = $resourcesDir;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * Note: this is not placed in the vendor service traits as it can not have const.
-     */
-    public function getVendorId(): int
-    {
-        return self::VENDOR_ID;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getVendorName(): string
-    {
-        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**

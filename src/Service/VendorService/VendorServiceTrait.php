@@ -15,6 +15,31 @@ trait VendorServiceTrait
     private $withoutQueue = false;
     private $withUpdates = false;
     private $ignoreLock = false;
+    private $vendorCoreService;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setVendorCoreService(VendorCoreService $vendorCoreService): void
+    {
+        $this->vendorCoreService = $vendorCoreService;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getVendorId(): int
+    {
+        return $this::VENDOR_ID;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getVendorName(): string
+    {
+        return $this->vendorCoreService->getVendorName($this->getVendorId());
+    }
 
     /**
      * {@inheritdoc}

@@ -23,24 +23,6 @@ class UserUploadVendorService implements VendorServiceInterface
 
     /**
      * {@inheritdoc}
-     *
-     * Note: this is not placed in the vendor service traits as it can not have const.
-     */
-    public function getVendorId(): int
-    {
-        return self::VENDOR_ID;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getVendorName(): string
-    {
-        return 'UserUpload';
-    }
-
-    /**
-     * {@inheritdoc}
      */
     public function load(): VendorImportResultMessage
     {

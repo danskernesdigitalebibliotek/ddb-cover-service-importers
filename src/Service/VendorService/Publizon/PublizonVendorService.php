@@ -8,7 +8,6 @@
 namespace App\Service\VendorService\Publizon;
 
 use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorCoreService;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
@@ -35,33 +34,12 @@ class PublizonVendorService implements VendorServiceInterface
     /**
      * PublizonVendorService constructor.
      *
-     * @param vendorCoreService $vendorCoreService
-     *   Service with shared vendor functions
      * @param publizonXmlReaderService $xmlReader
      *   XML reader service to Publizon API
      */
-    public function __construct(VendorCoreService $vendorCoreService, PublizonXmlReaderService $xmlReader)
+    public function __construct(PublizonXmlReaderService $xmlReader)
     {
-        $this->vendorCoreService = $vendorCoreService;
         $this->xmlReader = $xmlReader;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * Note: this is not placed in the vendor service traits as it can not have const.
-     */
-    public function getVendorId(): int
-    {
-        return self::VENDOR_ID;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getVendorName(): string
-    {
-        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**

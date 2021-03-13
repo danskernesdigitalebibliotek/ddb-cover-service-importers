@@ -13,7 +13,6 @@ use App\Exception\UnknownVendorServiceException;
 use App\Message\VendorImageMessage;
 use App\Repository\SourceRepository;
 use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorCoreService;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
@@ -51,38 +50,17 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
      *   Database entity manager
      * @param MessageBusInterface $bus
      *   Message bus for the queue system
-     * @param VendorCoreService $vendorCoreService
-     *   Service with shared vendor functions
      * @param theMovieDatabaseSearchService $dataWell
      *   The search service
      * @param TheMovieDatabaseApiService $api
      *   The movie api service
      */
-    public function __construct(EntityManagerInterface $em, MessageBusInterface $bus, VendorCoreService $vendorCoreService, TheMovieDatabaseSearchService $dataWell, TheMovieDatabaseApiService $api)
+    public function __construct(EntityManagerInterface $em, MessageBusInterface $bus, TheMovieDatabaseSearchService $dataWell, TheMovieDatabaseApiService $api)
     {
-        $this->vendorCoreService = $vendorCoreService;
         $this->em = $em;
         $this->bus = $bus;
         $this->dataWell = $dataWell;
         $this->api = $api;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * Note: this is not placed in the vendor service traits as it can not have const.
-     */
-    public function getVendorId(): int
-    {
-        return self::VENDOR_ID;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getVendorName(): string
-    {
-        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**

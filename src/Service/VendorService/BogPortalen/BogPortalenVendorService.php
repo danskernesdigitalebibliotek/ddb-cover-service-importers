@@ -8,7 +8,6 @@ namespace App\Service\VendorService\BogPortalen;
 
 use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorCoreService;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
@@ -35,36 +34,15 @@ class BogPortalenVendorService implements VendorServiceInterface
     /**
      * BogPortalenVendorService constructor.
      *
-     * @param vendorCoreService $vendorCoreService
-     *   Service with shared vendor functions
      * @param filesystem $local
      *   Flysystem adapter for local filesystem
      * @param filesystem $ftp
      *   Flysystem adapter for remote ftp server
      */
-    public function __construct(VendorCoreService $vendorCoreService, Filesystem $local, Filesystem $ftp)
+    public function __construct(Filesystem $local, Filesystem $ftp)
     {
-        $this->vendorCoreService = $vendorCoreService;
         $this->local = $local;
         $this->ftp = $ftp;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * Note: this is not placed in the vendor service traits as it can not have const.
-     */
-    public function getVendorId(): int
-    {
-        return self::VENDOR_ID;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getVendorName(): string
-    {
-        return $this->vendorCoreService->getVendorName($this->getVendorId());
     }
 
     /**
