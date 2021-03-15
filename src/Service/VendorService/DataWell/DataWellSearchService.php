@@ -153,11 +153,13 @@ class DataWellSearchService
 
         foreach ($json['searchResponse']['result']['searchResult'] as $item) {
             foreach ($item['collection']['object'] as $object) {
-                $pid = $object['identifier']['$'];
-                foreach ($object['relations']['relation'] as $relation) {
-                    if ('dbcaddi:hasCover' == $relation['relationType']['$']) {
-                        $coverUrl = $relation['relationUri']['$'];
-                        $data[$pid] = $coverUrl;
+                if (isset($object['identifier'])) {
+                    $pid = $object['identifier']['$'];
+                    foreach ($object['relations']['relation'] as $relation) {
+                        if ('dbcaddi:hasCover' === $relation['relationType']['$']) {
+                            $coverUrl = $relation['relationUri']['$'];
+                            $data[$pid] = $coverUrl;
+                        }
                     }
                 }
             }

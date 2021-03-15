@@ -38,9 +38,14 @@ services:
             $bindElasticSearchUrl: '%env(ELASTIC_URL)%'
             $bindElasticStatsIndexPrefix: '%env(ELASTIC_STATS_INDEX_PREFIX)%'
 
+            $bindMetricsHost: '%env(string:METRICS_HOST)%'
+            $bindMetricsPort: '%env(int:METRICS_PORT)%'
+
     _instanceof:
-        App\Service\VendorService\AbstractBaseVendorService:
+        App\Service\VendorService\VendorServiceInterface:
             tags: [app.vendor.service]
+            calls:
+                - setVendorCoreService: ['@App\Service\VendorService\VendorCoreService']
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

@@ -15,6 +15,7 @@ app:
     prefix: "DDBCoverImporters"
     port: "6379"
     cache_db: "11"
+    lock_db: "2"
   openplatform:
     search_limit: "100"
   amqp:

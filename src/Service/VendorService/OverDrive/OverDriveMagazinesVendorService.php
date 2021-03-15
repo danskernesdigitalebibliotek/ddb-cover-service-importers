@@ -6,26 +6,25 @@
 
 namespace App\Service\VendorService\OverDrive;
 
-use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
 use App\Service\DataWell\SearchService;
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\OverDrive\Api\Client;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\Types\VendorStatus;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Cache\InvalidArgumentException;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class OverDriveMagazinesVendorService.
  */
-class OverDriveMagazinesVendorService extends AbstractBaseVendorService
+class OverDriveMagazinesVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected const VENDOR_ID = 16;
 
@@ -38,21 +37,13 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
     /**
      * OverDriveMagazinesVendorService constructor.
      *
-     * @param MessageBusInterface $bus
-     *   Job queue bus
-     * @param EntityManagerInterface $entityManager
-     *   Doctrine entity manager
-     * @param LoggerInterface $statsLogger
-     *   Logger object to send stats to ES
      * @param SearchService $searchService
      *   Datawell search service
      * @param Client $apiClient
      *   Api client for the OverDrive API
      */
-    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, SearchService $searchService, Client $apiClient)
+    public function __construct(SearchService $searchService, Client $apiClient)
     {
-        parent::__construct($entityManager, $statsLogger, $bus);
-
         $this->searchService = $searchService;
         $this->apiClient = $apiClient;
     }
@@ -62,11 +53,13 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         $this->loadConfig();
+
+        $status = new VendorStatus();
 
         $this->progressStart('Search data well for: "'.self::VENDOR_SEARCH_TERM.'"');
 
@@ -91,17 +84,19 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
                 array_filter($pidCoverUrlArray);
 
                 $batchSize = \count($pidCoverUrlArray);
-                $this->updateOrInsertMaterials($pidCoverUrlArray, IdentifierType::PID, $batchSize);
+                $this->vendorCoreService->updateOrInsertMaterials($status, $pidCoverUrlArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, $batchSize);
 
-                $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                $this->progressMessageFormatted($status);
                 $this->progressAdvance();
 
-                if ($this->limit && $this->totalIsIdentifiers >= $this->limit) {
+                if ($this->limit && $status->records >= $this->limit) {
                     $more = false;
                 }
             } while ($more);
 
-            return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted, $this->totalDeleted);
+            $this->vendorCoreService->releaseLock($this->getVendorId());
+
+            return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
             return VendorImportResultMessage::error($exception->getMessage());
         }
@@ -111,15 +106,16 @@ class OverDriveMagazinesVendorService extends AbstractBaseVendorService
      * Set config from service from DB vendor object.
      *
      * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function loadConfig(): void
     {
-        $libraryAccountEndpoint = $this->getVendor()->getDataServerURI();
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
+        $libraryAccountEndpoint = $vendor->getDataServerURI();
         $this->apiClient->setLibraryAccountEndpoint($libraryAccountEndpoint);
 
-        $clientId = $this->getVendor()->getDataServerUser();
-        $clientSecret = $this->getVendor()->getDataServerPassword();
+        $clientId = $vendor->getDataServerUser();
+        $clientSecret = $vendor->getDataServerPassword();
         $this->apiClient->setCredentials($clientId, $clientSecret);
     }
 

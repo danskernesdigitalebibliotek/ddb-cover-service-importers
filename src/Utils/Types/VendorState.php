@@ -2,6 +2,11 @@
 
 namespace App\Utils\Types;
 
+/**
+ * Class VendorState.
+ *
+ * The different operations that a given vendor message can be in.
+ */
 class VendorState
 {
     const INSERT = 'insert';

@@ -9,7 +9,7 @@ namespace App\Service;
 use Prometheus\CollectorRegistry;
 use Prometheus\Exception\MetricsRegistrationException;
 use Prometheus\RenderTextFormat;
-use Prometheus\Storage\APC;
+use Prometheus\Storage\Redis;
 
 /**
  * Class MetricsService.
@@ -21,10 +21,18 @@ class MetricsService
 
     /**
      * MetricsService constructor.
+     *
+     * @param string $bindMetricsHost
+     *   Host to store metrics
+     * @param int $bindMetricsPort
+     *   Port to access the metrics storage
      */
-    public function __construct()
+    public function __construct(string $bindMetricsHost, int $bindMetricsPort)
     {
-        $adapter = new APC();
+        $adapter = new Redis([
+            'host' => $bindMetricsHost,
+            'port' => $bindMetricsPort,
+        ]);
         $this->registry = new CollectorRegistry($adapter);
     }
 
@@ -112,7 +120,7 @@ class MetricsService
      * @return string
      *   Render matrices in a single string
      */
-    public function render()
+    public function render(): string
     {
         $renderer = new RenderTextFormat();
 

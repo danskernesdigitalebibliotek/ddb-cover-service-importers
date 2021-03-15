@@ -6,8 +6,8 @@
 
 namespace App\Command\Vendors;
 
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\VendorServiceFactory;
+use App\Service\VendorService\VendorServiceInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -19,16 +19,16 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
- * Class VendorCommand.
+ * Class VendorLoadCommand.
  */
-class VendorCommand extends Command
+class VendorLoadCommand extends Command
 {
     protected static $defaultName = 'app:vendor:load';
 
     private $vendorFactory;
 
     /**
-     * VendorCommand constructor.
+     * VendorLoadCommand constructor.
      *
      * @param VendorServiceFactory $vendorFactory
      */
@@ -49,6 +49,7 @@ class VendorCommand extends Command
         $this->addOption('vendor', null, InputOption::VALUE_OPTIONAL, 'Which Vendor should be loaded');
         $this->addOption('without-queue', null, InputOption::VALUE_NONE, 'Should the imported data be sent into the queues - image uploader');
         $this->addOption('with-updates', null, InputOption::VALUE_NONE, 'Execute updates to existing covers');
+        $this->addOption('force', null, InputOption::VALUE_NONE, 'Force execution ignoring locks');
     }
 
     /**
@@ -59,6 +60,7 @@ class VendorCommand extends Command
         $limit = $input->getOption('limit');
         $dispatchToQueue = !$input->getOption('without-queue');
         $withUpdates = $input->getOption('with-updates');
+        $force = $input->getOption('force');
 
         $vendor = $input->getOption('vendor');
         // Ask 'all', 'none' or '<vendor>'
@@ -83,10 +85,11 @@ class VendorCommand extends Command
         $results = [];
         foreach ($vendorServices as $vendorService) {
             try {
-                /* @var AbstractBaseVendorService $vendorService */
-                $vendorService->setDispatchToQueue($dispatchToQueue);
+                /* @var VendorServiceInterface $vendorService */
+                $vendorService->setWithoutQueue($dispatchToQueue);
                 $vendorService->setWithUpdates($withUpdates);
                 $vendorService->setLimit($limit);
+                $vendorService->setIgnoreLock($force);
                 $vendorService->setProgressBar($progressBarSheet);
                 $results[$vendorService->getVendorName()] = $vendorService->load();
             } catch (Exception $exception) {

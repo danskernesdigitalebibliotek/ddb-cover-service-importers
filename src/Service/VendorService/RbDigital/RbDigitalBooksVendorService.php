@@ -8,29 +8,29 @@ namespace App\Service\VendorService\RbDigital;
 
 use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\RbDigital\DataConverter\RbDigitalBooksPublicUrlConverter;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\Types\VendorStatus;
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem;
 use Psr\Cache\InvalidArgumentException;
-use Psr\Log\LoggerInterface;
 use Scriptotek\Marc\Collection;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class RbDigitalBooksVendorService.
  */
-class RbDigitalBooksVendorService extends AbstractBaseVendorService
+class RbDigitalBooksVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected const VENDOR_ID = 7;
-    protected const BATCH_SIZE = 10;
+    public const LOCAL_BATCH_SIZE = 10;
 
     // List of directories with book records
     private const VENDOR_ARCHIVES_DIRECTORIES = [
@@ -45,23 +45,15 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
     /**
      * RbDigitalVendorService constructor.
      *
-     * @param MessageBusInterface $bus
-     *   Message queue bus
      * @param Filesystem $local
      *   Flysystem adapter for local filesystem
      * @param Filesystem $ftp
      *   Flysystem adapter for remote ftp server
-     * @param EntityManagerInterface $entityManager
-     *   Doctrine entity manager
-     * @param LoggerInterface $statsLogger
-     *   Logger object to send stats to ES
      * @param AdapterInterface $cache
      *   Cache adapter for the application
      */
-    public function __construct(MessageBusInterface $bus, Filesystem $local, Filesystem $ftp, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, AdapterInterface $cache)
+    public function __construct(Filesystem $local, Filesystem $ftp, AdapterInterface $cache)
     {
-        parent::__construct($entityManager, $statsLogger, $bus);
-
         $this->local = $local;
         $this->ftp = $ftp;
         $this->cache = $cache;
@@ -69,15 +61,35 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
 
     /**
      * {@inheritdoc}
+     *
+     * Note: this is not placed in the vendor service traits as it can not have const.
+     */
+    public function getVendorId(): int
+    {
+        return self::VENDOR_ID;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getVendorName(): string
+    {
+        return $this->vendorCoreService->getVendorName($this->getVendorId());
+    }
+
+    /**
+     * {@inheritdoc}
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         // We're lazy loading the config to avoid errors from missing config values on dependency injection
         $this->loadConfig();
+
+        $status = new VendorStatus();
 
         $mrcFileNames = [];
         foreach (self::VENDOR_ARCHIVES_DIRECTORIES as $directory) {
@@ -114,12 +126,12 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
                         $isbnImageUrlArray[$isbn->getContents()] = $imageUrl;
                         ++$count;
 
-                        if (0 === $count % self::BATCH_SIZE) {
+                        if (0 === $count % self::LOCAL_BATCH_SIZE) {
                             RbDigitalBooksPublicUrlConverter::convertArrayValues($isbnImageUrlArray);
-                            $this->updateOrInsertMaterials($isbnImageUrlArray, IdentifierType::ISBN);
+                            $this->vendorCoreService->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::LOCAL_BATCH_SIZE);
                             $isbnImageUrlArray = [];
 
-                            $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                            $this->progressMessageFormatted($status);
                             $this->progressAdvance();
                         }
                     }
@@ -130,21 +142,21 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
                 }
 
                 RbDigitalBooksPublicUrlConverter::convertArrayValues($isbnImageUrlArray);
-                $this->updateOrInsertMaterials($isbnImageUrlArray, IdentifierType::ISBN);
+                $this->vendorCoreService->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::LOCAL_BATCH_SIZE);
                 $isbnImageUrlArray = [];
 
-                $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                $this->progressMessageFormatted($status);
                 $this->progressAdvance();
             } catch (\Exception $exception) {
                 return VendorImportResultMessage::error($exception->getMessage());
             }
         }
 
-        $this->logStatistics();
-
         $this->progressFinish();
 
-        return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted, $this->totalDeleted);
+        $this->vendorCoreService->releaseLock($this->getVendorId());
+
+        return VendorImportResultMessage::success($status);
     }
 
     /**
@@ -192,7 +204,7 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
             $remoteModifiedAtCache = $this->cache->getItem($this->getCacheKey($mrcFileName));
 
             if ($remoteModifiedAtCache->isHit()) {
-                $remote = $this->ftp->getTimestamp(self::VENDOR_ARCHIVE_NAME);
+                $remote = $this->ftp->getTimestamp($mrcFileName);
                 $update = $remote > $remoteModifiedAtCache->get();
             }
         }
@@ -221,14 +233,15 @@ class RbDigitalBooksVendorService extends AbstractBaseVendorService
      * Set config for service from DB vendor object.
      *
      * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function loadConfig(): void
     {
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
         // Set FTP adapter configuration.
         $adapter = $this->ftp->getAdapter();
-        $adapter->setUsername($this->getVendor()->getDataServerUser());
-        $adapter->setPassword($this->getVendor()->getDataServerPassword());
-        $adapter->setHost($this->getVendor()->getDataServerURI());
+        $adapter->setUsername($vendor->getDataServerUser());
+        $adapter->setPassword($vendor->getDataServerPassword());
+        $adapter->setHost($vendor->getDataServerURI());
     }
 }

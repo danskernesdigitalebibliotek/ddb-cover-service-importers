@@ -9,24 +9,24 @@ namespace App\Service\VendorService;
 use App\Exception\UnknownVendorResourceFormatException;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
+use App\Utils\Types\VendorStatus;
 use Box\Spout\Common\Exception\IOException;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Reader\CSV\Reader;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class AbstractTsvVendorService.
  */
-abstract class AbstractTsvVendorService extends AbstractBaseVendorService
+abstract class AbstractTsvVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected $vendorArchiveDir = 'AbstractTsvVendor';
     protected $vendorArchiveName = 'covers.tsv';
 
+    private $vendorCoreService;
     private $resourcesDir;
 
     private $tsvBatchSize = 100;
@@ -34,19 +34,11 @@ abstract class AbstractTsvVendorService extends AbstractBaseVendorService
     /**
      * AbstractTsvVendorService constructor.
      *
-     * @param messageBusInterface $bus
-     *   Job queue bus
-     * @param entityManagerInterface $entityManager
-     *   Doctrine entity manager
-     * @param loggerInterface $statsLogger
-     *   Logger object to send stats to ES
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, string $resourcesDir)
+    public function __construct(string $resourcesDir)
     {
-        parent::__construct($entityManager, $statsLogger, $bus);
-
         $this->resourcesDir = $resourcesDir;
     }
 
@@ -55,8 +47,8 @@ abstract class AbstractTsvVendorService extends AbstractBaseVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         try {
@@ -66,6 +58,7 @@ abstract class AbstractTsvVendorService extends AbstractBaseVendorService
 
             $totalRows = 0;
             $pidArray = [];
+            $status = new VendorStatus();
 
             foreach ($reader->getSheetIterator() as $sheet) {
                 $fields = [];
@@ -96,21 +89,22 @@ abstract class AbstractTsvVendorService extends AbstractBaseVendorService
                     }
 
                     if (0 === $totalRows % $this->tsvBatchSize) {
-                        $this->updateOrInsertMaterials($pidArray, IdentifierType::PID);
+                        $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
 
                         $pidArray = [];
 
-                        $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $totalRows);
+                        $this->progressMessageFormatted($status);
                         $this->progressAdvance();
                     }
                 }
             }
 
-            $this->updateOrInsertMaterials($pidArray, IdentifierType::PID);
-            $this->logStatistics();
+            $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
             $this->progressFinish();
 
-            return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted);
+            $this->vendorCoreService->releaseLock($this->getVendorId());
+
+            return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
             return VendorImportResultMessage::error($exception->getMessage());
         }
