@@ -18,6 +18,8 @@ data:
   APP_REDIS_LOCK_SERVER: {{ .Values.app.redis.server | quote }}
   APP_REDIS_LOCK_PORT: {{ .Values.app.redis.port | quote }}
   APP_REDIS_LOCK_DB: {{ .Values.app.redis.lock_db | quote }}
+  APP_METRICS_HOST: {{ .Values.app.redis.server | quote }}
+  APP_METRICS_PORT: {{ .Values.app.redis.port | quote }}
   APP_ELASTIC_URL: {{ .Values.app.elastic_url | quote }}
   APP_AMQP_SERVER: {{ .Values.app.amqp.server | quote }}
   APP_AMQP_PORT: {{ .Values.app.amqp.port | quote }}

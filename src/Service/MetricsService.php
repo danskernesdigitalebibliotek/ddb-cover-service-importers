@@ -21,12 +21,17 @@ class MetricsService
 
     /**
      * MetricsService constructor.
+     *
+     * @param string $bindMetricsHost
+     *   Host to store metrics
+     * @param int $bindMetricsPort
+     *   Port to access the metrics storage
      */
-    public function __construct()
+    public function __construct(string $bindMetricsHost, int $bindMetricsPort)
     {
         $adapter = new Redis([
-            'host' => 'redis',
-            'port' => 6379,
+            'host' => $bindMetricsHost,
+            'port' => $bindMetricsPort,
         ]);
         $this->registry = new CollectorRegistry($adapter);
     }
