@@ -33,7 +33,6 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
 
     protected const VENDOR_ID = 6;
 
-    private $vendorCoreService;
     private $em;
     private $bus;
     private $dataWell;

@@ -31,7 +31,6 @@ class SaxoVendorService implements VendorServiceInterface
     private const VENDOR_ARCHIVE_DIR = 'Saxo';
     private const VENDOR_ARCHIVE_NAME = 'Danske bogforsider.xlsx';
 
-    private $vendorCoreService;
     private $resourcesDir;
 
     /**

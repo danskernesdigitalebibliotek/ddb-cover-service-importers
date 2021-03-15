@@ -38,7 +38,6 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
         'Recorded Books eBook Classics Collection',
     ];
 
-    private $vendorCoreService;
     private $local;
     private $ftp;
     private $cache;

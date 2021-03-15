@@ -31,7 +31,6 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
     private const VENDOR_SEARCH_TERM = 'facet.acSource="ereolen magazines"';
     private const VENDOR_MAGAZINE_URL_BASE = 'http://link.overdrive.com/';
 
-    private $vendorCoreService;
     private $searchService;
     private $apiClient;
 

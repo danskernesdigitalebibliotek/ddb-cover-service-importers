@@ -27,7 +27,6 @@ class PublizonVendorService implements VendorServiceInterface
 
     private $xmlReader;
 
-    private $vendorCoreService;
     private $apiEndpoint;
     private $apiServiceKey;
 

@@ -31,7 +31,6 @@ class EbookCentralVendorService implements VendorServiceInterface
     private const VENDOR_ARCHIVE_DIR = 'EbookCentral';
     private const VENDOR_ARCHIVE_NAME = 'cover images title list ddbdk.xlsx';
 
-    private $vendorCoreService;
     private $resourcesDir;
 
     /**

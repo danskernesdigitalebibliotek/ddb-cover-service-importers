@@ -26,7 +26,6 @@ class DataWellVendorService implements VendorServiceInterface
     protected const VENDOR_ID = 4;
     private const VENDOR_ARCHIVE_NAME = 'comics+';
 
-    private $vendorCoreService;
     private $datawell;
 
     /**

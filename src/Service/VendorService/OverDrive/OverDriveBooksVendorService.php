@@ -29,7 +29,6 @@ class OverDriveBooksVendorService implements VendorServiceInterface
 
     protected const VENDOR_ID = 14;
 
-    private $vendorCoreService;
     private $apiClient;
     private $httpClient;
 

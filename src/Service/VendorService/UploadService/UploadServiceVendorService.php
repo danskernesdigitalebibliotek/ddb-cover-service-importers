@@ -46,7 +46,6 @@ class UploadServiceVendorService implements VendorServiceInterface
 
     /** @var SourceRepository $sourceRepository */
     private $sourceRepository;
-    private $vendorCoreService;
     private $bus;
     private $em;
 

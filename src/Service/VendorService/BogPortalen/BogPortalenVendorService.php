@@ -27,7 +27,6 @@ class BogPortalenVendorService implements VendorServiceInterface
     private const VENDOR_ID = 1;
     private const VENDOR_ARCHIVE_NAMES = ['BOP-ProductAll.zip', 'BOP-ProductAll-EXT.zip', 'BOP-Actual.zip', 'BOP-Actual-EXT.zip'];
 
-    private $vendorCoreService;
     private $local;
     private $ftp;
 
