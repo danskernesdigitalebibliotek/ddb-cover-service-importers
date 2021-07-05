@@ -195,11 +195,23 @@ through http(s).
 
 ### Code style
 
-The project follows the [PSR2](https://www.php-fig.org/psr/psr-2/) and
+The project follows the [PSR12](https://www.php-fig.org/psr/psr-12/) and
 [Symfony](https://symfony.com/doc/current/contributing/code/standards.html) code
-styles. The PHP CS Fixer tool is installed automatically. To check if your code
-matches the expected code syntax you can run `composer check-coding-standards/php-cs-fixer `, 
-to fix code style errors you can run `composer apply-coding-standards/php-cs-fixer`
+styles. The PHP CS Fixer tool is automatically installed. To check if your code
+matches the expected code syntax you can run `composer check-coding-standards`, 
+to fix code style errors you can run `composer apply-coding-standards`
+
+### Psalm static analysis
+
+Where using [Psalm](https://psalm.dev/) for static analysis. To run
+psalm do
+
+```shell
+docker compose exec phpfpm composer install
+docker compose exec phpfpm ./vendor/bin/psalm
+```
+
+Psalm is set to level 3, with a baseline file to suppress errors in existing code. 
 
 ### Tests
 
