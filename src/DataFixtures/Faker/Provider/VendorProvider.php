@@ -34,7 +34,7 @@ final class VendorProvider extends BaseProvider
         return $this->generator->username();
     }
 
-    public function dataServerPassword()
+    public function dataServerPassword(): string
     {
         return $this->generator->password();
     }

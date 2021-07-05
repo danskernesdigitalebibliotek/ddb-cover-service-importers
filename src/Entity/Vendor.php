@@ -75,7 +75,7 @@ class Vendor
      *
      * @param int $id
      *
-     * @return Vendor
+     * @return static
      */
     public function setId(int $id): self
     {
@@ -89,7 +89,10 @@ class Vendor
         return $this->class;
     }
 
-    public function setClass($class): self
+    /**
+     * @return static
+     */
+    public function setClass(string $class): self
     {
         $this->class = $class;
 
@@ -101,6 +104,9 @@ class Vendor
         return $this->rank;
     }
 
+    /**
+     * @return static
+     */
     public function setRank(int $rank): self
     {
         $this->rank = $rank;
@@ -113,6 +119,9 @@ class Vendor
         return $this->name;
     }
 
+    /**
+     * @return static
+     */
     public function setName(string $name): self
     {
         $this->name = $name;
@@ -125,6 +134,9 @@ class Vendor
         return $this->imageServerURI;
     }
 
+    /**
+     * @return static
+     */
     public function setImageServerURI(string $imageServerURI): self
     {
         $this->imageServerURI = $imageServerURI;
@@ -137,6 +149,9 @@ class Vendor
         return $this->dataServerURI;
     }
 
+    /**
+     * @return static
+     */
     public function setDataServerURI(string $dataServerURI): self
     {
         $this->dataServerURI = $dataServerURI;
@@ -149,6 +164,9 @@ class Vendor
         return $this->dataServerUser;
     }
 
+    /**
+     * @return static
+     */
     public function setDataServerUser(string $dataServerUser): self
     {
         $this->dataServerUser = $dataServerUser;
@@ -161,6 +179,9 @@ class Vendor
         return $this->dataServerPassword;
     }
 
+    /**
+     * @return static
+     */
     public function setDataServerPassword(string $dataServerPassword): self
     {
         $this->dataServerPassword = $dataServerPassword;
@@ -169,13 +190,16 @@ class Vendor
     }
 
     /**
-     * @return Collection|Source[]
+     * @return Collection
      */
     public function getSources(): Collection
     {
         return $this->sources;
     }
 
+    /**
+     * @return static
+     */
     public function addSource(Source $source): self
     {
         if (!$this->sources->contains($source)) {
@@ -186,6 +210,9 @@ class Vendor
         return $this;
     }
 
+    /**
+     * @return static
+     */
     public function removeSource(Source $source): self
     {
         if ($this->sources->contains($source)) {

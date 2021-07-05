@@ -57,12 +57,13 @@ class VendorServiceFactory
      * Pre-populates the Vendor table with rows for each available vendor services.
      * Inserts only id, classname and default name, not possible config parameters.
      *
-     * @return int
-     *   The number of vendor rows inserted
+     * @return int The number of vendor rows inserted
      *
      * @throws NonUniqueResultException
+     *
+     * @psalm-return 0|positive-int
      */
-    public function populateVendors(): int
+    public function populateVendors()
     {
         $vendorRepos = $this->em->getRepository(Vendor::class);
 
@@ -111,6 +112,8 @@ class VendorServiceFactory
      * Only vendors that implements the VendorServiceInterface.
      *
      * @return array
+     *
+     * @psalm-return list<mixed>
      */
     public function getVendorNames(): array
     {

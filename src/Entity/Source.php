@@ -74,7 +74,7 @@ class Source
     private $searches;
 
     /**
-     * @return Collection|Search[]
+     * @return Collection
      */
     public function getSearches(): Collection
     {
@@ -91,6 +91,9 @@ class Source
         return $this->date;
     }
 
+    /**
+     * @return static
+     */
     public function setDate(\DateTimeInterface $date): self
     {
         $this->date = $date;
@@ -103,6 +106,9 @@ class Source
         return $this->vendor;
     }
 
+    /**
+     * @return static
+     */
     public function setVendor(?Vendor $vendor): self
     {
         $this->vendor = $vendor;
@@ -115,6 +121,9 @@ class Source
         return $this->matchId;
     }
 
+    /**
+     * @return static
+     */
     public function setMatchId(string $matchId): self
     {
         $this->matchId = $matchId;
@@ -127,6 +136,9 @@ class Source
         return $this->matchType;
     }
 
+    /**
+     * @return static
+     */
     public function setMatchType(string $matchType): self
     {
         $this->matchType = $matchType;
@@ -139,6 +151,9 @@ class Source
         return $this->image;
     }
 
+    /**
+     * @return static
+     */
     public function setImage(?Image $image): self
     {
         $this->image = $image;
@@ -151,6 +166,9 @@ class Source
         return $this->originalFile;
     }
 
+    /**
+     * @return static
+     */
     public function setOriginalFile(?string $originalFile): self
     {
         $this->originalFile = $originalFile;
@@ -163,6 +181,9 @@ class Source
         return $this->originalLastModified;
     }
 
+    /**
+     * @return static
+     */
     public function setOriginalLastModified(?\DateTime $originalLastModified): self
     {
         $this->originalLastModified = $originalLastModified;
@@ -175,6 +196,9 @@ class Source
         return $this->originalContentLength;
     }
 
+    /**
+     * @return static
+     */
     public function setOriginalContentLength(?int $originalContentLength): self
     {
         $this->originalContentLength = $originalContentLength;
@@ -182,6 +206,9 @@ class Source
         return $this;
     }
 
+    /**
+     * @return static
+     */
     public function addSearch(Search $search): self
     {
         if (!$this->searches->contains($search)) {
@@ -192,6 +219,9 @@ class Source
         return $this;
     }
 
+    /**
+     * @return static
+     */
     public function removeSearch(Search $search): self
     {
         if ($this->searches->contains($search)) {

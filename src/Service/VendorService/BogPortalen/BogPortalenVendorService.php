@@ -125,9 +125,11 @@ class BogPortalenVendorService implements VendorServiceInterface
      *
      * @param array $isbnList
      *
-     * @return array
+     * @return string[]
      *
      * @throws UnknownVendorServiceException
+     *
+     * @psalm-return array<string, string>
      */
     private function buildIsbnImageUrlArray(array &$isbnList): array
     {
@@ -177,12 +179,13 @@ class BogPortalenVendorService implements VendorServiceInterface
      * @param $path
      *   The path of the archive in the local filesystem
      *
-     * @return array
-     *   List of filenames
+     * @return (false|string)[] List of filenames
      *
      * @throws FileNotFoundException
+     *
+     * @psalm-return list<false|string>
      */
-    private function listZipContents($path): array
+    private function listZipContents(string $path): array
     {
         $fileNames = [];
 
@@ -209,7 +212,9 @@ class BogPortalenVendorService implements VendorServiceInterface
      *
      * @param array $filePaths
      *
-     * @return array
+     * @return string[]
+     *
+     * @psalm-return array<int, string>
      */
     private function getIsbnNumbers(array &$filePaths): array
     {

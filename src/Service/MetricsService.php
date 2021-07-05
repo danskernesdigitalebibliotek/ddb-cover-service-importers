@@ -51,8 +51,10 @@ class MetricsService
      *   The value to increment with
      * @param array $labels
      *   Labels to filter by in prometheus. Default empty array.
+     *
+     * @return void
      */
-    public function counter($name, $help, $value = 1, array $labels = [])
+    public function counter($name, $help, $value = 1, array $labels = []): void
     {
         try {
             $counter = $this->registry->getOrRegisterCounter($this->namespace, $name, $help, array_keys($labels));
@@ -76,8 +78,10 @@ class MetricsService
      *   Value that the gauge should be set to
      * @param $labels
      *   Labels to filter by in prometheus. Default empty array.
+     *
+     * @return void
      */
-    public function gauge($name, $help, $value, $labels = [])
+    public function gauge(string $name, string $help, int $value, $labels = []): void
     {
         try {
             $gauge = $this->registry->getOrRegisterGauge($this->namespace, $name, $help, array_keys($labels));
@@ -102,8 +106,10 @@ class MetricsService
      *   The value that should be added to the histogram
      * @param $labels
      *   Labels to filter by in prometheus. Default empty array.
+     *
+     * @return void
      */
-    public function histogram($name, $help, $value, $labels = [])
+    public function histogram($name, $help, $value, $labels = []): void
     {
         try {
             $histogram = $this->registry->getOrRegisterHistogram($this->namespace, $name, $help, array_keys($labels));

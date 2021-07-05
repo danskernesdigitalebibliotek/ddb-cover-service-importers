@@ -154,6 +154,8 @@ class VendorLoadCommand extends Command
      * @param bool $success
      *
      * @return string
+     *
+     * @psalm-return '✅'|'❌'
      */
     private function getSuccessString(bool $success): string
     {

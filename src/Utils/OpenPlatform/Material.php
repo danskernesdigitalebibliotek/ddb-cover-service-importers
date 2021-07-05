@@ -283,8 +283,7 @@ class Material
      * @param string $pid
      *   Katelog PID to be converted
      *
-     * @return string
-     *   Basic PID
+     * @return string Basic PID
      *
      * @throws materialConversionException
      *   If the input is not a katelog PID

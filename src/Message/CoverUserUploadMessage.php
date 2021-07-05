@@ -33,7 +33,7 @@ class CoverUserUploadMessage
     /**
      * @param string $operation
      *
-     * @return CoverUserUploadMessage
+     * @return static
      */
     public function setOperation(string $operation): self
     {
@@ -53,7 +53,7 @@ class CoverUserUploadMessage
     /**
      * @param string $type
      *
-     * @return CoverUserUploadMessage
+     * @return static
      */
     public function setIdentifierType(string $type): self
     {
@@ -73,7 +73,7 @@ class CoverUserUploadMessage
     /**
      * @param string $identifier
      *
-     * @return CoverUserUploadMessage
+     * @return static
      */
     public function setIdentifier(string $identifier): self
     {
@@ -93,7 +93,7 @@ class CoverUserUploadMessage
     /**
      * @param string $imageUrl
      *
-     * @return CoverUserUploadMessage
+     * @return static
      */
     public function setImageUrl(string $imageUrl): self
     {
@@ -105,7 +105,7 @@ class CoverUserUploadMessage
     /**
      * @param string $accrediting
      *
-     * @return CoverUserUploadMessage
+     * @return static
      */
     public function setAccrediting(string $accrediting): self
     {
@@ -133,7 +133,7 @@ class CoverUserUploadMessage
     /**
      * @param mixed $vendorId
      *
-     * @return CoverUserUploadMessage
+     * @return static
      */
     public function setVendorId($vendorId): self
     {

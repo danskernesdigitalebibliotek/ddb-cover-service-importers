@@ -51,9 +51,11 @@ class SearchService
      * @param string $query
      * @param int $offset
      *
-     * @return array
+     * @return (array|bool|int)[]
      *
      * @throws DataWellVendorException Throws DataWellVendorException on network error
+     *
+     * @psalm-return array{0: array, 1: bool, 2: int}
      */
     public function search(string $query, int $offset = 1): array
     {

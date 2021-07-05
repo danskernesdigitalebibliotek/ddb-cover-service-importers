@@ -112,6 +112,16 @@ jobs:
       - name: phpcsfixerr
         run: composer check-coding-standards
 
+  psalm:
+    name: Psalm
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Psalm
+        uses: docker://vimeo/psalm-github-actions
+
   helm:
     name: Helm
     runs-on: ubuntu-latest
