@@ -122,6 +122,7 @@ jobs:
       - name: Psalm
         uses: docker://vimeo/psalm-github-actions
         with:
+          composer_require_dev: true
           # https://github.com/psalm/psalm-github-actions/issues/27
           composer_ignore_platform_reqs: false
 
