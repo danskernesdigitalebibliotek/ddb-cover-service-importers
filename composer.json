@@ -94,7 +94,7 @@
             "@auto-scripts"
         ],
         "check-coding-standards": [
-            "@check-coding-standards/php-cs-fixer"
+            "./vendor/bin/php-cs-fixer --config=.php_cs.dist fix --dry-run --format=checkstyle"
         ],
         "apply-coding-standards": [
             "php-cs-fixer --config=.php_cs.dist fix"
