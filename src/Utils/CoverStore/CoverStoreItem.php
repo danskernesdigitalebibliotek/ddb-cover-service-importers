@@ -49,7 +49,7 @@ class CoverStoreItem
     /**
      * @param string $id
      *
-     * @return CoverStoreItem
+     * @return static
      */
     public function setId(string $id): self
     {
@@ -69,7 +69,7 @@ class CoverStoreItem
     /**
      * @param string $url
      *
-     * @return CoverStoreItem
+     * @return static
      */
     public function setUrl(string $url): self
     {
@@ -89,9 +89,9 @@ class CoverStoreItem
     /**
      * @param $vendor
      *
-     * @return CoverStoreItem
+     * @return static
      */
-    public function setVendor($vendor): self
+    public function setVendor(string $vendor): self
     {
         $this->vendor = $vendor;
 
@@ -109,7 +109,7 @@ class CoverStoreItem
     /**
      * @param int $size
      *
-     * @return CoverStoreItem
+     * @return static
      */
     public function setSize(int $size): self
     {
@@ -129,7 +129,7 @@ class CoverStoreItem
     /**
      * @param int $width
      *
-     * @return CoverStoreItem
+     * @return static
      */
     public function setWidth(int $width): self
     {
@@ -149,7 +149,7 @@ class CoverStoreItem
     /**
      * @param int $height
      *
-     * @return CoverStoreItem
+     * @return static
      */
     public function setHeight(int $height): self
     {
@@ -169,7 +169,7 @@ class CoverStoreItem
     /**
      * @param string $crc
      *
-     * @return CoverStoreItem
+     * @return static
      */
     public function setCrc(string $crc): self
     {
@@ -189,7 +189,7 @@ class CoverStoreItem
     /**
      * @param string $originalFile
      *
-     * @return CoverStoreItem
+     * @return static
      */
     public function setOriginalFile(string $originalFile): self
     {
@@ -209,7 +209,7 @@ class CoverStoreItem
     /**
      * @param string $imageFormat
      *
-     * @return CoverStoreItem
+     * @return static
      */
     public function setImageFormat(string $imageFormat): self
     {

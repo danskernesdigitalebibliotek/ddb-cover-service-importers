@@ -55,7 +55,7 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
     /**
      * @param CoverStoreMessage $message
      *
-     * @return mixed
+     * @return void
      *
      * @throws CoverStoreAlreadyExistsException
      * @throws CoverStoreCredentialException
@@ -65,7 +65,7 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
      * @throws CoverStoreUnexpectedException
      * @throws ReQueueMessageException
      */
-    public function __invoke(CoverStoreMessage $message)
+    public function __invoke(CoverStoreMessage $message): void
     {
         // Look up vendor to get information about image server.
         $vendorRepos = $this->em->getRepository(Vendor::class);

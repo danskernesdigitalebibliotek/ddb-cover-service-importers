@@ -313,8 +313,9 @@ class UploadServiceVendorService implements VendorServiceInterface
      * @param string $identifier
      *   The identifier
      *
-     * @return string
-     *   The type detected
+     * @return string The type detected
+     *
+     * @psalm-return 'isbn'|'pid'
      */
     private function identifierToType(string $identifier): string
     {

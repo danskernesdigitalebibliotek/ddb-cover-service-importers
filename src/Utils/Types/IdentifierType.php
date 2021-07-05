@@ -14,11 +14,11 @@ class IdentifierType
     /**
      * Get array of all defined identifier types.
      *
-     * @return array
-     *   An array of known identifiers.
-     *   Uppercase identifier name in key, lower case identifier in value.
+     * @return array An array of known identifiers. Uppercase identifier name in key, lower case identifier in value.
      *
      * @throws \ReflectionException
+     *
+     * @psalm-return array<string, mixed>
      */
     public static function getTypeList(): array
     {

@@ -37,6 +37,8 @@ class CoverStoreSearchCommand extends Command
 
     /**
      * Define the command.
+     *
+     * @return void
      */
     protected function configure()
     {

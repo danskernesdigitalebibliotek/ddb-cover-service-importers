@@ -39,6 +39,7 @@ final class VendorStatus
      *
      * @param $amount
      *   The amount to add
+     * @param int $amount
      */
     public function addRecords($amount): void
     {
@@ -51,7 +52,7 @@ final class VendorStatus
      * @param $amount
      *   The amount to add
      */
-    public function addInserted($amount): void
+    public function addInserted(int $amount): void
     {
         $this->inserted += $amount;
     }
@@ -62,7 +63,7 @@ final class VendorStatus
      * @param $amount
      *   The amount to add
      */
-    public function addUpdated($amount): void
+    public function addUpdated(int $amount): void
     {
         $this->updated += $amount;
     }

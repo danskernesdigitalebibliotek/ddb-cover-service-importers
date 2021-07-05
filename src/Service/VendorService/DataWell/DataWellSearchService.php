@@ -77,10 +77,12 @@ class DataWellSearchService
      * @param string $acSource
      * @param int $offset
      *
-     * @return array
+     * @return (array|bool|mixed)[]
      *
      * @throws DataWellVendorException
      *   Throws DataWellVendorException on network error
+     *
+     * @psalm-return array{0: array, 1: bool, 2: mixed}
      */
     public function search(string $acSource, int $offset = 1): array
     {

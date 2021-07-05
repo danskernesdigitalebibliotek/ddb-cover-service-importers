@@ -53,7 +53,8 @@
         "friendsofphp/php-cs-fixer": "^2.13",
         "phpunit/phpunit": "^7",
         "symfony/debug-pack": "^1.0",
-        "symfony/maker-bundle": "^1.9"
+        "symfony/maker-bundle": "^1.9",
+        "vimeo/psalm": "^4.8"
     },
     "config": {
         "preferred-install": {

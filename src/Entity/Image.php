@@ -56,6 +56,9 @@ class Image
         return $this->imageFormat;
     }
 
+    /**
+     * @return static
+     */
     public function setImageFormat(?string $imageFormat): self
     {
         $this->imageFormat = $imageFormat;
@@ -68,6 +71,9 @@ class Image
         return $this->size;
     }
 
+    /**
+     * @return static
+     */
     public function setSize(int $size): self
     {
         $this->size = $size;
@@ -80,6 +86,9 @@ class Image
         return $this->width;
     }
 
+    /**
+     * @return static
+     */
     public function setWidth(int $width): self
     {
         $this->width = $width;
@@ -92,6 +101,9 @@ class Image
         return $this->height;
     }
 
+    /**
+     * @return static
+     */
     public function setHeight(int $height): self
     {
         $this->height = $height;
@@ -104,6 +116,9 @@ class Image
         return $this->coverStoreURL;
     }
 
+    /**
+     * @return static
+     */
     public function setCoverStoreURL(string $coverStoreURL): self
     {
         $this->coverStoreURL = $coverStoreURL;
@@ -116,6 +131,9 @@ class Image
         return $this->source;
     }
 
+    /**
+     * @return static
+     */
     public function setSource(?Source $source): self
     {
         $this->source = $source;

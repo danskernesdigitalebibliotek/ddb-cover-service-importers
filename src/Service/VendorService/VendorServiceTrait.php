@@ -43,6 +43,8 @@ trait VendorServiceTrait
 
     /**
      * {@inheritdoc}
+     *
+     * @return void
      */
     public function setLimit(int $limit = 0)
     {
@@ -51,6 +53,8 @@ trait VendorServiceTrait
 
     /**
      * {@inheritdoc}
+     *
+     * @return void
      */
     public function setWithoutQueue(bool $withoutQueue = false)
     {
@@ -59,6 +63,8 @@ trait VendorServiceTrait
 
     /**
      * {@inheritdoc}
+     *
+     * @return void
      */
     public function setWithUpdates(bool $withUpdates = false)
     {
@@ -67,6 +73,8 @@ trait VendorServiceTrait
 
     /**
      * {@inheritdoc}
+     *
+     * @return void
      */
     public function setIgnoreLock(bool $force = false)
     {

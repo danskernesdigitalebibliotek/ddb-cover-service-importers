@@ -203,13 +203,14 @@ class Client
     /**
      * Get the headers for OverDrive api calls.
      *
-     * @return string[]
-     *   Array of headers
+     * @return string[] Array of headers
      *
      * @throws AuthException
      * @throws GuzzleException
      * @throws IdentityProviderException
      * @throws InvalidArgumentException
+     *
+     * @psalm-return array{User-Agent: 'cover.dandigbib.org', Content-Type: 'application/json', Authorization: string}
      */
     private function getHeaders(): array
     {

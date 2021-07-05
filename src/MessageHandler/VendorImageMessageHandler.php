@@ -90,8 +90,10 @@ class VendorImageMessageHandler implements MessageHandlerInterface
      * @param Source $source
      *
      * @throws GuzzleException
+     *
+     * @return void
      */
-    private function processInsert(VendorImageMessage $message, Source $source)
+    private function processInsert(VendorImageMessage $message, Source $source): void
     {
         $item = new VendorImageItem();
         $item->setOriginalFile($source->getOriginalFile());
@@ -136,8 +138,10 @@ class VendorImageMessageHandler implements MessageHandlerInterface
      * @param Source $source
      *
      * @throws GuzzleException
+     *
+     * @return void
      */
-    private function processUpdate(VendorImageMessage $message, Source $source)
+    private function processUpdate(VendorImageMessage $message, Source $source): void
     {
         $item = new VendorImageItem();
         $item->setOriginalFile($source->getOriginalFile());

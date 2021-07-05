@@ -9,14 +9,17 @@ final class SearchProvider extends BaseProvider
 {
     private const IS_TYPE_PROVIDER = [IdentifierType::PID, IdentifierType::ISBN];
 
-    public function pid()
+    /**
+     * @return string
+     */
+    public function pid(): string
     {
         $libraryNumber = self::numberBetween(70000, 90000) * 10;
 
         return $libraryNumber.'-basis:'.self::randomNumber(8);
     }
 
-    public function faust()
+    public function faust(): int
     {
         return self::randomNumber(8);
     }

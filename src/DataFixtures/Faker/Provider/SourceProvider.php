@@ -10,12 +10,12 @@ final class SourceProvider extends BaseProvider
 {
     private const MATCH_TYPE_PROVIDER = [IdentifierType::ISBN, IdentifierType::ISSN, IdentifierType::ISMN];
 
-    public function date()
+    public function date(): \DateTime
     {
         return DateTime::dateTimeBetween('- 20 years', 'now');
     }
 
-    public function matchId()
+    public function matchId(): string
     {
         return $this->generator->ean13();
     }

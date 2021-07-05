@@ -30,7 +30,7 @@ class IndexReadyEvent extends Event
     /**
      * @param mixed $operation
      *
-     * @return IndexReadyEvent
+     * @return static
      */
     public function setOperation($operation): self
     {
@@ -50,7 +50,7 @@ class IndexReadyEvent extends Event
     /**
      * @param mixed $is
      *
-     * @return IndexReadyEvent
+     * @return static
      */
     public function setIs($is): self
     {
@@ -70,7 +70,7 @@ class IndexReadyEvent extends Event
     /**
      * @param mixed $vendorId
      *
-     * @return IndexReadyEvent
+     * @return static
      */
     public function setVendorId($vendorId): self
     {
@@ -90,7 +90,7 @@ class IndexReadyEvent extends Event
     /**
      * @param mixed $imageId
      *
-     * @return IndexReadyEvent
+     * @return static
      */
     public function setImageId($imageId): self
     {
@@ -110,7 +110,7 @@ class IndexReadyEvent extends Event
     /**
      * @param Material $material
      *
-     * @return IndexReadyEvent
+     * @return static
      */
     public function setMaterial(Material $material): self
     {
