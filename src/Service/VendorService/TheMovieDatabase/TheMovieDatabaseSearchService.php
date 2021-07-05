@@ -162,6 +162,7 @@ class TheMovieDatabaseSearchService
      * @return array
      *   Array of all pid => url pairs found in response
      */
+
     /**
      * @return (false|mixed|null|string)[][]
      *

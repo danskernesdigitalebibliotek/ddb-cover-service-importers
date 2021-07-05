@@ -54,7 +54,7 @@ final class VendorCoreService
      * @param int $vendorId
      *   The identifier for the vendor
      *
-     * @return null|string
+     * @return string|null
      *
      * @throws UnknownVendorServiceException
      */
