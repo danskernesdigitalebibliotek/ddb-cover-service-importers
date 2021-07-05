@@ -140,9 +140,6 @@
     "fakerphp/faker": {
         "version": "v1.14.1"
     },
-    "felixfbecker/advanced-json-rpc": {
-        "version": "v3.0.4"
-    },
     "friendsofphp/php-cs-fixer": {
         "version": "2.2",
         "recipe": {
@@ -200,17 +197,11 @@
     "league/oauth2-client": {
         "version": "2.6.0"
     },
-    "microsoft/tolerant-php-parser": {
-        "version": "v0.0.18"
-    },
     "monolog/monolog": {
         "version": "1.24.0"
     },
     "myclabs/deep-copy": {
         "version": "1.8.1"
-    },
-    "netresearch/jsonmapper": {
-        "version": "v1.6.0"
     },
     "nicebooks/isbn": {
         "version": "0.2.56"
@@ -236,17 +227,11 @@
     "pagerfanta/pagerfanta": {
         "version": "v1.1.0"
     },
-    "pdepend/pdepend": {
-        "version": "2.5.2"
-    },
     "pear/file_marc": {
         "version": "1.4.1"
     },
     "pear/pear_exception": {
         "version": "v1.0.1"
-    },
-    "phan/phan": {
-        "version": "2.4.4"
     },
     "phar-io/manifest": {
         "version": "1.0.3"
@@ -268,9 +253,6 @@
     },
     "phpdocumentor/type-resolver": {
         "version": "0.4.0"
-    },
-    "phpmd/phpmd": {
-        "version": "2.7.0"
     },
     "phpspec/prophecy": {
         "version": "1.8.0"
@@ -325,9 +307,6 @@
     },
     "ruflin/elastica": {
         "version": "6.0.2"
-    },
-    "sabre/event": {
-        "version": "5.0.3"
     },
     "scriptotek/marc": {
         "version": "v2.1.0"
