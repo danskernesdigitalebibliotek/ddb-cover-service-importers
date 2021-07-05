@@ -20,7 +20,7 @@ class CoverStoreSearchCommand extends Command
 {
     protected static $defaultName = 'app:cover:search';
 
-    /** @var CoverStoreInterface $store */
+    /** @var CoverStoreInterface */
     private $store;
 
     /**

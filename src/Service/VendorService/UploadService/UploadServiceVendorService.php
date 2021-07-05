@@ -41,10 +41,10 @@ class UploadServiceVendorService implements VendorServiceInterface
     protected const SOURCE_FOLDER = 'BulkUpload';
     protected const DESTINATION_FOLDER = 'UploadService';
 
-    /** @var CoverStoreInterface $store */
+    /** @var CoverStoreInterface */
     private $store;
 
-    /** @var SourceRepository $sourceRepository */
+    /** @var SourceRepository */
     private $sourceRepository;
     private $bus;
     private $em;
