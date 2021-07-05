@@ -32,7 +32,7 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
     private $bus;
     private $statsLogger;
 
-    /** @var Vendor $vendor */
+    /** @var Vendor */
     private $vendor;
     private $sourceRepo;
 

@@ -26,36 +26,42 @@ class Search
 
     /**
      * @ORM\Column(type="string", length=50)
+     *
      * @Groups({"read"})
      */
     private $isIdentifier;
 
     /**
      * @ORM\Column(type="string", length=5)
+     *
      * @Groups({"read"})
      */
     private $isType;
 
     /**
      * @ORM\Column(type="text")
+     *
      * @Groups({"read"})
      */
     private $imageUrl;
 
     /**
      * @ORM\Column(type="string", length=255)
+     *
      * @Groups({"read"})
      */
     private $imageFormat;
 
     /**
      * @ORM\Column(type="integer")
+     *
      * @Groups({"read"})
      */
     private $width;
 
     /**
      * @ORM\Column(type="integer")
+     *
      * @Groups({"read"})
      */
     private $height;

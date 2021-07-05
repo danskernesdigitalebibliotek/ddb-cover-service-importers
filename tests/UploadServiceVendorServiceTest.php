@@ -13,8 +13,6 @@ use App\Service\VendorService\UploadService\UploadServiceVendorService;
 use App\Utils\Types\IdentifierType;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**

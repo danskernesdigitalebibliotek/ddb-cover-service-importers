@@ -66,10 +66,13 @@ class SearchService
      * @param ClientInterface $httpClient
      *   Guzzle Client
      */
-    public function __construct(ParameterBagInterface $params, AdapterInterface $cache,
-                                LoggerInterface $statsLogger, AuthenticationService $authenticationService,
-                                ClientInterface $httpClient)
-    {
+    public function __construct(
+        ParameterBagInterface $params,
+        AdapterInterface $cache,
+        LoggerInterface $statsLogger,
+        AuthenticationService $authenticationService,
+        ClientInterface $httpClient
+    ) {
         $this->params = $params;
         $this->cache = $cache;
         $this->statsLogger = $statsLogger;

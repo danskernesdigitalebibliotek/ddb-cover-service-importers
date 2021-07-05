@@ -94,7 +94,7 @@ class DataWellSearchService
 
         try {
             $response = $this->client->request('POST', $this->searchURL, [
-            RequestOptions::BODY => '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/opensearch">
+                RequestOptions::BODY => '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/opensearch">
                  <soapenv:Header/>
                  <soapenv:Body>
                     <open:searchRequest>

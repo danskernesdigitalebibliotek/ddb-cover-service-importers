@@ -171,7 +171,7 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
      * @return coverStoreAlreadyExistsException|CoverStoreCredentialException|CoverStoreException|CoverStoreNotFoundException|CoverStoreTooLargeFileException|CoverStoreUnexpectedException|CoverStoreInvalidResourceException
      *   Exception based on the error inputted
      */
-    private function createCloudinaryException(\Cloudinary\Error $error)
+    private function createCloudinaryException(Error $error)
     {
         $exception = null;
         $message = $error->getMessage();
@@ -186,11 +186,11 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
         }
 
         if (preg_match('/^Resource not found.*/', $message)) {
-            return  new CoverStoreNotFoundException($message, $error->getCode());
+            return new CoverStoreNotFoundException($message, $error->getCode());
         }
 
         if (preg_match('/^File size too large.*/', $message)) {
-            return  new CoverStoreTooLargeFileException($message, $error->getCode());
+            return new CoverStoreTooLargeFileException($message, $error->getCode());
         }
 
         if (preg_match('/^Resource is invalid.*/', $message)) {
