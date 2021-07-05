@@ -22,17 +22,17 @@ services:
       #- ENCRYPT=1 # Uncomment to enable database encryption.
 
   phpfpm:
-    image: itkdev/php7.3-fpm
+    image: itkdev/php7.4-fpm
     networks:
       - app
     environment:
       - XDEBUG_MODE=${XDEBUG_MODE:-off}
-      - XDEBUG_CONFIG=${XDEBUG_CONFIG:-''}
       - XDEBUG_SESSION=${XDEBUG_SESSION:-0}
       - PHP_MAX_EXECUTION_TIME=30
       - PHP_MEMORY_LIMIT=256M
       - DOCKER_HOST_DOMAIN=${COMPOSE_DOMAIN}
       - PHP_IDE_CONFIG=serverName=localhost
+      - COMPOSER_VERSION=2
     depends_on:
       - mariadb
     volumes:
@@ -42,14 +42,14 @@ services:
       - /tmp:size=1G
 
   redis:
-    image: 'redis:4'
+    image: 'redis:6'
     networks:
       - app
     ports:
       - '6379'
 
   elasticsearch:
-    image: 'elasticsearch:6.8.4'
+    image: 'elasticsearch:6.8.16'
     networks:
       - app
     environment:
