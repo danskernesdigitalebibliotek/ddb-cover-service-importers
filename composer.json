@@ -50,6 +50,7 @@
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.0",
         "escapestudios/symfony2-coding-standard": "^3.10",
+        "fakerphp/faker": "^1.14",
         "friendsofphp/php-cs-fixer": "^2.13",
         "phpunit/phpunit": "^9.5",
         "symfony/css-selector": "^4.4",
