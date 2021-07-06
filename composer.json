@@ -51,9 +51,11 @@
         "escapestudios/symfony2-coding-standard": "^3.10",
         "fakerphp/faker": "^1.14",
         "friendsofphp/php-cs-fixer": "^2.13",
-        "phpunit/phpunit": "^7",
+        "phpunit/phpunit": "^9.5",
+        "symfony/css-selector": "^4.4",
         "symfony/debug-pack": "^1.0",
         "symfony/maker-bundle": "^1.9",
+        "symfony/phpunit-bridge": "^5.3",
         "vimeo/psalm": "^4.8"
     },
     "config": {
