@@ -160,7 +160,7 @@ abstract class AbstractBaseMessage
      * Set trace id (which is unique for the whole request).
      *
      * @param string $traceId
-     *   The trace id used to trace this message between services.
+     *   The trace id used to trace this message between services
      *
      * @return AbstractBaseMessage
      */
