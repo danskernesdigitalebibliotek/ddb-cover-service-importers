@@ -78,7 +78,7 @@ class SearchServiceTest extends TestCase
     {
         // Configure the parameters used in service constructor.
         $parameters = $this->createMock(ParameterBagInterface::class);
-        $parameters->expects($this->atMost(3))
+        $parameters->expects($this->atMost(4))
             ->method('get')
             ->withAnyParameters([
                 'openPlatform.search.url',
