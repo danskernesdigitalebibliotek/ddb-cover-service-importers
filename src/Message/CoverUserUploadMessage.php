@@ -159,7 +159,7 @@ class CoverUserUploadMessage
      * @param string $traceId
      *   The trace id used to trace this message between services
      *
-     * @return AbstractBaseMessage
+     * @return $this
      */
     public function setTraceId(string $traceId): self
     {
