@@ -29,7 +29,7 @@ class SearchMessageHandler implements MessageHandlerInterface
 {
     private $em;
     private $dispatcher;
-    private $statsLogger;
+    private $logger;
     private $searchService;
 
     /**
@@ -37,14 +37,14 @@ class SearchMessageHandler implements MessageHandlerInterface
      *
      * @param EntityManagerInterface $entityManager
      * @param EventDispatcherInterface $eventDispatcher
-     * @param LoggerInterface $statsLogger
+     * @param LoggerInterface $informationLogger
      * @param SearchService $searchService
      */
-    public function __construct(EntityManagerInterface $entityManager, EventDispatcherInterface $eventDispatcher, LoggerInterface $statsLogger, SearchService $searchService)
+    public function __construct(EntityManagerInterface $entityManager, EventDispatcherInterface $eventDispatcher, LoggerInterface $informationLogger, SearchService $searchService)
     {
         $this->em = $entityManager;
         $this->dispatcher = $eventDispatcher;
-        $this->statsLogger = $statsLogger;
+        $this->logger = $informationLogger;
         $this->searchService = $searchService;
     }
 
@@ -74,7 +74,7 @@ class SearchMessageHandler implements MessageHandlerInterface
                 }
                 $this->em->flush();
             } else {
-                $this->statsLogger->error('Unknown material type found', [
+                $this->logger->error('Unknown material type found', [
                     'service' => 'SearchProcessor',
                     'message' => 'Doing reindex source was null, hence the database has changed',
                     'matchId' => $message->getIdentifier(),
@@ -89,7 +89,7 @@ class SearchMessageHandler implements MessageHandlerInterface
         try {
             $material = $this->searchService->search($message->getIdentifier(), $message->getIdentifierType(), !$message->useSearchCache());
         } catch (PlatformSearchException $e) {
-            $this->statsLogger->error('Search request exception', [
+            $this->logger->error('Search request exception', [
                 'service' => 'SearchProcessor',
                 'identifier' => $message->getIdentifier(),
                 'type' => $message->getIdentifierType(),
@@ -98,7 +98,7 @@ class SearchMessageHandler implements MessageHandlerInterface
 
             throw $e;
         } catch (MaterialTypeException $e) {
-            $this->statsLogger->error('Unknown material type found', [
+            $this->logger->error('Unknown material type found', [
                 'service' => 'SearchProcessor',
                 'message' => $e->getMessage(),
                 'identifier' => $message->getIdentifier(),
@@ -111,7 +111,7 @@ class SearchMessageHandler implements MessageHandlerInterface
 
         // Check if this was an zero hit search.
         if ($material->isEmpty()) {
-            $this->statsLogger->info('Search zero-hit', [
+            $this->logger->info('Search zero-hit', [
                 'service' => 'SearchProcessor',
                 'identifier' => $message->getIdentifier(),
                 'type' => $message->getIdentifierType(),

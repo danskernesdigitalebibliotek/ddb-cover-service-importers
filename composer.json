@@ -4,7 +4,7 @@
     "type": "project",
     "license": "AGPL-3.0-only",
     "require": {
-        "php": "^7.3.0",
+        "php": "^7.4",
         "ext-ctype": "*",
         "ext-curl": "*",
         "ext-ftp": "*",
@@ -14,6 +14,7 @@
         "ext-xmlreader": "*",
         "ext-zend-opcache": "*",
         "ext-zip": "*",
+        "ext-amqp": "*",
         "box/spout": "^3.0",
         "cloudinary/cloudinary_php": "^1.12",
         "doctrine/doctrine-migrations-bundle": "^1.0",

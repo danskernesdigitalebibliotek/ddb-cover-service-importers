@@ -9,6 +9,7 @@ cron:
   runAt: "0 1 * * 1-6"
   successfulLimit: 3
   failedLimit: 1
+  startingDeadlineSeconds: 300
 
 app:
   image:

@@ -29,7 +29,7 @@ class SearchService
 {
     private $params;
     private $cache;
-    private $statsLogger;
+    private $logger;
     private $authenticationService;
     private $client;
 
@@ -59,20 +59,18 @@ class SearchService
      *   Access to environment variables
      * @param adapterInterface $cache
      *   Cache object to store results
-     * @param loggerInterface $statsLogger
+     * @param loggerInterface $informationLogger
      *   Logger object to send stats to ES
      * @param authenticationService $authenticationService
      *   The Open Platform authentication service
      * @param ClientInterface $httpClient
      *   Guzzle Client
      */
-    public function __construct(ParameterBagInterface $params, AdapterInterface $cache,
-                                LoggerInterface $statsLogger, AuthenticationService $authenticationService,
-                                ClientInterface $httpClient)
+    public function __construct(ParameterBagInterface $params, AdapterInterface $cache, LoggerInterface $informationLogger, AuthenticationService $authenticationService, ClientInterface $httpClient)
     {
         $this->params = $params;
         $this->cache = $cache;
-        $this->statsLogger = $statsLogger;
+        $this->logger = $informationLogger;
         $this->authenticationService = $authenticationService;
         $this->client = $httpClient;
 

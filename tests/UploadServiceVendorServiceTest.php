@@ -114,13 +114,11 @@ class UploadServiceVendorServiceTest extends TestCase
      */
     private function getUploadServiceVendorService(): UploadServiceVendorService
     {
-        $dispatcher = $this->createMock(EventDispatcherInterface::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $logger = $this->createMock(LoggerInterface::class);
         $store = $this->createMock(CoverStoreInterface::class);
         $bus = $this->createMock(MessageBusInterface::class);
         $repos = $this->createMock(SourceRepository::class);
 
-        return new UploadServiceVendorService($dispatcher, $entityManager, $logger, $store, $bus, $repos);
+        return new UploadServiceVendorService($bus, $entityManager, $store, $repos);
     }
 }

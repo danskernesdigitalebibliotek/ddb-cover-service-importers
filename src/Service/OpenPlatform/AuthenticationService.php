@@ -29,7 +29,7 @@ class AuthenticationService
 
     private $params;
     private $cache;
-    private $statsLogger;
+    private $logger;
     private $accessToken = '';
     private $client;
 
@@ -40,16 +40,16 @@ class AuthenticationService
      *   Used to get parameters form the environment
      * @param adapterInterface $cache
      *   Cache to store access token
-     * @param loggerInterface $statsLogger
+     * @param loggerInterface $informationLogger
      *   Logger object to send stats to ES
      * @param ClientInterface $httpClient
      *   Guzzle Client
      */
-    public function __construct(ParameterBagInterface $params, AdapterInterface $cache, LoggerInterface $statsLogger, ClientInterface $httpClient)
+    public function __construct(ParameterBagInterface $params, AdapterInterface $cache, LoggerInterface $informationLogger, ClientInterface $httpClient)
     {
         $this->params = $params;
         $this->cache = $cache;
-        $this->statsLogger = $statsLogger;
+        $this->logger = $informationLogger;
         $this->client = $httpClient;
     }
 
@@ -99,7 +99,7 @@ class AuthenticationService
         // Check if the access token is located in local file cache to speed up the
         // process.
         if ($item->isHit() && !$refresh) {
-            $this->statsLogger->info('Access token requested', [
+            $this->logger->info('Access token requested', [
                 'service' => 'AuthenticationService',
                 'cache' => true,
             ]);
@@ -119,7 +119,7 @@ class AuthenticationService
                     ],
                 ]);
             } catch (RequestException $exception) {
-                $this->statsLogger->error('Access token not acquired', [
+                $this->logger->error('Access token not acquired', [
                     'service' => 'AuthenticationService',
                     'cache' => false,
                     'message' => $exception->getMessage(),
@@ -127,7 +127,7 @@ class AuthenticationService
 
                 throw new PlatformAuthException($exception->getMessage(), $exception->getCode());
             } catch (\Exception $exception) {
-                $this->statsLogger->error('Unknown error in acquiring access token', [
+                $this->logger->error('Unknown error in acquiring access token', [
                     'service' => 'AuthenticationService',
                     'message' => $exception->getMessage(),
                 ]);
@@ -139,7 +139,7 @@ class AuthenticationService
             $content = $response->getBody()->getContents();
             $json = json_decode($content, true);
 
-            $this->statsLogger->info('Access token acquired', [
+            $this->logger->info('Access token acquired', [
                 'service' => 'AuthenticationService',
                 'cache' => false,
             ]);

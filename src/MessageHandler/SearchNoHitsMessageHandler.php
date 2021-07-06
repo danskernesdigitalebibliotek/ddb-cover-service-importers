@@ -39,7 +39,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
     private $em;
     private $coverStore;
     private $bus;
-    private $statsLogger;
+    private $logger;
     private $searchService;
     private $validatorService;
 
@@ -110,7 +110,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                         $this->em->getConnection()->commit();
 
                         // Log that a new record was created.
-                        $this->statsLogger->info('Katalog recorded have been generated', [
+                        $this->logger->info('Katalog recorded have been generated', [
                             'service' => 'SearchNoHitsProcessor',
                             'message' => 'New katalog search record have been generated',
                             'identifier' => $identifier,
@@ -122,7 +122,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                 } catch (\Exception $exception) {
                     $this->em->getConnection()->rollBack();
 
-                    $this->statsLogger->error('Database exception: '.get_class($exception), [
+                    $this->logger->error('Database exception: '.get_class($exception), [
                         'service' => 'SearchNoHitsProcessor',
                         'message' => $exception->getMessage(),
                         'identifier' => $identifier,
@@ -130,7 +130,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                     ]);
                 }
             } catch (ConnectionException $exception) {
-                $this->statsLogger->error('Database Connection Exception', [
+                $this->logger->error('Database Connection Exception', [
                     'service' => 'SearchNoHitsProcessor',
                     'message' => $exception->getMessage(),
                     'identifier' => $identifier,
@@ -191,7 +191,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
         }
 
         // Log current not handled no hit.
-        $this->statsLogger->info('No hit', [
+        $this->logger->info('No hit', [
             'service' => 'SearchNoHitsProcessor',
             'message' => 'No hit found and send to auto generate queue',
             'identifier' => $identifier,
