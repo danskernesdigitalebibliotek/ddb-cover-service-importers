@@ -36,12 +36,12 @@ use Symfony\Component\Messenger\MessageBusInterface;
  */
 class SearchNoHitsMessageHandler implements MessageHandlerInterface
 {
-    private $em;
-    private $coverStore;
-    private $bus;
-    private $logger;
-    private $searchService;
-    private $validatorService;
+    private EntityManagerInterface $em;
+    private CoverStoreInterface $coverStore;
+    private MessageBusInterface $bus;
+    private LoggerInterface $logger;
+    private SearchService $searchService;
+    private VendorImageValidatorService $validatorService;
 
     const VENDOR = 'Unknown';
 
@@ -60,7 +60,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
         $this->em = $entityManager;
         $this->coverStore = $coverStore;
         $this->bus = $bus;
-        $this->statsLogger = $statsLogger;
+        $this->logger = $statsLogger;
         $this->searchService = $searchService;
         $this->validatorService = $validatorService;
     }

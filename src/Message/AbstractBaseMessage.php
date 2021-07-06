@@ -30,7 +30,7 @@ abstract class AbstractBaseMessage
     /**
      * @param mixed $operation
      *
-     * @return AbstractBaseMessage
+     * @return static
      */
     public function setOperation($operation): self
     {
@@ -50,7 +50,7 @@ abstract class AbstractBaseMessage
     /**
      * @param mixed $type
      *
-     * @return AbstractBaseMessage
+     * @return static
      */
     public function setIdentifierType($type): self
     {
@@ -70,7 +70,7 @@ abstract class AbstractBaseMessage
     /**
      * @param mixed $identifier
      *
-     * @return AbstractBaseMessage
+     * @return static
      */
     public function setIdentifier($identifier): self
     {
@@ -90,7 +90,7 @@ abstract class AbstractBaseMessage
     /**
      * @param mixed $vendorId
      *
-     * @return AbstractBaseMessage
+     * @return static
      */
     public function setVendorId($vendorId): self
     {
@@ -110,7 +110,7 @@ abstract class AbstractBaseMessage
     /**
      * @param mixed $imageId
      *
-     * @return AbstractBaseMessage
+     * @return static
      */
     public function setImageId($imageId): self
     {
@@ -136,7 +136,7 @@ abstract class AbstractBaseMessage
      * @param bool $useIt
      *   True to use or false to by-pass search cache
      *
-     * @return AbstractBaseMessage
+     * @return static
      */
     public function setUseSearchCache(bool $useIt): self
     {
@@ -160,7 +160,7 @@ abstract class AbstractBaseMessage
      * Set trace id (which is unique for the whole request).
      *
      * @param string $traceId
-     *   The trace id used to trace this message between services.
+     *   The trace id used to trace this message between services
      *
      * @return AbstractBaseMessage
      */

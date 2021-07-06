@@ -8,7 +8,7 @@
 namespace App\Service;
 
 /**
- * Class RequestIdService
+ * Class RequestIdService.
  */
 class TraceIdService
 {
@@ -29,11 +29,12 @@ class TraceIdService
         if (empty($this::$id) || $refresh) {
             $this->generate();
         }
+
         return $this::$id;
     }
 
-    private function generate() {
+    private function generate()
+    {
         $this::$id = bin2hex(random_bytes(16));
     }
 }
-

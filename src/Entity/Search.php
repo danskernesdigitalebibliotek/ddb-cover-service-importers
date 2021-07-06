@@ -26,36 +26,42 @@ class Search
 
     /**
      * @ORM\Column(type="string", length=50)
+     *
      * @Groups({"read"})
      */
     private $isIdentifier;
 
     /**
      * @ORM\Column(type="string", length=5)
+     *
      * @Groups({"read"})
      */
     private $isType;
 
     /**
      * @ORM\Column(type="text")
+     *
      * @Groups({"read"})
      */
     private $imageUrl;
 
     /**
      * @ORM\Column(type="string", length=255)
+     *
      * @Groups({"read"})
      */
     private $imageFormat;
 
     /**
      * @ORM\Column(type="integer")
+     *
      * @Groups({"read"})
      */
     private $width;
 
     /**
      * @ORM\Column(type="integer")
+     *
      * @Groups({"read"})
      */
     private $height;
@@ -80,6 +86,9 @@ class Search
         return $this->isIdentifier;
     }
 
+    /**
+     * @return static
+     */
     public function setIsIdentifier(string $isIdentifier): self
     {
         $this->isIdentifier = $isIdentifier;
@@ -92,6 +101,9 @@ class Search
         return $this->isType;
     }
 
+    /**
+     * @return static
+     */
     public function setIsType(string $isType): self
     {
         $this->isType = $isType;
@@ -104,6 +116,9 @@ class Search
         return $this->imageUrl;
     }
 
+    /**
+     * @return static
+     */
     public function setImageUrl(string $imageUrl): self
     {
         $this->imageUrl = $imageUrl;
@@ -116,6 +131,9 @@ class Search
         return $this->imageFormat;
     }
 
+    /**
+     * @return static
+     */
     public function setImageFormat(string $imageFormat): self
     {
         $this->imageFormat = $imageFormat;
@@ -128,6 +146,9 @@ class Search
         return $this->width;
     }
 
+    /**
+     * @return static
+     */
     public function setWidth(int $width): self
     {
         $this->width = $width;
@@ -140,6 +161,9 @@ class Search
         return $this->height;
     }
 
+    /**
+     * @return static
+     */
     public function setHeight(int $height): self
     {
         $this->height = $height;
@@ -152,6 +176,9 @@ class Search
         return $this->collection;
     }
 
+    /**
+     * @return static
+     */
     public function setCollection(bool $collection): self
     {
         $this->collection = $collection;
@@ -164,6 +191,9 @@ class Search
         return $this->source;
     }
 
+    /**
+     * @return static
+     */
     public function setSource(?Source $source): self
     {
         $this->source = $source;

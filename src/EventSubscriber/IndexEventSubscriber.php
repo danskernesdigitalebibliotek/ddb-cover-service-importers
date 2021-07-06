@@ -52,8 +52,10 @@ class IndexEventSubscriber implements EventSubscriberInterface
      * Updated event handler.
      *
      * @param IndexReadyEvent $event
+     *
+     * @return void
      */
-    public function onIndexEvent(IndexReadyEvent $event)
+    public function onIndexEvent(IndexReadyEvent $event): void
     {
         $material = $event->getMaterial();
         $image = $this->getImage($event->getImageId());

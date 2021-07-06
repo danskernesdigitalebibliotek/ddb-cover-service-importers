@@ -165,8 +165,10 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
      * @throws IllegalVendorServiceException
      * @throws UnknownVendorServiceException
      * @throws GuzzleException
+     *
+     * @return void
      */
-    private function postProcess(array $pids, array $searchResults)
+    private function postProcess(array $pids, array $searchResults): void
     {
         /** @var SourceRepository $sourceRepo */
         $sourceRepo = $this->em->getRepository(Source::class);

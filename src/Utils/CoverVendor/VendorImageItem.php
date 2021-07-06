@@ -39,7 +39,7 @@ class VendorImageItem
     /**
      * @param bool $found
      *
-     * @return VendorImageItem
+     * @return static
      */
     public function setFound(bool $found): self
     {
@@ -59,7 +59,7 @@ class VendorImageItem
     /**
      * @param bool $updated
      *
-     * @return VendorImageItem
+     * @return static
      */
     public function setUpdated(bool $updated): self
     {
@@ -79,7 +79,7 @@ class VendorImageItem
     /**
      * @param $vendor
      *
-     * @return VendorImageItem
+     * @return static
      */
     public function setVendor($vendor): self
     {
@@ -99,7 +99,7 @@ class VendorImageItem
     /**
      * @param string $originalFile
      *
-     * @return VendorImageItem
+     * @return static
      */
     public function setOriginalFile(string $originalFile): self
     {
@@ -119,7 +119,7 @@ class VendorImageItem
     /**
      * @param mixed $originalLastModified
      *
-     * @return VendorImageItem
+     * @return static
      */
     public function setOriginalLastModified(?\DateTime $originalLastModified): self
     {
@@ -139,7 +139,7 @@ class VendorImageItem
     /**
      * @param mixed $originalContentLength
      *
-     * @return VendorImageItem
+     * @return static
      */
     public function setOriginalContentLength(?int $originalContentLength): self
     {

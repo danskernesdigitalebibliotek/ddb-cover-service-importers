@@ -54,11 +54,11 @@ final class VendorCoreService
      * @param int $vendorId
      *   The identifier for the vendor
      *
-     * @return string
+     * @return string|null
      *
      * @throws UnknownVendorServiceException
      */
-    public function getVendorName(int $vendorId): string
+    public function getVendorName(int $vendorId): ?string
     {
         return $this->getVendor($vendorId)->getName();
     }
@@ -115,8 +115,10 @@ final class VendorCoreService
      *
      * @param int $vendorId
      *   The vendor ID to release
+     *
+     * @return void
      */
-    public function releaseLock(int $vendorId)
+    public function releaseLock(int $vendorId): void
     {
         if (isset($this->locks[$vendorId])) {
             $this->locks[$vendorId]->release();
@@ -189,11 +191,12 @@ final class VendorCoreService
      * @param bool $withUpdates
      *   Process updates (default: false)
      *
-     * @return array
-     *   Array containing two arrays with identifiers for updated and inserted sources
+     * @return (int|string)[][] Array containing two arrays with identifiers for updated and inserted sources
      *
      * @throws QueryException
      * @throws UnknownVendorServiceException
+     *
+     * @psalm-return array{0: list<array-key>, 1: list<array-key>}
      */
     public function processBatch(array $batch, SourceRepository $sourceRepo, string $identifierType, int $vendorId, bool $withUpdates): array
     {

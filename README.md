@@ -2,32 +2,17 @@
 
 This is the indexer and cover importer for DDB Cover Service.
 
-# License
-
-Copyright (C) 2018  Danskernes Digitale Bibliotek (DDB)
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see [https://www.gnu.org/licenses/](https://www.gnu.org/licenses/).
-
 ## Architecture Overview
 
 The DDB COver Service application consists of multiple logical parts with individual repositories:
 
 This repository:
+
 * An CLI based image import/index/upload engine that handles import, indexing
   and uploading of cover images from external providers.
 
 Other repositories:
+
 * [A web facing REST API powered by the ElasticSearch index](https://github.com/danskernesdigitalebibliotek/ddb-cover-service)
 * [Statistics export to the Faktor Service](https://github.com/danskernesdigitalebibliotek/ddb-cover-service-faktor-export)
 * [Upload Service for DDB CMS](https://github.com/danskernesdigitalebibliotek/ddb-cover-service-upload)
@@ -42,8 +27,8 @@ ElasticSearch 6.5, Redis Server 3.2.
 The application is currently developed and hosted on this stack. However, the
 individual components can be swapped for relevant alternatives. Apache can be
 used instead of Nginx. Any database supported by Doctrine DBAL such as MySQL or
-PostgreSQL can replace MariaDB. Redis is used as caching layer for Symfony. 
-Both support multiple other persistence layers such as memcache and RabbitMQ, 
+PostgreSQL can replace MariaDB. Redis is used as caching layer for Symfony.
+Both support multiple other persistence layers such as memcache and RabbitMQ,
 respectively, and can be changed as needed.
 
 Application components:
@@ -84,10 +69,11 @@ doctrine. Further a 'search' entity is defined with the fields exposed by the
 REST API. This entity is mapped one-to-one to an index in ElasticSearch.
 
 ### Logging and Statistics
-The application logs to ElasticSearch to allow debugging and monitoring. A 
-`stats_dd-mm-yyyy` is created daily. To ensure that Elastic chooses the right 
+
+The application logs to ElasticSearch to allow debugging and monitoring. A
+`stats_dd-mm-yyyy` is created daily. To ensure that Elastic chooses the right
 type for the index fields a dynamic index template must be added to Elastic.
-This can be done with the `app:elastic:create-stats-template` command. 
+This can be done with the `app:elastic:create-stats-template` command.
 
 ## Implementation Overview
 
@@ -151,24 +137,27 @@ contain the import logic for the vendors specific access setup
 ## Development Setup
 
 ### Docker compose
-The project comes with a docker-compose setup base on development only images, 
-that comes with all required extensions to PHP (including xdebug) and all services 
+
+The project comes with a docker-compose setup base on development only images,
+that comes with all required extensions to PHP (including xdebug) and all services
 required to run the application.
 
-For easy usage it's recommended to use træfik (proxy) and the wrapper script for 
-docker-compose used at ITKDev (https://github.com/aakb/itkdev-docker/tree/develop/scripts). 
-It's not an requirement and the setup examples below is without the script. The 
-script just makes working with docker simpler and faster. 
+For easy usage it's recommended to use træfik (proxy) and the wrapper script for
+docker-compose used at ITKDev (<https://github.com/aakb/itkdev-docker/tree/develop/scripts>).
+It's not an requirement and the setup examples below is without the script. The
+script just makes working with docker simpler and faster.
 
 #### Running docker setup
 
 Start the stack.
-```
+
+```shell
 docker-compose up --detach
 ```
 
 All the symfony commands below to install the application can be executed using this pattern.
-```
+
+```shell
 docker-compose exec phpfpm bin/console <CMD>
 ```
 
@@ -187,27 +176,11 @@ Nginx, MariaDB, ElasticSearch and Redis.
 6. Run `bin/console app:vendor:populate` to populate the vendor tables with the implemented vendors.
 7. Add relevant access config to the vendor table
 
-Application can now load vendors through the `bin/console app:vendor:load` command. 
-The application is purely a job queue and command based. No API or site is exposed 
-through http(s). 
+Application can now load vendors through the `bin/console app:vendor:load` command.
+The application is purely a job queue and command based. No API or site is exposed
+through http(s).
 
 ## Development
-
-### Code style
-
-The project follows the [PSR2](https://www.php-fig.org/psr/psr-2/) and
-[Symfony](https://symfony.com/doc/current/contributing/code/standards.html) code
-styles. The PHP CS Fixer tool is installed automatically. To check if your code
-matches the expected code syntax you can run `composer check-coding-standards/php-cs-fixer `, 
-to fix code style errors you can run `composer apply-coding-standards/php-cs-fixer`
-
-### Tests
-
-The application has a test suite consisting of unit tests.
-
-* To run the unit tests located in `/tests` you can run `vendor/bin/phpunit`
-
-Both bugfixes and added features should be supported by matching tests.
 
 ### Doctrine Migrations
 
@@ -257,7 +230,7 @@ This command will upload an image into the cover store.
 bin/console app:cover:upload <IMAGE URL> <FOLDER> <TAG(s)>
 ```
 
-#### Vendors
+#### Vendor commands
 
 This runs the importer for the configured vendors. The command will prompt for
 which vendors to import.
@@ -271,6 +244,7 @@ To ensure that the command run with a "flat" memory foot print in production
 you must run it with `--no-debug` in the `prod` environment.
 
 Production
+
 ```sh
 bin/console app:vendor:load --env=prod --no-debug
 ```
@@ -300,12 +274,12 @@ bin/console app:vendor:event insert 9788702173277 ISBN 1
 The application defines a number of job queues for the various background tasks
 and is configured to use Redis as the persistence layer for queues/messages. To
 have a fully functioning development setup you will need to run consumers for
-all queues. See https://symfony.com/doc/current/messenger.html for more information
+all queues. See <https://symfony.com/doc/current/messenger.html> for more information
 about symfony messenger.
 
 To run consumers for all queues do
 
-```sh
+```shell
 bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_high
 bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_normal
 bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_low
@@ -313,6 +287,94 @@ bin/console messenger:consume --env=prod --quiet --time-limit=900 async_no_hit
 ```
 
 Or use all your works to run all queue in the order given (from high to no-hit).
-```
+
+```shell
 bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_high async_priority_normal async_priority_low async_no_hit
 ```
+
+### Testing
+
+The application has a test suite consisting of unit tests and Behat features.
+
+To run the unit tests located in `/tests` you can run:
+
+```shell
+docker compose exec phpfpm composer install
+docker compose exec phpfpm ./vendor/bin/phpunit
+```
+
+To run the Behat features in `/feature` you can run:
+
+```shell
+docker compose exec phpfpm composer install
+docker compose exec phpfpm ./vendor/bin/behat
+```
+
+Both bugfixes and added features should be supported by matching tests.
+
+### Psalm static analysis
+
+We are using [Psalm](https://psalm.dev/) for static analysis. To run
+psalm do
+
+```shell
+docker compose exec phpfpm composer install
+docker compose exec phpfpm ./vendor/bin/psalm
+```
+
+### Check Coding Standard
+
+The following command let you test that the code follows
+the coding standard for the project.
+
+* PHP files (PHP-CS-Fixer)
+
+    ```shell
+    docker compose exec phpfpm composer check-coding-standards
+    ```
+
+* Markdown files (markdownlint standard rules)
+
+    ```shell
+    docker run -v ${PWD}:/app itkdev/yarn:14 install
+    docker run -v ${PWD}:/app itkdev/yarn:14 check-coding-standards
+    ```
+
+### Apply Coding Standards
+
+To attempt to automatically fix coding style
+
+* PHP files (PHP-CS-Fixer)
+
+    ```sh
+    docker compose exec phpfpm composer apply-coding-standards
+    ```
+
+* Markdown files (markdownlint standard rules)
+
+    ```shell
+    docker run -v ${PWD}:/app itkdev/yarn:14 install
+    docker run -v ${PWD}:/app itkdev/yarn:14 apply-coding-standards
+    ```
+
+## CI
+
+Github Actions are used to run the test suite and code style checks on all PR's.
+
+If you wish to test against the jobs locally you can install [act](https://github.com/nektos/act).
+Then do:
+
+```sh
+act -P ubuntu-latest=shivammathur/node:latest pull_request
+```
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning.
+For the versions available, see the
+[tags on this repository](https://github.com/itk-dev/openid-connect/tags).
+
+## License
+
+This project is licensed under the AGPL-3.0 License - see the
+[LICENSE.md](LICENSE.md) file for details

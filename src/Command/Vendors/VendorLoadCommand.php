@@ -116,7 +116,8 @@ class VendorLoadCommand extends Command
 
         $names = $this->vendorFactory->getVendorNames();
 
-        $question = new ChoiceQuestion('Please choose the vendor to load:',
+        $question = new ChoiceQuestion(
+            'Please choose the vendor to load:',
             array_merge(['none'], $names, ['all']),
             0
         );
@@ -153,6 +154,8 @@ class VendorLoadCommand extends Command
      * @param bool $success
      *
      * @return string
+     *
+     * @psalm-return '✅'|'❌'
      */
     private function getSuccessString(bool $success): string
     {
