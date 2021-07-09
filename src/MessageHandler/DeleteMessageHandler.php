@@ -19,13 +19,13 @@ use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
 /**
- * Class SearchProcessor.
+ * Class DeleteMessageHandler.
  */
 class DeleteMessageHandler implements MessageHandlerInterface
 {
-    private $em;
-    private $logger;
-    private $coverStore;
+    private EntityManagerInterface $em;
+    private LoggerInterface $logger;
+    private CoverStoreInterface $coverStore;
 
     /**
      * DeleteProcessor constructor.

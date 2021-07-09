@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Search queue handler
+ * Search message handler
  */
 
 namespace App\MessageHandler;
@@ -23,14 +23,14 @@ use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
 /**
- * Class SearchProcessor.
+ * Class SearchMessageHandler.
  */
 class SearchMessageHandler implements MessageHandlerInterface
 {
-    private $em;
-    private $dispatcher;
-    private $logger;
-    private $searchService;
+    private EntityManagerInterface $em;
+    private EventDispatcherInterface $dispatcher;
+    private LoggerInterface $logger;
+    private SearchService $searchService;
 
     /**
      * SearchProcessor constructor.

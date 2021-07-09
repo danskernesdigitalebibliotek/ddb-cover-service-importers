@@ -25,10 +25,10 @@ use Symfony\Component\Messenger\MessageBusInterface;
  */
 class VendorImageMessageHandler implements MessageHandlerInterface
 {
-    private $em;
-    private $imageValidator;
-    private $bus;
-    private $logger;
+    private EntityManagerInterface $em;
+    private VendorImageValidatorService $imageValidator;
+    private MessageBusInterface $bus;
+    private LoggerInterface $logger;
 
     /**
      * VendorImageProcessor constructor.

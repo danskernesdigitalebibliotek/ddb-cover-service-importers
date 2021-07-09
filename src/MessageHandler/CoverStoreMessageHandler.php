@@ -26,14 +26,14 @@ use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
- * Class CoverStoreProcessor.
+ * Class CoverStoreMessageHandler.
  */
 class CoverStoreMessageHandler implements MessageHandlerInterface
 {
-    private $em;
-    private $bus;
-    private $logger;
-    private $coverStore;
+    private EntityManagerInterface $em;
+    private MessageBusInterface $bus;
+    private LoggerInterface $logger;
+    private CoverStoreInterface $coverStore;
 
     /**
      * CoverStoreProcessor constructor.
