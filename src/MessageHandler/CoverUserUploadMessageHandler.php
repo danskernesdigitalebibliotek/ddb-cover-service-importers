@@ -9,55 +9,46 @@ namespace App\MessageHandler;
 
 use App\Entity\Source;
 use App\Entity\Vendor;
-use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
 use App\Message\CoverUserUploadMessage;
 use App\Message\DeleteMessage;
 use App\Message\VendorImageMessage;
 use App\Repository\SourceRepository;
-use App\Repository\VendorRepository;
 use App\Service\VendorService\UserUpload\UserUploadVendorService;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
- * Class CoverUploadProcessor.
+ * Class CoverUserUploadMessageHandler.
  */
 class CoverUserUploadMessageHandler implements MessageHandlerInterface
 {
-    private $em;
-    private $bus;
-    private $statsLogger;
-
-    /** @var Vendor */
-    private $vendor;
-    private $sourceRepo;
+    private EntityManagerInterface $em;
+    private MessageBusInterface $bus;
+    private Vendor $vendor;
+    private SourceRepository $sourceRepo;
 
     /**
-     * CoverUploadProcessor constructor.
+     * CoverUserUploadMessageHandler constructor.
      *
      * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $statsLogger
      * @param MessageBusInterface $bus
      * @param SourceRepository $sourceRepo
-     * @param VendorRepository $vendorRepo
+     * @param UserUploadVendorService $userUploadVendorService
      *
-     * @throws IllegalVendorServiceException
      * @throws UnknownVendorServiceException
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $statsLogger, MessageBusInterface $bus, SourceRepository $sourceRepo, VendorRepository $vendorRepo, UserUploadVendorService $userUploadVendorService)
+    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, SourceRepository $sourceRepo, UserUploadVendorService $userUploadVendorService)
     {
         $this->em = $entityManager;
-        $this->statsLogger = $statsLogger;
-        $this->dispatcher = $bus;
+        $this->bus = $bus;
 
         $this->sourceRepo = $sourceRepo;
 
         // Load vendor here to ensure that it's only load once.
-        $this->vendor = $userUploadVendorService->getVendor();
+        $this->vendor = $userUploadVendorService->getVendorEntity();
     }
 
     /**

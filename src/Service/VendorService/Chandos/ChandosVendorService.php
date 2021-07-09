@@ -15,6 +15,6 @@ class ChandosVendorService extends AbstractTsvVendorService
 {
     protected const VENDOR_ID = 10;
 
-    protected $vendorArchiveDir = 'Chandos';
-    protected $vendorArchiveName = 'chandos.load.tsv';
+    protected string $vendorArchiveDir = 'Chandos';
+    protected string $vendorArchiveName = 'chandos.load.tsv';
 }

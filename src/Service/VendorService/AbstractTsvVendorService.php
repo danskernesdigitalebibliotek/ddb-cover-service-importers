@@ -23,13 +23,12 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
     use ProgressBarTrait;
     use VendorServiceTrait;
 
-    protected $vendorArchiveDir = 'AbstractTsvVendor';
-    protected $vendorArchiveName = 'covers.tsv';
+    protected string $vendorArchiveDir = 'AbstractTsvVendor';
+    protected string $vendorArchiveName = 'covers.tsv';
 
-    private $vendorCoreService;
-    private $resourcesDir;
+    private string $resourcesDir;
 
-    private $tsvBatchSize = 100;
+    private int $tsvBatchSize = 100;
 
     /**
      * AbstractTsvVendorService constructor.

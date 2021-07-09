@@ -15,6 +15,6 @@ class MusicBrainzVendorService extends AbstractTsvVendorService
 {
     protected const VENDOR_ID = 9;
 
-    protected $vendorArchiveDir = 'MusicBrainz';
-    protected $vendorArchiveName = 'mb.covers.tsv';
+    protected string $vendorArchiveDir = 'MusicBrainz';
+    protected string $vendorArchiveName = 'mb.covers.tsv';
 }

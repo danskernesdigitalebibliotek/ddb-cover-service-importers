@@ -6,6 +6,7 @@
 
 namespace App\Service\VendorService\UserUpload;
 
+use App\Entity\Vendor;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
@@ -27,5 +28,18 @@ class UserUploadVendorService implements VendorServiceInterface
     public function load(): VendorImportResultMessage
     {
         throw new \RuntimeException('This vendor is not runnable');
+    }
+
+    /**
+     * Get entity for this vendor.
+     *
+     * @return Vendor
+     *   Vendor entity
+     *
+     * @throws \App\Exception\UnknownVendorServiceException
+     */
+    public function getVendorEntity(): Vendor
+    {
+        return $this->vendorCoreService->getVendor(self::VENDOR_ID);
     }
 }
