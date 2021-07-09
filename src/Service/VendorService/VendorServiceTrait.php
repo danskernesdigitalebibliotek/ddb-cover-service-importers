@@ -11,11 +11,11 @@ namespace App\Service\VendorService;
  */
 trait VendorServiceTrait
 {
-    private $limit = 0;
-    private $withoutQueue = false;
-    private $withUpdates = false;
-    private $ignoreLock = false;
-    private $vendorCoreService;
+    private int $limit = 0;
+    private bool $withoutQueue = false;
+    private bool $withUpdates = false;
+    private bool $ignoreLock = false;
+    private VendorCoreService $vendorCoreService;
 
     /**
      * {@inheritdoc}
