@@ -151,12 +151,6 @@
       <code>$message</code>
       <code>$message</code>
     </PossiblyUndefinedVariable>
-    <UndefinedMethod occurrences="1">
-      <code>getVendor</code>
-    </UndefinedMethod>
-    <UndefinedThisPropertyAssignment occurrences="1">
-      <code>$this-&gt;dispatcher</code>
-    </UndefinedThisPropertyAssignment>
   </file>
   <file src="src/MessageHandler/DeleteMessageHandler.php">
     <PossiblyNullReference occurrences="1">
@@ -271,6 +265,11 @@
     <InvalidClass occurrences="1">
       <code>dataWellSearchService</code>
     </InvalidClass>
+    <PossiblyNullArgument occurrences="3">
+      <code>$vendor-&gt;getDataServerPassword()</code>
+      <code>$vendor-&gt;getDataServerURI()</code>
+      <code>$vendor-&gt;getDataServerUser()</code>
+    </PossiblyNullArgument>
   </file>
   <file src="src/Service/VendorService/EbookCentral/EbookCentralVendorService.php">
     <PossiblyInvalidArgument occurrences="1">
@@ -297,12 +296,20 @@
     <InvalidThrow occurrences="1">
       <code>InvalidArgumentException</code>
     </InvalidThrow>
+    <PossiblyNullArgument occurrences="3">
+      <code>$clientId</code>
+      <code>$clientSecret</code>
+      <code>$libraryAccountEndpoint</code>
+    </PossiblyNullArgument>
   </file>
   <file src="src/Service/VendorService/OverDrive/OverDriveMagazinesVendorService.php">
     <InvalidThrow occurrences="1">
       <code>InvalidArgumentException</code>
     </InvalidThrow>
-    <PossiblyNullArgument occurrences="2">
+    <PossiblyNullArgument occurrences="5">
+      <code>$clientId</code>
+      <code>$clientSecret</code>
+      <code>$libraryAccountEndpoint</code>
       <code>$pidTitleIdArray</code>
       <code>$pidTitleUrlArray</code>
     </PossiblyNullArgument>
@@ -335,10 +342,16 @@
     </InvalidStaticInvocation>
   </file>
   <file src="src/Service/VendorService/RbDigital/RbDigitalBooksVendorService.php">
+    <InvalidNullableReturnType occurrences="1">
+      <code>string</code>
+    </InvalidNullableReturnType>
     <InvalidThrow occurrences="2">
       <code>InvalidArgumentException</code>
       <code>InvalidArgumentException</code>
     </InvalidThrow>
+    <NullableReturnStatement occurrences="1">
+      <code>$this-&gt;vendorCoreService-&gt;getVendorName($this-&gt;getVendorId())</code>
+    </NullableReturnStatement>
     <PossiblyFalseArgument occurrences="1">
       <code>$this-&gt;ftp-&gt;read($mrcFileName)</code>
     </PossiblyFalseArgument>
@@ -363,12 +376,6 @@
     </RedundantCondition>
   </file>
   <file src="src/Service/VendorService/TheMovieDatabase/TheMovieDatabaseSearchService.php">
-    <InvalidReturnStatement occurrences="1">
-      <code>$data</code>
-    </InvalidReturnStatement>
-    <InvalidReturnType occurrences="1">
-      <code>array&lt;array{title?: mixed, date?: mixed, originalYear?: null|string, director?: null|string}&gt;</code>
-    </InvalidReturnType>
     <InvalidScalarArgument occurrences="1">
       <code>$exception-&gt;getCode()</code>
     </InvalidScalarArgument>
@@ -377,6 +384,11 @@
     <InvalidClass occurrences="1">
       <code>theMovieDatabaseSearchService</code>
     </InvalidClass>
+    <PossiblyNullArgument occurrences="3">
+      <code>$vendor-&gt;getDataServerPassword()</code>
+      <code>$vendor-&gt;getDataServerURI()</code>
+      <code>$vendor-&gt;getDataServerUser()</code>
+    </PossiblyNullArgument>
   </file>
   <file src="src/Service/VendorService/UploadService/UploadServiceVendorService.php">
     <PossiblyNullReference occurrences="1">
@@ -401,5 +413,10 @@
     <PossiblyFalseOperand occurrences="1">
       <code>strrpos($className, '\\')</code>
     </PossiblyFalseOperand>
+  </file>
+  <file src="src/Service/VendorService/VendorServiceTrait.php">
+    <InvalidNullableReturnType occurrences="1">
+      <code>string</code>
+    </InvalidNullableReturnType>
   </file>
 </files>
