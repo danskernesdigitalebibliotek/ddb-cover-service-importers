@@ -31,7 +31,6 @@ services:
             $projectDir: '%kernel.project_dir%'
             $resourcesDir: '%kernel.project_dir%/resources'
             $bindTraceId: '%env(traceId:HTTP_X_REQUEST_ID)%'
-            $cloudinaryUrl: '%env(CLOUDINARY_URL)%'
             $cloudinaryTransformations: '%env(yml:file:resolve:CLOUDINARY_CONFIG_FILE)%'
             $httpClient: '@eight_points_guzzle.client.guzzle_client'
 
@@ -40,6 +39,10 @@ services:
 
             $bindMetricsHost: '%env(string:METRICS_HOST)%'
             $bindMetricsPort: '%env(int:METRICS_PORT)%'
+
+            $bindCloudinaryCloudName: '%env(string:CLOUDINARY_CLOUD_NAME)%'
+            $bindCloudinaryApiKey: '%env(string:CLOUDINARY_API_KEY)%'
+            $bindCloudinaryApiSecret: '%env(string:CLOUDINARY_API_SECRET)%'
 
     _instanceof:
         App\Service\VendorService\VendorServiceInterface:
