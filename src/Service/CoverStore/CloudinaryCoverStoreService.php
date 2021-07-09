@@ -25,19 +25,33 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
     /**
      * CloudinaryCoverStoreService constructor.
      *
-     * @param string $cloudinaryUrl
-     *   The configuration for Cloudinary access
+     * @param string $bindCloudinaryCloudName
+     *   The account cloud name
+     * @param string $bindCloudinaryApiKey
+     *   API key
+     * @param string $bindCloudinaryApiSecret
+     *   API secret
      *
      * @throws CoverStoreCredentialException
      */
-    public function __construct(string $cloudinaryUrl)
+    public function __construct(string $bindCloudinaryCloudName, string $bindCloudinaryApiKey, string $bindCloudinaryApiSecret)
     {
-        // Cloudinary access configuration is set as an environment variable:
-        // CLOUDINARY_URL=cloudinary://my_key:my_secret@my_cloud_name
-        // So here we will only check if it has been sat.
-        if (empty($cloudinaryUrl)) {
-            throw new CoverStoreCredentialException('Missing Cloudinary configuration in environment: CLOUDINARY_URL');
+        if (empty($bindCloudinaryCloudName)) {
+            throw new CoverStoreCredentialException('Missing Cloudinary configuration in environment: CLOUDINARY_CLOUD_NAME');
         }
+        if (empty($bindCloudinaryApiKey)) {
+            throw new CoverStoreCredentialException('Missing Cloudinary configuration in environment: CLOUDINARY_API_KEY');
+        }
+        if (empty($bindCloudinaryApiSecret)) {
+            throw new CoverStoreCredentialException('Missing Cloudinary configuration in environment: CLOUDINARY_API_SECRET');
+        }
+
+        // Set global Cloudinary configuration.
+        \Cloudinary::config([
+            'cloud_name' => $bindCloudinaryCloudName,
+            'api_key' => $bindCloudinaryApiKey,
+            'api_secret' => $bindCloudinaryApiSecret,
+            'secure' => true, ]);
     }
 
     /**
