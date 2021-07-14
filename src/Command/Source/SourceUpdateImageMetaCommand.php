@@ -31,6 +31,8 @@ class SourceUpdateImageMetaCommand extends Command
 
     /**
      * Define the command.
+     *
+     * @return void
      */
     protected function configure()
     {
@@ -77,5 +79,7 @@ class SourceUpdateImageMetaCommand extends Command
 
         $this->em->flush();
         $this->em->clear();
+
+        return 0;
     }
 }

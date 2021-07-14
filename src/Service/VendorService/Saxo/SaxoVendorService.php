@@ -6,50 +6,41 @@
 
 namespace App\Service\VendorService\Saxo;
 
-use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
+use App\Utils\Types\VendorStatus;
 use Box\Spout\Common\Exception\IOException;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Reader\XLSX\Reader;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class SaxoVendorService.
  */
-class SaxoVendorService extends AbstractBaseVendorService
+class SaxoVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected const VENDOR_ID = 3;
 
     private const VENDOR_ARCHIVE_DIR = 'Saxo';
     private const VENDOR_ARCHIVE_NAME = 'Danske bogforsider.xlsx';
 
-    private $resourcesDir;
+    private string $resourcesDir;
 
     /**
      * SaxoVendorService constructor.
      *
-     * @param eventDispatcherInterface $eventDispatcher
-     *   Dispatcher to trigger async jobs on import
-     * @param entityManagerInterface $entityManager
-     *   Doctrine entity manager
-     * @param loggerInterface $statsLogger
-     *   Logger object to send stats to ES
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, string $resourcesDir)
+    public function __construct(string $resourcesDir)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
-
         $this->resourcesDir = $resourcesDir;
     }
 
@@ -58,8 +49,8 @@ class SaxoVendorService extends AbstractBaseVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         try {
@@ -69,6 +60,7 @@ class SaxoVendorService extends AbstractBaseVendorService
 
             $totalRows = 0;
             $isbnArray = [];
+            $status = new VendorStatus();
 
             foreach ($reader->getSheetIterator() as $sheet) {
                 foreach ($sheet->getRowIterator() as $row) {
@@ -86,23 +78,22 @@ class SaxoVendorService extends AbstractBaseVendorService
                     }
 
                     if (0 === $totalRows % 100) {
-                        $this->updateOrInsertMaterials($isbnArray, IdentifierType::ISBN);
+                        $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
 
                         $isbnArray = [];
 
-                        $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $totalRows);
+                        $this->progressMessageFormatted($status);
                         $this->progressAdvance();
                     }
                 }
             }
 
-            $this->updateOrInsertMaterials($isbnArray, IdentifierType::ISBN);
-
-            $this->logStatistics();
-
+            $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
             $this->progressFinish();
 
-            return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted);
+            $this->vendorCoreService->releaseLock($this->getVendorId());
+
+            return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
             return VendorImportResultMessage::error($exception->getMessage());
         }
@@ -116,11 +107,12 @@ class SaxoVendorService extends AbstractBaseVendorService
      * @return string
      *
      * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function getVendorsImageUrl(string $isbn): string
     {
-        return $this->getVendor()->getImageServerURI().'_'.$isbn.'/0x0';
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
+        return $vendor->getImageServerURI().'_'.$isbn.'/0x0';
     }
 
     /**

@@ -61,6 +61,8 @@ class PopulateService
      *
      * @throws NoResultException
      * @throws NonUniqueResultException
+     *
+     * @return void
      */
     public function populate(string $index, int $record_id = -1)
     {

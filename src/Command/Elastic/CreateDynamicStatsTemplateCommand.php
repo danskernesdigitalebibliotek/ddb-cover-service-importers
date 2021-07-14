@@ -39,7 +39,11 @@ class CreateDynamicStatsTemplateCommand extends Command
         $this->elasticStatsIndexPrefix = $bindElasticStatsIndexPrefix;
     }
 
-    /** {@inheritdoc} */
+    /**
+     * {@inheritdoc}
+     *
+     * @return void
+     */
     protected function configure()
     {
         $this->setDescription('Create dynamic stats index template. Command is idempotent and can safely be called multiple times.');

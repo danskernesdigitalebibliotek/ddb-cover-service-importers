@@ -6,8 +6,9 @@
 
 namespace App\Service\VendorService\RbDigital;
 
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 
 /**
@@ -15,9 +16,10 @@ use App\Utils\Message\VendorImportResultMessage;
  *
  * @deprecated deprecated since version 1.5.10
  */
-class RbDigitalMagazinesVendorService extends AbstractBaseVendorService
+class RbDigitalMagazinesVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected const VENDOR_ID = 8;
 

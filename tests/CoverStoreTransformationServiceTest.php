@@ -130,6 +130,6 @@ class CoverStoreTransformationServiceTest extends TestCase
             't3' => [
                 'extension' => 'jpg',
             ],
-      ];
+        ];
     }
 }

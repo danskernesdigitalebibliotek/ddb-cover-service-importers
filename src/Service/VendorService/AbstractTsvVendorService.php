@@ -9,44 +9,35 @@ namespace App\Service\VendorService;
 use App\Exception\UnknownVendorResourceFormatException;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
+use App\Utils\Types\VendorStatus;
 use Box\Spout\Common\Exception\IOException;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Reader\CSV\Reader;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class AbstractTsvVendorService.
  */
-abstract class AbstractTsvVendorService extends AbstractBaseVendorService
+abstract class AbstractTsvVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
-    protected $vendorArchiveDir = 'AbstractTsvVendor';
-    protected $vendorArchiveName = 'covers.tsv';
+    protected string $vendorArchiveDir = 'AbstractTsvVendor';
+    protected string $vendorArchiveName = 'covers.tsv';
 
-    private $resourcesDir;
+    private string $resourcesDir;
 
-    private $tsvBatchSize = 100;
+    private int $tsvBatchSize = 100;
 
     /**
      * AbstractTsvVendorService constructor.
      *
-     * @param eventDispatcherInterface $eventDispatcher
-     *   Dispatcher to trigger async jobs on import
-     * @param entityManagerInterface $entityManager
-     *   Doctrine entity manager
-     * @param loggerInterface $statsLogger
-     *   Logger object to send stats to ES
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, string $resourcesDir)
+    public function __construct(string $resourcesDir)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
-
         $this->resourcesDir = $resourcesDir;
     }
 
@@ -55,8 +46,8 @@ abstract class AbstractTsvVendorService extends AbstractBaseVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         try {
@@ -66,6 +57,7 @@ abstract class AbstractTsvVendorService extends AbstractBaseVendorService
 
             $totalRows = 0;
             $pidArray = [];
+            $status = new VendorStatus();
 
             foreach ($reader->getSheetIterator() as $sheet) {
                 $fields = [];
@@ -96,21 +88,22 @@ abstract class AbstractTsvVendorService extends AbstractBaseVendorService
                     }
 
                     if (0 === $totalRows % $this->tsvBatchSize) {
-                        $this->updateOrInsertMaterials($pidArray, IdentifierType::PID);
+                        $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
 
                         $pidArray = [];
 
-                        $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $totalRows);
+                        $this->progressMessageFormatted($status);
                         $this->progressAdvance();
                     }
                 }
             }
 
-            $this->updateOrInsertMaterials($pidArray, IdentifierType::PID);
-            $this->logStatistics();
+            $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
             $this->progressFinish();
 
-            return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted);
+            $this->vendorCoreService->releaseLock($this->getVendorId());
+
+            return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
             return VendorImportResultMessage::error($exception->getMessage());
         }
@@ -145,8 +138,10 @@ abstract class AbstractTsvVendorService extends AbstractBaseVendorService
      *
      * @return array
      *   Keys are cell names and values are cell numbers
+     *
+     * @psalm-return array<false|string, array-key>
      */
-    private function findCellName(array $cellsArray)
+    private function findCellName(array $cellsArray): array
     {
         $ret = [];
 

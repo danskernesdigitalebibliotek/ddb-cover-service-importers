@@ -1,0 +1,173 @@
+<?php
+
+/**
+ * @file
+ */
+
+namespace App\Message;
+
+/**
+ * Class BaseMessage.
+ */
+abstract class AbstractBaseMessage
+{
+    private $operation;
+    private $identifierType;
+    private $identifier;
+    private $vendorId;
+    private $imageId;
+    private $useSearchCache = true;
+    private $traceId;
+
+    /**
+     * @return mixed
+     */
+    public function getOperation()
+    {
+        return $this->operation;
+    }
+
+    /**
+     * @param mixed $operation
+     *
+     * @return static
+     */
+    public function setOperation($operation): self
+    {
+        $this->operation = $operation;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getIdentifierType()
+    {
+        return $this->identifierType;
+    }
+
+    /**
+     * @param mixed $type
+     *
+     * @return static
+     */
+    public function setIdentifierType($type): self
+    {
+        $this->identifierType = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getIdentifier()
+    {
+        return $this->identifier;
+    }
+
+    /**
+     * @param mixed $identifier
+     *
+     * @return static
+     */
+    public function setIdentifier($identifier): self
+    {
+        $this->identifier = $identifier;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getVendorId()
+    {
+        return $this->vendorId;
+    }
+
+    /**
+     * @param mixed $vendorId
+     *
+     * @return static
+     */
+    public function setVendorId($vendorId): self
+    {
+        $this->vendorId = $vendorId;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getImageId()
+    {
+        return $this->imageId;
+    }
+
+    /**
+     * @param mixed $imageId
+     *
+     * @return static
+     */
+    public function setImageId($imageId): self
+    {
+        $this->imageId = $imageId;
+
+        return $this;
+    }
+
+    /**
+     * Use search cache.
+     *
+     * @return bool|null
+     *   Defaults to true if not set
+     */
+    public function useSearchCache(): ?bool
+    {
+        return $this->useSearchCache;
+    }
+
+    /**
+     * Should the search cache be used when processing the message.
+     *
+     * @param bool $useIt
+     *   True to use or false to by-pass search cache
+     *
+     * @return static
+     */
+    public function setUseSearchCache(bool $useIt): self
+    {
+        $this->useSearchCache = $useIt;
+
+        return $this;
+    }
+
+    /**
+     * Get request id (which is unique for the whole request).
+     *
+     * @return string
+     *   The request id
+     */
+    public function getTraceId(): string
+    {
+        return $this->traceId;
+    }
+
+    /**
+     * Set trace id (which is unique for the whole request).
+     *
+     * @param string $traceId
+     *   The trace id used to trace this message between services
+     *
+     * @return AbstractBaseMessage
+     */
+    public function setTraceId(string $traceId): self
+    {
+        $this->traceId = $traceId;
+
+        return $this;
+    }
+}

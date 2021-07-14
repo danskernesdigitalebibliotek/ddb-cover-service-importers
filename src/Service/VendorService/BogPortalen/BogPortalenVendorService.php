@@ -6,26 +6,25 @@
 
 namespace App\Service\VendorService\BogPortalen;
 
-use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\Types\VendorStatus;
 use League\Flysystem\Filesystem;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 
 /**
  * Class BogPortalenVendorService.
  */
-class BogPortalenVendorService extends AbstractBaseVendorService
+class BogPortalenVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
-    protected const VENDOR_ID = 1;
+    private const VENDOR_ID = 1;
     private const VENDOR_ARCHIVE_NAMES = ['BOP-ProductAll.zip', 'BOP-ProductAll-EXT.zip', 'BOP-Actual.zip', 'BOP-Actual-EXT.zip'];
 
     private $local;
@@ -34,21 +33,13 @@ class BogPortalenVendorService extends AbstractBaseVendorService
     /**
      * BogPortalenVendorService constructor.
      *
-     * @param eventDispatcherInterface $eventDispatcher
-     *   Dispatcher to trigger async jobs on import
      * @param filesystem $local
      *   Flysystem adapter for local filesystem
      * @param filesystem $ftp
      *   Flysystem adapter for remote ftp server
-     * @param entityManagerInterface $entityManager
-     *   Doctrine entity manager
-     * @param loggerInterface $statsLogger
-     *   Logger object to send stats to ES
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, Filesystem $local, Filesystem $ftp, EntityManagerInterface $entityManager, LoggerInterface $statsLogger)
+    public function __construct(Filesystem $local, Filesystem $ftp)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
-
         $this->local = $local;
         $this->ftp = $ftp;
     }
@@ -58,12 +49,12 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
-        // We're lazy loading the config to avoid errors from missing config values on dependency injection
         $this->loadConfig();
+        $status = new VendorStatus();
 
         foreach (self::VENDOR_ARCHIVE_NAMES as $archive) {
             try {
@@ -92,42 +83,41 @@ class BogPortalenVendorService extends AbstractBaseVendorService
                     $isbnBatch = \array_slice($isbnList, $offset, self::BATCH_SIZE, true);
 
                     $isbnImageUrlArray = $this->buildIsbnImageUrlArray($isbnBatch);
-                    $this->updateOrInsertMaterials($isbnImageUrlArray, IdentifierType::ISBN);
+                    $this->vendorCoreService->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
 
-                    $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                    $this->progressMessageFormatted($status);
                     $this->progressAdvance();
 
                     $offset += self::BATCH_SIZE;
                 }
 
                 $this->local->delete($archive);
-            } catch (InvalidArgumentException $e) {
-                return VendorImportResultMessage::error($e->getMessage());
             } catch (\Exception $e) {
                 return VendorImportResultMessage::error($e->getMessage());
             }
         }
 
-        $this->logStatistics();
-
         $this->progressFinish();
 
-        return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted, $this->totalDeleted);
+        $this->vendorCoreService->releaseLock($this->getVendorId());
+
+        return VendorImportResultMessage::success($status);
     }
 
     /**
      * Set config from service from DB vendor object.
      *
      * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function loadConfig(): void
     {
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
         // Set FTP adapter configuration.
         $adapter = $this->ftp->getAdapter();
-        $adapter->setUsername($this->getVendor()->getDataServerUser());
-        $adapter->setPassword($this->getVendor()->getDataServerPassword());
-        $adapter->setHost($this->getVendor()->getDataServerURI());
+        $adapter->setUsername($vendor->getDataServerUser());
+        $adapter->setPassword($vendor->getDataServerPassword());
+        $adapter->setHost($vendor->getDataServerURI());
     }
 
     /**
@@ -135,9 +125,11 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      *
      * @param array $isbnList
      *
-     * @return array
+     * @return string[]
      *
-     * @throws \Exception
+     * @throws UnknownVendorServiceException
+     *
+     * @psalm-return array<string, string>
      */
     private function buildIsbnImageUrlArray(array &$isbnList): array
     {
@@ -157,11 +149,12 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      * @return string
      *
      * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function getVendorsImageUrl(string $isbn): string
     {
-        return $this->getVendor()->getImageServerURI().$isbn.'.jpg';
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
+        return $vendor->getImageServerURI().$isbn.'.jpg';
     }
 
     /**
@@ -186,12 +179,13 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      * @param $path
      *   The path of the archive in the local filesystem
      *
-     * @return array
-     *   List of filenames
+     * @return (false|string)[] List of filenames
      *
      * @throws FileNotFoundException
+     *
+     * @psalm-return list<false|string>
      */
-    private function listZipContents($path): array
+    private function listZipContents(string $path): array
     {
         $fileNames = [];
 
@@ -218,7 +212,9 @@ class BogPortalenVendorService extends AbstractBaseVendorService
      *
      * @param array $filePaths
      *
-     * @return array
+     * @return string[]
+     *
+     * @psalm-return array<int, string>
      */
     private function getIsbnNumbers(array &$filePaths): array
     {

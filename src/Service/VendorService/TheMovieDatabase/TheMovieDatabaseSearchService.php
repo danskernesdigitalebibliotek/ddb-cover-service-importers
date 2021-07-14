@@ -86,10 +86,12 @@ class TheMovieDatabaseSearchService
      * @param int    $offset
      *   Result offset
      *
-     * @return array
+     * @return (array|bool|int)[]
      *
      * @throws DataWellVendorException
      *   Throws DataWellVendorException on network error
+     *
+     * @psalm-return array{0: array, 1: bool, 2: int}
      */
     public function search(string $query, int $offset = 1): array
     {
@@ -160,6 +162,12 @@ class TheMovieDatabaseSearchService
      * @return array
      *   Array of all pid => url pairs found in response
      */
+
+    /**
+     * @return (false|mixed|null|string)[][]
+     *
+     * @psalm-return array<array{title?: mixed, date?: mixed, originalYear?: false|string, director?: null|string}>
+     */
     private function extractData(array $result): array
     {
         $data = [];
@@ -195,10 +203,9 @@ class TheMovieDatabaseSearchService
      * @param array $descriptions
      *   Search array of descriptions
      *
-     * @return string|null
-     *   The original year or null
+     * @return false|string The original year or null
      */
-    private function getOriginalYear(array $descriptions): ?string
+    private function getOriginalYear(array $descriptions)
     {
         $matches = [];
 

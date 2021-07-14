@@ -2,27 +2,24 @@
     "name": "danskernesdigitalebibliotek/ddb-cover-service-imports",
     "description": "Cover service imports for the danish libraries",
     "type": "project",
-    "license": "GNU AFFERO V3",
+    "license": "AGPL-3.0-only",
     "require": {
-        "php": "^7.3.0",
+        "php": "^7.4 | 8.0",
         "ext-ctype": "*",
         "ext-curl": "*",
         "ext-ftp": "*",
         "ext-iconv": "*",
-        "ext-imagick": "*",
         "ext-json": "*",
         "ext-redis": "*",
         "ext-xmlreader": "*",
         "ext-zend-opcache": "*",
         "ext-zip": "*",
+        "ext-amqp": "*",
         "box/spout": "^3.0",
         "cloudinary/cloudinary_php": "^1.12",
         "doctrine/doctrine-migrations-bundle": "^1.0",
         "eightpoints/guzzle-bundle": "^7.4",
         "elasticsearch/elasticsearch": "^6.7",
-        "endclothing/prometheus_client_php": "^1.0",
-        "enqueue/enqueue-bundle": "^0.10.0",
-        "enqueue/redis": "0.10.0",
         "friendsofsymfony/elastica-bundle": "^5.0",
         "guzzlehttp/guzzle": "^6.3",
         "karriere/json-decoder": "^2.1",
@@ -31,6 +28,7 @@
         "nicebooks/isbn": "^0.2.56",
         "oneup/flysystem-bundle": "^3.0",
         "predis/predis": "^1.1",
+        "promphp/prometheus_client_php": "^2.2",
         "ruflin/elastica": "^6.0",
         "scriptotek/marc": "^2.1",
         "symfony/browser-kit": "^4.0",
@@ -41,6 +39,7 @@
         "symfony/flex": "^1.0",
         "symfony/framework-bundle": "^4.0",
         "symfony/lock": "^4.0",
+        "symfony/messenger": "4.4.*",
         "symfony/monolog-bundle": "^3.3",
         "symfony/orm-pack": "^1.0",
         "symfony/process": "^4.0",
@@ -51,13 +50,14 @@
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.0",
         "escapestudios/symfony2-coding-standard": "^3.10",
+        "fakerphp/faker": "^1.14",
         "friendsofphp/php-cs-fixer": "^2.13",
-        "fzaninotto/faker": "^1.8",
-        "phan/phan": "^2.4",
-        "phpmd/phpmd": "^2.7",
-        "phpunit/phpunit": "^7",
+        "phpunit/phpunit": "^9.5",
+        "symfony/css-selector": "^4.4",
         "symfony/debug-pack": "^1.0",
-        "symfony/maker-bundle": "^1.9"
+        "symfony/maker-bundle": "^1.9",
+        "symfony/phpunit-bridge": "^5.3",
+        "vimeo/psalm": "^4.8"
     },
     "config": {
         "preferred-install": {
@@ -97,46 +97,14 @@
         "post-update-cmd": [
             "@auto-scripts"
         ],
-        "check": [
-            "@check-coding-standards"
-        ],
-        "check-coding-standards/php-cs-fixer": [
-            "php-cs-fixer --config=.php_cs.dist fix --dry-run --format=checkstyle"
-        ],
-        "check-coding-standards/phpcs": [
-            "phpcs --standard=phpcs.xml.dist"
-        ],
         "check-coding-standards": [
-            "@check-coding-standards/php-cs-fixer",
-            "@check-coding-standards/phpcs"
-        ],
-        "apply-coding-standards/php-cs-fixer": [
-            "php-cs-fixer --config=.php_cs.dist fix"
-        ],
-        "apply-coding-standards/phpcs": [
-            "phpcbf --standard=phpcs.xml.dist"
+            "./vendor/bin/php-cs-fixer --config=.php_cs.dist fix --dry-run --format=checkstyle"
         ],
         "apply-coding-standards": [
-            "@apply-coding-standards/php-cs-fixer",
-            "@apply-coding-standards/phpcs"
-        ],
-        "phan": [
-            "./vendor/bin/phan --allow-polyfill-parser"
-        ],
-        "md":[
-            "./vendor/bin/phpmd ./src/ text cleancode,codesize,controversial,design,naming,unusedcode --suffixes php"
+            "php-cs-fixer --config=.php_cs.dist fix"
         ],
         "phpunit": [
             "./vendor/bin/phpunit"
-        ],
-        "actions/phpcs": [
-            "phpcs --standard=phpcs.xml.dist --report=checkstyle"
-        ],
-        "actions/phpcsfixer": [
-            "php-cs-fixer --config=.php_cs.dist fix --dry-run --diff --diff-format=udiff"
-        ],
-        "actions/phan": [
-            "./vendor/bin/phan --no-progress-bar --allow-polyfill-parser"
         ]
     },
     "conflict": {

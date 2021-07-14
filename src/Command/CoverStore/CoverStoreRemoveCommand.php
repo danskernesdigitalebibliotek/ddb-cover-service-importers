@@ -36,6 +36,8 @@ class CoverStoreRemoveCommand extends Command
 
     /**
      * Define the command.
+     *
+     * @return void
      */
     protected function configure()
     {
@@ -52,5 +54,7 @@ class CoverStoreRemoveCommand extends Command
         $this->store->remove($input->getArgument('folder'), $input->getArgument('identifier'));
 
         $output->writeln('Item have been removed');
+
+        return 0;
     }
 }

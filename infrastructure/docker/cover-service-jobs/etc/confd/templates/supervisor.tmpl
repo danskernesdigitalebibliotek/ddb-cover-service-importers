@@ -1,0 +1,11 @@
+[program:background_queue]
+command=/var/www/html/bin/console messenger:consume {{ getenv "APP_SUPERVISOR_QUEUES" "async_priority_high async_priority_normal async_priority_low" }} --env=prod --no-debug --time-limit={{ getenv "APP_SUPERVISOR_TIME_LIMIT" "900" }} --no-interaction --quiet
+process_name=%(program_name)s_%(process_num)02d
+numprocs={{ getenv "APP_SUPERVISOR_WORKERS" "8" }}
+autostart=true
+autorestart=true
+startsecs=0
+user=www-data
+logfile = /proc/self/fd/1
+stderr_logfile=/proc/self/fd/2
+stdout_logfile=/proc/self/fd/1

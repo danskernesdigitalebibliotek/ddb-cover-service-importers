@@ -20,6 +20,9 @@ use Faker\Provider\Miscellaneous;
 
 class AppFixtures extends Fixture
 {
+    /**
+     * @return void
+     */
     public function load(ObjectManager $manager)
     {
         $faker = Factory::create();

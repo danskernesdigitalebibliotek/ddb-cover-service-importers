@@ -15,6 +15,6 @@ class EBPVendorService extends AbstractTsvVendorService
 {
     protected const VENDOR_ID = 13;
 
-    protected $vendorArchiveDir = 'EBP';
-    protected $vendorArchiveName = 'ebp.load.tsv';
+    protected string $vendorArchiveDir = 'EBP';
+    protected string $vendorArchiveName = 'ebp.load.tsv';
 }

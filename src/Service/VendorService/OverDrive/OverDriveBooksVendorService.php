@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Service for updating book covers from OverDrive.
@@ -6,26 +7,25 @@
 
 namespace App\Service\VendorService\OverDrive;
 
-use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\OverDrive\Api\Client;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
-use Doctrine\ORM\EntityManagerInterface;
+use App\Utils\Types\VendorStatus;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Cache\InvalidArgumentException;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class OverDriveBooksVendorService.
  */
-class OverDriveBooksVendorService extends AbstractBaseVendorService
+class OverDriveBooksVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected const VENDOR_ID = 14;
 
@@ -35,21 +35,13 @@ class OverDriveBooksVendorService extends AbstractBaseVendorService
     /**
      * OverDriveBooksVendorService constructor.
      *
-     * @param eventDispatcherInterface $eventDispatcher
-     *   Dispatcher to trigger async jobs on import
-     * @param entityManagerInterface $entityManager
-     *   Doctrine entity manager
-     * @param loggerInterface $statsLogger
-     *   Logger object to send stats to ES
      * @param ClientInterface $httpClient
      *   Http client to send api requests
      * @param Client $apiClient
      *   Api client for the OverDrive API
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, ClientInterface $httpClient, Client $apiClient)
+    public function __construct(ClientInterface $httpClient, Client $apiClient)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
-
         $this->httpClient = $httpClient;
         $this->apiClient = $apiClient;
     }
@@ -57,18 +49,19 @@ class OverDriveBooksVendorService extends AbstractBaseVendorService
     /**
      * {@inheritdoc}
      *
-     * @throws IllegalVendorServiceException
-     * @throws UnknownVendorServiceException
      * @throws GuzzleException
      * @throws InvalidArgumentException
+     * @throws UnknownVendorServiceException
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         $this->loadConfig();
+
+        $status = new VendorStatus();
 
         try {
             $this->progressStart('Starting eReolen Global import from overdrive API');
@@ -96,19 +89,19 @@ class OverDriveBooksVendorService extends AbstractBaseVendorService
                     }
                 }
 
-                $this->updateOrInsertMaterials($isbnImageUrlArray, IdentifierType::ISBN);
+                $this->vendorCoreService->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
 
-                $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                $this->progressMessageFormatted($status);
                 $this->progressAdvance();
 
                 $offset += self::BATCH_SIZE;
             } while ($offset < $totalCount);
 
-            $this->logStatistics();
-
             $this->progressFinish();
 
-            return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted, $this->totalDeleted);
+            $this->vendorCoreService->releaseLock($this->getVendorId());
+
+            return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
             return VendorImportResultMessage::error($exception->getMessage());
         }
@@ -118,15 +111,16 @@ class OverDriveBooksVendorService extends AbstractBaseVendorService
      * Set config from service from DB vendor object.
      *
      * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function loadConfig(): void
     {
-        $libraryAccountEndpoint = $this->getVendor()->getDataServerURI();
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
+        $libraryAccountEndpoint = $vendor->getDataServerURI();
         $this->apiClient->setLibraryAccountEndpoint($libraryAccountEndpoint);
 
-        $clientId = $this->getVendor()->getDataServerUser();
-        $clientSecret = $this->getVendor()->getDataServerPassword();
+        $clientId = $vendor->getDataServerUser();
+        $clientSecret = $vendor->getDataServerPassword();
         $this->apiClient->setCredentials($clientId, $clientSecret);
     }
 }

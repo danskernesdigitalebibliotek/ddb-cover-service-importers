@@ -6,40 +6,42 @@
 
 namespace App\Command;
 
-use App\Utils\Message\CoverUploadProcessMessage;
-use App\Utils\Message\ProcessMessage;
+use App\Message\CoverUserUploadMessage;
+use App\Message\SearchMessage;
+use App\Message\SearchNoHitsMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
-use Enqueue\Client\ProducerInterface;
-use Enqueue\Util\JSON;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class QueueInsertCommand.
  */
 class QueueInsertCommand extends Command
 {
-    private $producer;
+    private $bus;
 
     protected static $defaultName = 'app:queue:insert';
 
     /**
      * QueueInsertCommand constructor.
      *
-     * @param ProducerInterface $producer
+     * @param MessageBusInterface $bus
      */
-    public function __construct(ProducerInterface $producer)
+    public function __construct(MessageBusInterface $bus)
     {
-        $this->producer = $producer;
+        $this->bus = $bus;
 
         parent::__construct();
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @return void
      */
     protected function configure()
     {
@@ -64,31 +66,28 @@ class QueueInsertCommand extends Command
         if ($withTestMessage) {
             // Test messages for easy testing.
             switch ($topic) {
-                case 'UserUploadImageTopic':
-                    $processMessage = new CoverUploadProcessMessage();
-                    $processMessage->setIdentifierType(IdentifierType::PID);
-                    $processMessage->setIdentifier('1234567890');
-                    $processMessage->setVendorId('15');
-                    $processMessage->setImageUrl('https://www.danskernesdigitalebibliotek.dk/fileadmin/_kulturstyrelsen/images/ddb/logo.png');
-                    $processMessage->setOperation($vendorState ?? VendorState::INSERT);
-                    $message = JSON::encode($processMessage);
+                case 'UserUploadImage':
+                    $message = new CoverUserUploadMessage();
+                    $message->setIdentifierType(IdentifierType::PID);
+                    $message->setIdentifier('1234567890');
+                    $message->setVendorId('15');
+                    $message->setImageUrl('https://www.danskernesdigitalebibliotek.dk/fileadmin/_kulturstyrelsen/images/ddb/logo.png');
+                    $message->setOperation($vendorState ?? VendorState::INSERT);
                     break;
 
-                case 'SearchTopic':
-                    $processMessage = new ProcessMessage();
-                    $processMessage->setIdentifier('9788799239535')
+                case 'Search':
+                    $message = new SearchMessage();
+                    $message->setIdentifier('9788799239535')
                         ->setOperation($vendorState ?? VendorState::UPDATE)
                         ->setIdentifierType(IdentifierType::ISBN)
                         ->setVendorId(1)
                         ->setImageId(1);
-                    $message = JSON::encode($processMessage);
                     break;
 
-                case 'SearchNoHitsTopic':
-                    $processMessage = new ProcessMessage();
-                    $processMessage->setIdentifier('9788799239535')
+                case 'SearchNoHits':
+                    $message = new SearchNoHitsMessage();
+                    $message->setIdentifier('9788799239535')
                         ->setIdentifierType(IdentifierType::ISBN);
-                    $message = JSON::encode($processMessage);
                     break;
 
                 default:
@@ -99,7 +98,7 @@ class QueueInsertCommand extends Command
         }
 
         // Send message into the system.
-        $this->producer->sendEvent($topic, $message);
+        $this->bus->dispatch($message);
 
         return 0;
     }

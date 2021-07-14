@@ -36,6 +36,8 @@ class CoverStoreMoveCommand extends Command
 
     /**
      * Define the command.
+     *
+     * @return void
      */
     protected function configure()
     {
@@ -56,5 +58,7 @@ class CoverStoreMoveCommand extends Command
 
         // If not moved exceptions should have been thrown.
         $output->writeln($item);
+
+        return 0;
     }
 }

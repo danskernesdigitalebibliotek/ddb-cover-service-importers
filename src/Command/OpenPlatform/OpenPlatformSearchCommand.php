@@ -37,6 +37,8 @@ class OpenPlatformSearchCommand extends Command
 
     /**
      * Define the command.
+     *
+     * @return void
      */
     protected function configure()
     {
@@ -60,5 +62,7 @@ class OpenPlatformSearchCommand extends Command
 
         $material = $this->search->search($is, $type, $withOutSearchCache);
         $output->writeln($material);
+
+        return 0;
     }
 }
