@@ -94,6 +94,10 @@ class BogPortalenVendorService implements VendorServiceInterface
                 }
 
                 $this->local->delete($archive);
+
+                if ($this->limit && $offset >= $this->limit) {
+                    break;
+                }
             } catch (\Exception $e) {
                 $this->logStatusMetrics($status);
 
