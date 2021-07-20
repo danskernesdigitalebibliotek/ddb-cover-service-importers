@@ -27,8 +27,8 @@ class BogPortalenVendorService implements VendorServiceInterface
     private const VENDOR_ID = 1;
     private const VENDOR_ARCHIVE_NAMES = ['BOP-ProductAll.zip', 'BOP-ProductAll-EXT.zip', 'BOP-Actual.zip', 'BOP-Actual-EXT.zip'];
 
-    private $local;
-    private $ftp;
+    private Filesystem $local;
+    private Filesystem $ftp;
 
     /**
      * BogPortalenVendorService constructor.
@@ -46,6 +46,8 @@ class BogPortalenVendorService implements VendorServiceInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @throws UnknownVendorServiceException
      */
     public function load(): VendorImportResultMessage
     {
@@ -93,10 +95,13 @@ class BogPortalenVendorService implements VendorServiceInterface
 
                 $this->local->delete($archive);
             } catch (\Exception $e) {
+                $this->logStatusMetrics($status);
+
                 return VendorImportResultMessage::error($e->getMessage());
             }
         }
 
+        $this->logStatusMetrics($status);
         $this->progressFinish();
 
         $this->vendorCoreService->releaseLock($this->getVendorId());

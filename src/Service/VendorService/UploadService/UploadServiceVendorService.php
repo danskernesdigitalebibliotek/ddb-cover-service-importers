@@ -233,6 +233,7 @@ class UploadServiceVendorService implements VendorServiceInterface
             $this->progressAdvance();
         }
 
+        $this->logStatusMetrics($status);
         $this->progressFinish();
 
         return VendorImportResultMessage::success($status);

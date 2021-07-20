@@ -262,9 +262,6 @@
     </InvalidScalarArgument>
   </file>
   <file src="src/Service/VendorService/DataWell/DataWellVendorService.php">
-    <InvalidClass occurrences="1">
-      <code>dataWellSearchService</code>
-    </InvalidClass>
     <PossiblyNullArgument occurrences="3">
       <code>$vendor-&gt;getDataServerPassword()</code>
       <code>$vendor-&gt;getDataServerURI()</code>
@@ -381,9 +378,6 @@
     </InvalidScalarArgument>
   </file>
   <file src="src/Service/VendorService/TheMovieDatabase/TheMovieDatabaseVendorService.php">
-    <InvalidClass occurrences="1">
-      <code>theMovieDatabaseSearchService</code>
-    </InvalidClass>
     <PossiblyNullArgument occurrences="3">
       <code>$vendor-&gt;getDataServerPassword()</code>
       <code>$vendor-&gt;getDataServerURI()</code>
@@ -402,9 +396,6 @@
     <ParadoxicalCondition occurrences="1">
       <code>empty($this-&gt;vendors[$vendorId])</code>
     </ParadoxicalCondition>
-    <PossiblyFalseOperand occurrences="1">
-      <code>strrpos(\get_class($this), '\\')</code>
-    </PossiblyFalseOperand>
     <UndefinedInterfaceMethod occurrences="1">
       <code>findOneById</code>
     </UndefinedInterfaceMethod>

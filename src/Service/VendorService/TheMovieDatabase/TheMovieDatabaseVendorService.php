@@ -33,11 +33,11 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
 
     protected const VENDOR_ID = 6;
 
-    private $em;
-    private $bus;
-    private $dataWell;
-    private $api;
-    private $queries = [
+    private EntityManagerInterface $em;
+    private MessageBusInterface $bus;
+    private TheMovieDatabaseSearchService $dataWell;
+    private TheMovieDatabaseApiService $api;
+    private array $queries = [
         'phrase.type="blu-ray" and facet.typeCategory="film"',
         'phrase.type="dvd" and facet.typeCategory="film"',
     ];
@@ -49,7 +49,7 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
      *   Database entity manager
      * @param MessageBusInterface $bus
      *   Message bus for the queue system
-     * @param theMovieDatabaseSearchService $dataWell
+     * @param TheMovieDatabaseSearchService $dataWell
      *   The search service
      * @param TheMovieDatabaseApiService $api
      *   The movie api service
@@ -131,12 +131,15 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
                 ++$queriesIndex;
             }
 
+            $this->logStatusMetrics($status);
             $this->progressFinish();
 
             $this->vendorCoreService->releaseLock($this->getVendorId());
 
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
+            $this->logStatusMetrics($status);
+
             return VendorImportResultMessage::error($exception->getMessage());
         }
     }
