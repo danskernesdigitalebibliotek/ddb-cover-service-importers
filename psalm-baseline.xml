@@ -146,12 +146,6 @@
       <code>setOriginalLastModified</code>
     </PossiblyNullReference>
   </file>
-  <file src="src/MessageHandler/CoverUserUploadMessageHandler.php">
-    <PossiblyUndefinedVariable occurrences="2">
-      <code>$message</code>
-      <code>$message</code>
-    </PossiblyUndefinedVariable>
-  </file>
   <file src="src/MessageHandler/DeleteMessageHandler.php">
     <PossiblyNullReference occurrences="1">
       <code>getName</code>
