@@ -27,15 +27,15 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
  */
 class SearchService
 {
-    private $params;
-    private $cache;
-    private $logger;
-    private $authenticationService;
-    private $client;
+    private ParameterBagInterface $params;
+    private AdapterInterface $cache;
+    private LoggerInterface $logger;
+    private AuthenticationService $authenticationService;
+    private ClientInterface $client;
 
     const SEARCH_LIMIT = 50;
 
-    private $fields = [
+    private array $fields = [
         'title',
         'creator',
         'date',
@@ -47,21 +47,21 @@ class SearchService
         'identifierISRC',
     ];
 
-    private $searchCacheTTL;
-    private $searchURL;
-    private $searchProfile;
-    private $searchLimit;
+    private int $searchCacheTTL;
+    private string $searchURL;
+    private string $searchProfile;
+    private int $searchLimit;
 
     /**
      * SearchService constructor.
      *
-     * @param parameterBagInterface $params
+     * @param ParameterBagInterface $params
      *   Access to environment variables
-     * @param adapterInterface $cache
+     * @param AdapterInterface $cache
      *   Cache object to store results
-     * @param loggerInterface $informationLogger
+     * @param LoggerInterface $informationLogger
      *   Logger object to send stats to ES
-     * @param authenticationService $authenticationService
+     * @param AuthenticationService $authenticationService
      *   The Open Platform authentication service
      * @param ClientInterface $httpClient
      *   Guzzle Client
@@ -92,15 +92,16 @@ class SearchService
      * @param bool $refresh
      *   If set to TRUE the cache is by-passed. Default: FALSE.
      *
-     * @return material
+     * @return Material
      *   Material object with the result
      *
-     * @throws PlatformSearchException
-     * @throws MaterialTypeException
-     * @throws PlatformAuthException
      * @throws InvalidArgumentException
+     * @throws MaterialTypeException
+     * @throws OpenPlatformSearchException
+     * @throws PlatformAuthException
+     * @throws PlatformSearchException
      */
-    public function search(string $identifier, string $type, $refresh = false): Material
+    public function search(string $identifier, string $type, bool $refresh = false): Material
     {
         // Try getting item from cache.
         $item = $this->cache->getItem('openplatform.search_query'.str_replace(':', '', $identifier));
@@ -154,12 +155,12 @@ class SearchService
      * @param array $result
      *   The results from the data well
      *
-     * @return material
+     * @return Material
      *   Material with all the information collected
      *
      * @throws MaterialTypeException
      */
-    private function parseResult(array $result)
+    private function parseResult(array $result): Material
     {
         $material = new Material();
         foreach ($result as $key => $items) {
@@ -231,7 +232,7 @@ class SearchService
      * @return string
      *   The striped string
      */
-    private function stripDashes($str)
+    private function stripDashes(string $str): string
     {
         return str_replace('-', '', $str);
     }

@@ -22,7 +22,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
  */
 class QueueInsertCommand extends Command
 {
-    private $bus;
+    private MessageBusInterface $bus;
 
     protected static $defaultName = 'app:queue:insert';
 
@@ -40,10 +40,8 @@ class QueueInsertCommand extends Command
 
     /**
      * {@inheritdoc}
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setDescription('Create job in queue system with a given message and topic')

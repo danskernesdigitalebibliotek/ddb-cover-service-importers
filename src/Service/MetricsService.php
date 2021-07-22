@@ -81,7 +81,7 @@ class MetricsService
      *
      * @return void
      */
-    public function gauge(string $name, string $help, int $value, $labels = []): void
+    public function gauge(string $name, string $help, int $value, array $labels = []): void
     {
         try {
             $gauge = $this->registry->getOrRegisterGauge($this->namespace, $name, $help, array_keys($labels));

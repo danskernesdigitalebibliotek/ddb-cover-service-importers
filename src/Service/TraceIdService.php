@@ -12,7 +12,7 @@ namespace App\Service;
  */
 class TraceIdService
 {
-    private static $id;
+    private static string $id;
 
     /**
      * Get unique id.
@@ -33,7 +33,12 @@ class TraceIdService
         return $this::$id;
     }
 
-    private function generate()
+    /**
+     * Generate uniq id.
+     *
+     * @throws \Exception
+     */
+    private function generate(): void
     {
         $this::$id = bin2hex(random_bytes(16));
     }

@@ -9,15 +9,15 @@ namespace App\Utils\CoverStore;
 
 class CoverStoreItem
 {
-    private $id;
-    private $url;
-    private $vendor;
-    private $size;
-    private $width;
-    private $height;
-    private $originalFile;
-    private $imageFormat;
-    private $crc;
+    private string $id;
+    private string $url;
+    private string $vendor;
+    private int $size;
+    private int $width;
+    private int $height;
+    private string $originalFile;
+    private string $imageFormat;
+    private string $crc;
 
     public function __toString()
     {
@@ -121,7 +121,7 @@ class CoverStoreItem
     /**
      * @return int
      */
-    public function getWidth()
+    public function getWidth(): int
     {
         return $this->width;
     }
@@ -161,7 +161,7 @@ class CoverStoreItem
     /**
      * @return string
      */
-    public function getCrc()
+    public function getCrc(): string
     {
         return $this->crc;
     }
@@ -179,9 +179,9 @@ class CoverStoreItem
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getOriginalFile()
+    public function getOriginalFile(): string
     {
         return $this->originalFile;
     }
@@ -199,9 +199,9 @@ class CoverStoreItem
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getImageFormat()
+    public function getImageFormat(): string
     {
         return $this->imageFormat;
     }

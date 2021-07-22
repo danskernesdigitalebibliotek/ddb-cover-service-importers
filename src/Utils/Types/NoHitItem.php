@@ -9,8 +9,8 @@ namespace App\Utils\Types;
 
 class NoHitItem
 {
-    private $isType;
-    private $isIdentifier;
+    private string $isType;
+    private string $isIdentifier;
 
     public function __construct(string $isType, string $isIdentifier)
     {

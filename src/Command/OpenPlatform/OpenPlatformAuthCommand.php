@@ -20,13 +20,13 @@ class OpenPlatformAuthCommand extends Command
 {
     protected static $defaultName = 'app:openplatform:auth';
 
-    private $authentication;
-    private $refresh = false;
+    private AuthenticationService $authentication;
+    private bool $refresh = false;
 
     /**
      * OpenPlatformAuthCommand constructor.
      *
-     * @param authenticationService $authentication
+     * @param AuthenticationService $authentication
      *   Open Platform authentication service
      */
     public function __construct(AuthenticationService $authentication)
@@ -38,10 +38,8 @@ class OpenPlatformAuthCommand extends Command
 
     /**
      * Define the command.
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Use environment configuration to test authentication')
             ->setHelp('Gets oAuth2 access token to the Open Platform')
@@ -54,7 +52,7 @@ class OpenPlatformAuthCommand extends Command
      * Uses the authentication service to get an access token form the open
      * platform.
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $arg = $input->getArgument('refresh');
         $this->refresh = $arg ? (bool) $arg : $this->refresh;

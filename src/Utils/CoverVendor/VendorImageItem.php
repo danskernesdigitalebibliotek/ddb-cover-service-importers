@@ -9,12 +9,12 @@ namespace App\Utils\CoverVendor;
 
 class VendorImageItem
 {
-    private $found = false;
-    private $updated = false;
-    private $vendor;
-    private $originalFile;
-    private $originalLastModified;
-    private $originalContentLength;
+    private bool $found = false;
+    private bool $updated = false;
+    private string $vendor;
+    private string $originalFile;
+    private \DateTime $originalLastModified;
+    private int $originalContentLength;
 
     public function __toString()
     {
