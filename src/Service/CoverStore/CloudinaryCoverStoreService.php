@@ -124,7 +124,7 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
             ->max_results(100);
 
         if (!is_null($rawQuery)) {
-            $search->expression($rawQuery.' and folder='.$folder);
+            $search->expression($rawQuery);
         }
         $result = $search->execute()->getArrayCopy();
 

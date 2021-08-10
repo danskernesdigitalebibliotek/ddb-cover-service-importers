@@ -5,7 +5,6 @@ namespace App\Service\VendorService;
 use App\Entity\Source;
 use App\Utils\CoverVendor\VendorImageItem;
 use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\GuzzleException;
 
 /**
@@ -29,8 +28,6 @@ class VendorImageValidatorService
      * Validate that remote image exists by sending a HTTP HEAD request.
      *
      * @param VendorImageItem $item
-     *
-     * @throws GuzzleException
      */
     public function validateRemoteImage(VendorImageItem $item): void
     {
@@ -58,7 +55,7 @@ class VendorImageValidatorService
             // Some images exists (return 200) but have no content
             $found = $item->getOriginalContentLength() > 0;
             $item->setFound($found);
-        } catch (ClientException $exception) {
+        } catch (\Throwable $e) {
             $item->setFound(false);
         }
     }
