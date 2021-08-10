@@ -36,7 +36,7 @@ class SourceUpdateImageMetaCommand extends Command
      */
     protected function configure()
     {
-        $this->setDescription('Update image metadata informations')
+        $this->setDescription('Update image metadata information')
             ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'Only for this identifier');
     }
 
