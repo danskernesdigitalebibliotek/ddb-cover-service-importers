@@ -20,7 +20,7 @@ class CoverStoreSearchCommand extends Command
 {
     protected static $defaultName = 'app:cover:search';
 
-    /** @var CoverStoreInterface $store */
+    /** @var CoverStoreInterface */
     private $store;
 
     /**
@@ -37,6 +37,8 @@ class CoverStoreSearchCommand extends Command
 
     /**
      * Define the command.
+     *
+     * @return void
      */
     protected function configure()
     {
@@ -56,5 +58,7 @@ class CoverStoreSearchCommand extends Command
         );
 
         $output->writeln($items);
+
+        return 0;
     }
 }

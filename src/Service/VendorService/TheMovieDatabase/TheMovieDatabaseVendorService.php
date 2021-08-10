@@ -8,28 +8,33 @@
 namespace App\Service\VendorService\TheMovieDatabase;
 
 use App\Entity\Source;
-use App\Event\VendorEvent;
 use App\Exception\IllegalVendorServiceException;
 use App\Exception\UnknownVendorServiceException;
-use App\Service\VendorService\AbstractBaseVendorService;
+use App\Message\VendorImageMessage;
+use App\Repository\SourceRepository;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
+use App\Utils\Types\VendorStatus;
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Exception\GuzzleException;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class DataWellVendorService.
  */
-class TheMovieDatabaseVendorService extends AbstractBaseVendorService
+class TheMovieDatabaseVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected const VENDOR_ID = 6;
 
+    private $em;
+    private $bus;
     private $dataWell;
     private $api;
     private $queries = [
@@ -40,21 +45,19 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
     /**
      * TheMovieDatabaseVendorService constructor.
      *
-     * @param EventDispatcherInterface      $eventDispatcher
-     *   The event dispatcher
-     * @param EntityManagerInterface        $entityManager
-     *   The entity manager
-     * @param LoggerInterface               $statsLogger
-     *   The stats logger
+     * @param EntityManagerInterface $em
+     *   Database entity manager
+     * @param MessageBusInterface $bus
+     *   Message bus for the queue system
      * @param theMovieDatabaseSearchService $dataWell
      *   The search service
-     * @param TheMovieDatabaseApiService    $api
+     * @param TheMovieDatabaseApiService $api
      *   The movie api service
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager, LoggerInterface $statsLogger, TheMovieDatabaseSearchService $dataWell, TheMovieDatabaseApiService $api)
+    public function __construct(EntityManagerInterface $em, MessageBusInterface $bus, TheMovieDatabaseSearchService $dataWell, TheMovieDatabaseApiService $api)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
-
+        $this->em = $em;
+        $this->bus = $bus;
         $this->dataWell = $dataWell;
         $this->api = $api;
     }
@@ -64,12 +67,14 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         // We're lazy loading the config to avoid errors from missing config values on dependency injection
         $this->loadConfig();
+
+        $status = new VendorStatus();
 
         $this->progressStart('Search data well for movies');
 
@@ -95,23 +100,30 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
 
                     // @TODO: this should be handled in updateOrInsertMaterials, which should take which event and job
                     //        it should call. Default is now CoverStore (upload image), which we do not know yet.
+
+                    /** @var SourceRepository $sourceRepo */
                     $sourceRepo = $this->em->getRepository(Source::class);
                     $batchOffset = 0;
                     while ($batchOffset < $batchSize) {
                         $batch = \array_slice($pidArray, $batchOffset, self::BATCH_SIZE, true);
-                        [$updatedIdentifiers, $insertedIdentifiers] = $this->processBatch($batch, $sourceRepo, IdentifierType::PID);
+                        [$updatedIdentifiers, $insertedIdentifiers] = $this->vendorCoreService->processBatch($batch, $sourceRepo, IdentifierType::PID, $this->getVendorId(), $this->withUpdates);
 
                         $this->postProcess($updatedIdentifiers, $resultArray);
                         $this->postProcess($insertedIdentifiers, $resultArray);
+
+                        // Update status.
+                        $status->addUpdated(count($updatedIdentifiers));
+                        $status->addInserted(count($insertedIdentifiers));
+                        $status->addRecords(count($batch));
 
                         $batchOffset += $batchSize;
                     }
 
                     // @TODO: How to handle multiple queries with progress bar.
-                    $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                    $this->progressMessageFormatted($status);
                     $this->progressAdvance();
 
-                    if ($this->limit && $this->totalIsIdentifiers >= $this->limit) {
+                    if ($this->limit && $status->records >= $this->limit) {
                         $more = false;
                     }
                 } while ($more);
@@ -121,7 +133,9 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
 
             $this->progressFinish();
 
-            return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted, $this->totalDeleted);
+            $this->vendorCoreService->releaseLock($this->getVendorId());
+
+            return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
             return VendorImportResultMessage::error($exception->getMessage());
         }
@@ -129,16 +143,15 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
 
     /**
      * Set config fro service from DB vendor object.
-     *
-     * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function loadConfig(): void
     {
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
         // Set the service access configuration from the vendor.
-        $this->dataWell->setSearchUrl($this->getVendor()->getDataServerURI());
-        $this->dataWell->setUser($this->getVendor()->getDataServerUser());
-        $this->dataWell->setPassword($this->getVendor()->getDataServerPassword());
+        $this->dataWell->setSearchUrl($vendor->getDataServerURI());
+        $this->dataWell->setUser($vendor->getDataServerUser());
+        $this->dataWell->setPassword($vendor->getDataServerPassword());
     }
 
     /**
@@ -152,9 +165,12 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
      * @throws IllegalVendorServiceException
      * @throws UnknownVendorServiceException
      * @throws GuzzleException
+     *
+     * @return void
      */
-    private function postProcess(array $pids, array $searchResults)
+    private function postProcess(array $pids, array $searchResults): void
     {
+        /** @var SourceRepository $sourceRepo */
         $sourceRepo = $this->em->getRepository(Source::class);
 
         foreach ($pids as $pid) {
@@ -164,7 +180,7 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
             $source = $sourceRepo->findOneBy([
                 'matchId' => $pid,
                 'matchType' => IdentifierType::PID,
-                'vendor' => $this->getVendor(),
+                'vendor' => $this->vendorCoreService->getVendor($this->getVendorId()),
             ]);
 
             if (null !== $source) {
@@ -177,8 +193,12 @@ class TheMovieDatabaseVendorService extends AbstractBaseVendorService
                     $this->em->flush();
 
                     // Create vendor event.
-                    $event = new VendorEvent(VendorState::INSERT, [$source->getMatchId()], $source->getMatchType(), $source->getVendor()->getId());
-                    $this->dispatcher->dispatch($event::NAME, $event);
+                    $message = new VendorImageMessage();
+                    $message->setOperation(VendorState::INSERT)
+                        ->setIdentifier($source->getMatchId())
+                        ->setVendorId($source->getVendor()->getId())
+                        ->setIdentifierType($source->getMatchType());
+                    $this->bus->dispatch($message);
                 }
             }
         }

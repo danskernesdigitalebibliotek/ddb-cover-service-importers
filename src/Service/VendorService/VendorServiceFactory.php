@@ -17,6 +17,8 @@ class VendorServiceFactory
     private $vendorServices;
     private $em;
 
+    private $vendors = [];
+
     /**
      * VendorFactoryService constructor.
      *
@@ -28,8 +30,6 @@ class VendorServiceFactory
      */
     public function __construct(iterable $vendors, EntityManagerInterface $entityManager)
     {
-        $this->vendorServices = [];
-
         $ids = [];
         foreach ($vendors as $vendor) {
             // We are using the classname to match to config row in vendor db table
@@ -43,6 +43,9 @@ class VendorServiceFactory
                 throw new DuplicateVendorServiceException('Vendor services must have a unique VENDOR_ID. Duplicate id detected in '.$className);
             }
             $ids[] = $vendor->getVendorId();
+
+            // Store found vendors
+            $this->vendors[] = $vendor;
         }
 
         $this->em = $entityManager;
@@ -54,12 +57,13 @@ class VendorServiceFactory
      * Pre-populates the Vendor table with rows for each available vendor services.
      * Inserts only id, classname and default name, not possible config parameters.
      *
-     * @return int
-     *   The number of vendor rows inserted
+     * @return int The number of vendor rows inserted
      *
      * @throws NonUniqueResultException
+     *
+     * @psalm-return 0|positive-int
      */
-    public function populateVendors(): int
+    public function populateVendors()
     {
         $vendorRepos = $this->em->getRepository(Vendor::class);
 
@@ -103,18 +107,19 @@ class VendorServiceFactory
     }
 
     /**
-     * Get names of all vendor services.
+     * Get names of all vendor services that have been detected.
+     *
+     * Only vendors that implements the VendorServiceInterface.
      *
      * @return array
+     *
+     * @psalm-return list<mixed>
      */
     public function getVendorNames(): array
     {
-        $vendorRepos = $this->em->getRepository(Vendor::class);
-        $vendors = $vendorRepos->findAll();
-
         $names = [];
-        foreach ($vendors as $vendor) {
-            $names[] = $vendor->getName();
+        foreach ($this->getVendorServices() as $vendorService) {
+            $names[] = $vendorService->getVendorName();
         }
 
         return $names;
@@ -125,11 +130,11 @@ class VendorServiceFactory
      *
      * @param string $class
      *
-     * @return AbstractBaseVendorService
+     * @return VendorServiceInterface
      *
      * @throws UnknownVendorServiceException
      */
-    public function getVendorServiceByClass(string $class): AbstractBaseVendorService
+    public function getVendorServiceByClass(string $class): VendorServiceInterface
     {
         if (!array_key_exists($class, $this->vendorServices)) {
             throw new UnknownVendorServiceException('Unknown vendor service: '.$class);
@@ -143,11 +148,11 @@ class VendorServiceFactory
      *
      * @param string $name
      *
-     * @return AbstractBaseVendorService
+     * @return VendorServiceInterface
      *
      * @throws UnknownVendorServiceException
      */
-    public function getVendorServiceByName(string $name): AbstractBaseVendorService
+    public function getVendorServiceByName(string $name): VendorServiceInterface
     {
         $vendorRepos = $this->em->getRepository(Vendor::class);
         $vendor = $vendorRepos->findOneByName($name);

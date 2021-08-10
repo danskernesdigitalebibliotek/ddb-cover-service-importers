@@ -38,6 +38,8 @@ class OpenPlatformAuthCommand extends Command
 
     /**
      * Define the command.
+     *
+     * @return void
      */
     protected function configure()
     {
@@ -63,5 +65,7 @@ class OpenPlatformAuthCommand extends Command
         $output->writeln($separator);
         $output->writeln(' Access token: '.$token);
         $output->writeln($separator);
+
+        return 0;
     }
 }

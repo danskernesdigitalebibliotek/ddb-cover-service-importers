@@ -7,14 +7,13 @@
 
 namespace Tests;
 
+use App\Repository\SourceRepository;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\VendorService\UploadService\UploadServiceVendorService;
 use App\Utils\Types\IdentifierType;
 use Doctrine\ORM\EntityManagerInterface;
-use Enqueue\Client\ProducerInterface;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class UploadServiceVendorServiceTest.
@@ -113,12 +112,11 @@ class UploadServiceVendorServiceTest extends TestCase
      */
     private function getUploadServiceVendorService(): UploadServiceVendorService
     {
-        $dispatcher = $this->createMock(EventDispatcherInterface::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $logger = $this->createMock(LoggerInterface::class);
         $store = $this->createMock(CoverStoreInterface::class);
-        $producer = $this->createMock(ProducerInterface::class);
+        $bus = $this->createMock(MessageBusInterface::class);
+        $repos = $this->createMock(SourceRepository::class);
 
-        return new UploadServiceVendorService($dispatcher, $entityManager, $logger, $store, $producer);
+        return new UploadServiceVendorService($bus, $entityManager, $store, $repos);
     }
 }

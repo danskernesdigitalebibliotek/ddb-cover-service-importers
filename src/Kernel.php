@@ -20,11 +20,19 @@ class Kernel extends BaseKernel
         return $this->getProjectDir().'/var/cache/'.$this->environment;
     }
 
+    /**
+     * @return string
+     */
     public function getLogDir()
     {
         return $this->getProjectDir().'/var/log';
     }
 
+    /**
+     * @return \Generator
+     *
+     * @psalm-return \Generator<int, object, mixed, void>
+     */
     public function registerBundles()
     {
         $contents = require $this->getProjectDir().'/config/bundles.php';
@@ -35,6 +43,9 @@ class Kernel extends BaseKernel
         }
     }
 
+    /**
+     * @return void
+     */
     protected function configureContainer(ContainerBuilder $container, LoaderInterface $loader)
     {
         $container->addResource(new FileResource($this->getProjectDir().'/config/bundles.php'));
@@ -50,6 +61,9 @@ class Kernel extends BaseKernel
         $loader->load($confDir.'/{services}_'.$this->environment.self::CONFIG_EXTS, 'glob');
     }
 
+    /**
+     * @return void
+     */
     protected function configureRoutes(RouteCollectionBuilder $routes)
     {
         $confDir = $this->getProjectDir().'/config';

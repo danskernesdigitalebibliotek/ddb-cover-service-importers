@@ -9,6 +9,7 @@ spec:
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: {{ .Values.cron.successfulLimit }}
   failedJobsHistoryLimit: {{ .Values.cron.failedLimit }}
+  startingDeadlineSeconds: {{ .Values.cron.startingDeadlineSeconds }}
   jobTemplate:
     spec:
       template:
@@ -86,6 +87,16 @@ spec:
                     secretKeyRef:
                       name: {{ .Release.Name }}-secret
                       key: APP_SECRET
+                - name: APP_AMQP_USERNAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Release.Name }}-secret
+                      key: APP_AMQP_USERNAME
+                - name: APP_AMQP_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Release.Name }}-secret
+                      key: APP_AMQP_PASSWORD
               envFrom:
                 - configMapRef:
                     name: {{ .Release.Name }}-configmap

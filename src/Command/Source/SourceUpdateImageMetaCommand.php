@@ -31,10 +31,12 @@ class SourceUpdateImageMetaCommand extends Command
 
     /**
      * Define the command.
+     *
+     * @return void
      */
     protected function configure()
     {
-        $this->setDescription('Update image metadata informations')
+        $this->setDescription('Update image metadata information')
             ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'Only for this identifier');
     }
 
@@ -77,5 +79,7 @@ class SourceUpdateImageMetaCommand extends Command
 
         $this->em->flush();
         $this->em->clear();
+
+        return 0;
     }
 }

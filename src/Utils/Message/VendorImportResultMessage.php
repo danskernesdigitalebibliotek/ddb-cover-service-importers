@@ -6,6 +6,11 @@
 
 namespace App\Utils\Message;
 
+use App\Utils\Types\VendorStatus;
+
+/**
+ * Class VendorImportResultMessage.
+ */
 class VendorImportResultMessage
 {
     private $isSuccess;
@@ -39,23 +44,20 @@ class VendorImportResultMessage
     /**
      * Create success message.
      *
-     * @param int $totalRecords
-     * @param int $updated
-     * @param int $inserted
-     * @param int $deleted
+     * @param vendorStatus $status
+     *   Counts for the changes made be the vendor
      *
      * @return VendorImportResultMessage
      */
-    public static function success(int $totalRecords, int $updated, int $inserted, int $deleted = 0): self
+    public static function success(VendorStatus $status): self
     {
         $resultMessage = new VendorImportResultMessage(true);
-        $resultMessage->totalRecords = $totalRecords;
-        $resultMessage->updated = $updated;
-        $resultMessage->inserted = $inserted;
-        $resultMessage->deleted = $deleted;
+        $resultMessage->totalRecords = $status->records;
+        $resultMessage->updated = $status->updated;
+        $resultMessage->inserted = $status->inserted;
+        $resultMessage->deleted = $status->deleted;
 
-        $resultMessage->message = sprintf('%d vendor ISBNs processed. %d updated / %d inserted / %d deleted',
-            $totalRecords, $updated, $inserted, $deleted);
+        $resultMessage->message = sprintf('%d vendor ISBNs processed. %d updated / %d inserted / %d deleted', $status->records, $status->updated, $status->inserted, $status->deleted);
 
         return $resultMessage;
     }

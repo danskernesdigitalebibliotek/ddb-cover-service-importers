@@ -36,6 +36,8 @@ class CoverStoreUploadCommand extends Command
 
     /**
      * Define the command.
+     *
+     * @return void
      */
     protected function configure()
     {
@@ -59,5 +61,7 @@ class CoverStoreUploadCommand extends Command
         );
 
         $output->writeln($item);
+
+        return 0;
     }
 }

@@ -7,23 +7,21 @@
 
 namespace App\Service\VendorService\DataWell;
 
-use App\Exception\IllegalVendorServiceException;
-use App\Exception\UnknownVendorServiceException;
-use App\Service\VendorService\AbstractBaseVendorService;
 use App\Service\VendorService\DataWell\DataConverter\IversePublicUrlConverter;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
-use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use App\Utils\Types\VendorStatus;
 
 /**
  * Class DataWellVendorService.
  */
-class DataWellVendorService extends AbstractBaseVendorService
+class DataWellVendorService implements VendorServiceInterface
 {
     use ProgressBarTrait;
+    use VendorServiceTrait;
 
     protected const VENDOR_ID = 4;
     private const VENDOR_ARCHIVE_NAME = 'comics+';
@@ -33,16 +31,11 @@ class DataWellVendorService extends AbstractBaseVendorService
     /**
      * DataWellVendorService constructor.
      *
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $statsLogger
-     * @param DataWellSearchService $datawell
+     * @param dataWellSearchService $datawell
+     *   For searching the data well
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, EntityManagerInterface $entityManager,
-                              LoggerInterface $statsLogger, DataWellSearchService $datawell)
+    public function __construct(DataWellSearchService $datawell)
     {
-        parent::__construct($eventDispatcher, $entityManager, $statsLogger);
-
         $this->datawell = $datawell;
     }
 
@@ -51,12 +44,14 @@ class DataWellVendorService extends AbstractBaseVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        if (!$this->acquireLock()) {
-            return VendorImportResultMessage::error(parent::ERROR_RUNNING);
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         // We're lazy loading the config to avoid errors from missing config values on dependency injection
         $this->loadConfig();
+
+        $status = new VendorStatus();
 
         $this->progressStart('Search data well for: "'.self::VENDOR_ARCHIVE_NAME.'"');
 
@@ -70,17 +65,19 @@ class DataWellVendorService extends AbstractBaseVendorService
                 IversePublicUrlConverter::convertArrayValues($pidArray);
 
                 $batchSize = \count($pidArray);
-                $this->updateOrInsertMaterials($pidArray, IdentifierType::PID, $batchSize);
+                $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, $batchSize);
 
-                $this->progressMessageFormatted($this->totalUpdated, $this->totalInserted, $this->totalIsIdentifiers);
+                $this->progressMessageFormatted($status);
                 $this->progressAdvance();
 
-                if ($this->limit && $this->totalIsIdentifiers >= $this->limit) {
+                if ($this->limit && $status->records >= $this->limit) {
                     $more = false;
                 }
             } while ($more);
 
-            return VendorImportResultMessage::success($this->totalIsIdentifiers, $this->totalUpdated, $this->totalInserted, $this->totalDeleted);
+            $this->vendorCoreService->releaseLock($this->getVendorId());
+
+            return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
             return VendorImportResultMessage::error($exception->getMessage());
         }
@@ -88,15 +85,14 @@ class DataWellVendorService extends AbstractBaseVendorService
 
     /**
      * Set config fro service from DB vendor object.
-     *
-     * @throws UnknownVendorServiceException
-     * @throws IllegalVendorServiceException
      */
     private function loadConfig(): void
     {
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
         // Set the service access configuration from the vendor.
-        $this->datawell->setSearchUrl($this->getVendor()->getDataServerURI());
-        $this->datawell->setUser($this->getVendor()->getDataServerUser());
-        $this->datawell->setPassword($this->getVendor()->getDataServerPassword());
+        $this->datawell->setSearchUrl($vendor->getDataServerURI());
+        $this->datawell->setUser($vendor->getDataServerUser());
+        $this->datawell->setPassword($vendor->getDataServerPassword());
     }
 }

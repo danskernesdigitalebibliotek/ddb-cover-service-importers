@@ -24,7 +24,7 @@ class PublizonXmlReaderService
      * @param string $apiServiceKey
      * @param string $apiEndpoint
      *
-     * @return bool
+     * @return true
      *
      * @throws XmlreaderException
      */

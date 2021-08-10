@@ -9,7 +9,7 @@ namespace App\Service;
 use Prometheus\CollectorRegistry;
 use Prometheus\Exception\MetricsRegistrationException;
 use Prometheus\RenderTextFormat;
-use Prometheus\Storage\APC;
+use Prometheus\Storage\Redis;
 
 /**
  * Class MetricsService.
@@ -21,10 +21,18 @@ class MetricsService
 
     /**
      * MetricsService constructor.
+     *
+     * @param string $bindMetricsHost
+     *   Host to store metrics
+     * @param int $bindMetricsPort
+     *   Port to access the metrics storage
      */
-    public function __construct()
+    public function __construct(string $bindMetricsHost, int $bindMetricsPort)
     {
-        $adapter = new APC();
+        $adapter = new Redis([
+            'host' => $bindMetricsHost,
+            'port' => $bindMetricsPort,
+        ]);
         $this->registry = new CollectorRegistry($adapter);
     }
 
@@ -43,8 +51,10 @@ class MetricsService
      *   The value to increment with
      * @param array $labels
      *   Labels to filter by in prometheus. Default empty array.
+     *
+     * @return void
      */
-    public function counter($name, $help, $value = 1, array $labels = [])
+    public function counter($name, $help, $value = 1, array $labels = []): void
     {
         try {
             $counter = $this->registry->getOrRegisterCounter($this->namespace, $name, $help, array_keys($labels));
@@ -68,8 +78,10 @@ class MetricsService
      *   Value that the gauge should be set to
      * @param $labels
      *   Labels to filter by in prometheus. Default empty array.
+     *
+     * @return void
      */
-    public function gauge($name, $help, $value, $labels = [])
+    public function gauge(string $name, string $help, int $value, $labels = []): void
     {
         try {
             $gauge = $this->registry->getOrRegisterGauge($this->namespace, $name, $help, array_keys($labels));
@@ -94,8 +106,10 @@ class MetricsService
      *   The value that should be added to the histogram
      * @param $labels
      *   Labels to filter by in prometheus. Default empty array.
+     *
+     * @return void
      */
-    public function histogram($name, $help, $value, $labels = [])
+    public function histogram($name, $help, $value, $labels = []): void
     {
         try {
             $histogram = $this->registry->getOrRegisterHistogram($this->namespace, $name, $help, array_keys($labels));
@@ -112,7 +126,7 @@ class MetricsService
      * @return string
      *   Render matrices in a single string
      */
-    public function render()
+    public function render(): string
     {
         $renderer = new RenderTextFormat();
 

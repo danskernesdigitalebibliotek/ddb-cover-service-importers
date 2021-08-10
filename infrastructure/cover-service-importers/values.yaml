@@ -7,13 +7,28 @@ env: "prod"
 app:
   image:
     version: latest
-    pullPolicy: IfNotPresent
+    imagePullPolicy: IfNotPresent
   elastic_url: "http://es-elasticsearch-coordinating-only.cover-service.svc.cluster.local:9200"
+  no_hits_ttl: 3600
   redis:
     server: "redis-master.cover-service.svc.cluster.local"
     prefix: "DDBCoverImporters"
     port: "6379"
     cache_db: "11"
+    lock_db: "2"
+  openplatform:
+    search_limit: "100"
+  amqp:
+    server: "mq-rabbitmq.cover-service.svc.cluster.local"
+    port: "5672"
+  supervisor:
+    workers: 8
+    time_limit: 900
+    queues:
+      - async_priority_high
+      - async_priority_normal
+      - async_priority_low
+      - async_no_hit
   php:
     memory_limit: "512M"
   db:

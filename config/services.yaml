@@ -5,7 +5,6 @@
 # https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
 parameters:
     locale: 'en'
-    app.enable.no.hits: '%env(bool:APP_ENABLE_NO_HITS)%'
     openPlatform.auth.id: '%env(OPENPLATFORM_AUTH_ID)%'
     openPlatform.auth.secret: '%env(OPENPLATFORM_AUTH_SECRET)%'
     openPlatform.auth.url: '%env(OPENPLATFORM_AUTH_URL)%'
@@ -13,6 +12,7 @@ parameters:
     openPlatform.search.url: '%env(OPENPLATFORM_SEARCH_URL)%'
     openPlatform.search.ttl: '%env(OPENPLATFORM_SEARCH_TTL)%'
     openPlatform.search.profile: '%env(OPENPLATFORM_SEARCH_PROFILE)%'
+    openPlatform.search.limit: '%env(OPENPLATFORM_SEARCH_LIMIT)%'
     datawell.vendor.agency: '%env(DATAWELL_VENDOR_AGENCY)%'
     datawell.vendor.profile: '%env(DATAWELL_VENDOR_PROFILE)%'
     datawell.vendor.search_url: '%env(DATAWELL_VENDOR_SEARCH_URL)%'
@@ -30,23 +30,38 @@ services:
         bind:
             $projectDir: '%kernel.project_dir%'
             $resourcesDir: '%kernel.project_dir%/resources'
-            $statsLogger: '@monolog.logger.statistics'
-            $cloudinaryUrl: '%env(CLOUDINARY_URL)%'
+            $bindTraceId: '%env(traceId:HTTP_X_REQUEST_ID)%'
             $cloudinaryTransformations: '%env(yml:file:resolve:CLOUDINARY_CONFIG_FILE)%'
             $httpClient: '@eight_points_guzzle.client.guzzle_client'
 
             $bindElasticSearchUrl: '%env(ELASTIC_URL)%'
             $bindElasticStatsIndexPrefix: '%env(ELASTIC_STATS_INDEX_PREFIX)%'
 
+            $bindMetricsHost: '%env(string:METRICS_HOST)%'
+            $bindMetricsPort: '%env(int:METRICS_PORT)%'
+
+            $bindCloudinaryCloudName: '%env(string:CLOUDINARY_CLOUD_NAME)%'
+            $bindCloudinaryApiKey: '%env(string:CLOUDINARY_API_KEY)%'
+            $bindCloudinaryApiSecret: '%env(string:CLOUDINARY_API_SECRET)%'
+
     _instanceof:
-        App\Service\VendorService\AbstractBaseVendorService:
+        App\Service\VendorService\VendorServiceInterface:
             tags: [app.vendor.service]
+            calls:
+                - setVendorCoreService: ['@App\Service\VendorService\VendorCoreService']
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/*'
         exclude: '../src/{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
+
+    monolog.formatter.json:
+        class: Monolog\Formatter\JsonFormatter
+
+    App\Logger\TraceIdProcessor:
+        tags:
+            - { name: monolog.processor }
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
@@ -66,10 +81,3 @@ services:
     App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiService:
         arguments:
             $apiKey: '%env(THEMOVIEDATABASE_APIKEY)%'
-
-    Enqueue\Bundle\Consumption\Extension\DoctrinePingConnectionExtension:
-        public: false
-        arguments:
-            - '@doctrine'
-        tags:
-            - { name: 'enqueue.consumption.extension' }

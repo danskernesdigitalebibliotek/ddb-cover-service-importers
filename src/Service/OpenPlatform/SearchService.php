@@ -8,6 +8,7 @@
 namespace App\Service\OpenPlatform;
 
 use App\Exception\MaterialTypeException;
+use App\Exception\OpenPlatformSearchException;
 use App\Exception\PlatformAuthException;
 use App\Exception\PlatformSearchException;
 use App\Utils\OpenPlatform\Material;
@@ -28,7 +29,7 @@ class SearchService
 {
     private $params;
     private $cache;
-    private $statsLogger;
+    private $logger;
     private $authenticationService;
     private $client;
 
@@ -49,6 +50,7 @@ class SearchService
     private $searchCacheTTL;
     private $searchURL;
     private $searchProfile;
+    private $searchLimit;
 
     /**
      * SearchService constructor.
@@ -57,26 +59,25 @@ class SearchService
      *   Access to environment variables
      * @param adapterInterface $cache
      *   Cache object to store results
-     * @param loggerInterface $statsLogger
+     * @param loggerInterface $informationLogger
      *   Logger object to send stats to ES
      * @param authenticationService $authenticationService
      *   The Open Platform authentication service
      * @param ClientInterface $httpClient
      *   Guzzle Client
      */
-    public function __construct(ParameterBagInterface $params, AdapterInterface $cache,
-                                LoggerInterface $statsLogger, AuthenticationService $authenticationService,
-                                ClientInterface $httpClient)
+    public function __construct(ParameterBagInterface $params, AdapterInterface $cache, LoggerInterface $informationLogger, AuthenticationService $authenticationService, ClientInterface $httpClient)
     {
         $this->params = $params;
         $this->cache = $cache;
-        $this->statsLogger = $statsLogger;
+        $this->logger = $informationLogger;
         $this->authenticationService = $authenticationService;
         $this->client = $httpClient;
 
         $this->searchURL = $this->params->get('openPlatform.search.url');
         $this->searchCacheTTL = (int) $this->params->get('openPlatform.search.ttl');
         $this->searchProfile = (string) $this->params->get('openPlatform.search.profile');
+        $this->searchLimit = (int) $this->params->get('openPlatform.search.limit');
     }
 
     /**
@@ -178,7 +179,15 @@ class SearchService
 
                 case 'identifierISBN':
                     foreach ($items as $item) {
-                        $material->addIdentifier(IdentifierType::ISBN, $this->stripDashes($item));
+                        $isbn = $this->stripDashes($item);
+                        $material->addIdentifier(IdentifierType::ISBN, $isbn);
+
+                        // Always add the matching ISBN10/13 because we can't trust the datawell
+                        // to always provide both.
+                        $extraISBN = $this->convertIsbn($isbn);
+                        if (!is_null($extraISBN)) {
+                            $material->addIdentifier(IdentifierType::ISBN, $extraISBN);
+                        }
                     }
                     break;
 
@@ -239,6 +248,9 @@ class SearchService
      *   The identifier to search for
      * @param string $type
      *   The identifier type
+     * @param string $query
+     *   Search query to execute. Defaults to empty string, which means that the function will build the query based on
+     *   the other parameters.
      * @param int $offset
      *   The offset to start getting results
      * @param array $results
@@ -248,44 +260,48 @@ class SearchService
      *   The results currently found. If recursion is completed all the results.
      *
      * @throws GuzzleException
-     * @throws \App\Exception\PlatformAuthException
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws OpenPlatformSearchException
      */
-    private function recursiveSearch(string $token, string $identifier, string $type, int $offset = 0, array $results = []): array
+    private function recursiveSearch(string $token, string $identifier, string $type, string $query = '', int $offset = 0, array $results = []): array
     {
-        switch ($type) {
-            case IdentifierType::PID:
-                // If this is a search after a pid simply search for it and not in the search index.
-                $query = 'rec.id='.$identifier;
-                break;
+        // HACK HACK HACK.
+        // Temporary protection against non-real identifiers and search on library only ids.
+        if (empty($identifier) || strlen($identifier) <= 6) {
+            return $results;
+        }
 
-            case IdentifierType::ISBN:
-                $tools = new IsbnTools();
+        if ('' === $query) {
+            switch ($type) {
+                case IdentifierType::PID:
+                    // If this is a search after a pid simply search for it and not in the search index.
+                    $query = 'rec.id='.$identifier;
+                    break;
 
-                // Set it to false as default if the ISBN is not found to be valid by the tool.
-                $extraISBN = false;
+                case IdentifierType::ISBN:
+                    // Try to get both ISBN-10 and ISBN-13 into query to match wider.
+                    $extraISBN = $this->convertIsbn($identifier);
 
-                // Try to get both ISBN-10 and ISBN-13 into query to match wider.
-                try {
-                    if ($tools->isValidIsbn13($identifier)) {
-                        // Only ISBN-13 numbers starting with 978 can be converted to an ISBN-10.
-                        $extraISBN = $tools->convertIsbn13to10($identifier);
-                    } elseif ($tools->isValidIsbn10($identifier)) {
-                        $extraISBN = $tools->convertIsbn10to13($identifier);
+                    $query = '';
+                    if (!is_null($extraISBN)) {
+                        $query = 'term.isbn='.$extraISBN.' OR ';
                     }
-                } catch (\Exception $exception) {
-                    // Exception is thrown if the ISBN conversion fail. Fallback to setting extra ISBN to false.
-                }
+                    $query .= 'term.isbn='.$identifier;
+                    break;
 
-                $query = '';
-                if (false !== $extraISBN) {
-                    $query = 'term.isbn='.$extraISBN.' OR ';
-                }
-                $query .= 'term.isbn='.$identifier;
-                break;
+                case IdentifierType::FAUST:
+                    // Search after rec.id on basis posts only. This is to prevent match in rec.id between non
+                    // related posts.
+                    $query = 'rec.id=870970-basis:'.$identifier;
+                    break;
 
-            default:
-                $query = 'dkcclterm.is='.$identifier;
+                case IdentifierType::ISSN:
+                    $query = 'dkcclterm.in='.$identifier;
+                    break;
+
+                default:
+                    // This should not be possible
+                    throw new OpenPlatformSearchException('Search with unknown identifier type ('.$type.')');
+            }
         }
 
         $response = $this->client->request('POST', $this->searchURL, [
@@ -321,11 +337,41 @@ class SearchService
             }
         }
 
-        // If there are more results get the next chunk.
-        if (isset($json['hitCount']) && false !== $json['more']) {
-            $this->recursiveSearch($token, $identifier, $type, $offset + $this::SEARCH_LIMIT, $results);
+        // If there are more results get the next chunk and results are smaller then the limit.
+        if (isset($json['hitCount']) && false !== $json['more'] && count($results['pid']) < $this->searchLimit) {
+            $this->recursiveSearch($token, $identifier, $type, $query, $offset + $this::SEARCH_LIMIT, $results);
         }
 
         return $results;
+    }
+
+    /**
+     * Convert ISBN to matching ISBN10 or ISBN13.
+     *
+     * Will convert the given isbn number to it's opposite format.
+     * E.g. convert ISBN10 to 13, and ISBN13 to 10 when possible.
+     *
+     * @param string $isbn
+     *   An ISBN10 or ISBN13 number
+     *
+     * @return string|null
+     *   The ISBN number converted to the opposite format or null if conversion not possible
+     */
+    private function convertIsbn(string $isbn): ?string
+    {
+        $extraISBN = null;
+        $tools = new IsbnTools();
+        try {
+            if ($tools->isValidIsbn13($isbn)) {
+                // Only ISBN-13 numbers starting with 978 can be converted to an ISBN-10.
+                $extraISBN = $tools->convertIsbn13to10($isbn);
+            } elseif ($tools->isValidIsbn10($isbn)) {
+                $extraISBN = $tools->convertIsbn10to13($isbn);
+            }
+        } catch (\Exception $exception) {
+            // Exception is thrown if the ISBN conversion fail. Fallback to setting extra ISBN to null.
+        }
+
+        return $extraISBN;
     }
 }

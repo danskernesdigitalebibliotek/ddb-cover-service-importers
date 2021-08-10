@@ -15,6 +15,6 @@ class BoardgamegeekVendorService extends AbstractTsvVendorService
 {
     protected const VENDOR_ID = 11;
 
-    protected $vendorArchiveDir = 'Boardgamegeek';
-    protected $vendorArchiveName = 'boardgamegeek.load.tsv';
+    protected string $vendorArchiveDir = 'Boardgamegeek';
+    protected string $vendorArchiveName = 'boardgamegeek.load.tsv';
 }
