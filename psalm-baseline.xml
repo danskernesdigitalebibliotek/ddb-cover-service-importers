@@ -23,6 +23,11 @@
       <code>getCoverStoreURL</code>
     </PossiblyNullReference>
   </file>
+  <file src="src/Command/Image/MissingImagesCommand.php">
+    <PossiblyUndefinedMethod occurrences="1">
+      <code>findById</code>
+    </PossiblyUndefinedMethod>
+  </file>
   <file src="src/Command/QueueInsertCommand.php">
     <PossiblyInvalidArgument occurrences="1">
       <code>$vendorState ?? VendorState::INSERT</code>
