@@ -69,7 +69,7 @@ class QueueInsertCommand extends Command
                     $message->setIdentifierType(IdentifierType::PID);
                     $message->setIdentifier('1234567890');
                     $message->setVendorId('15');
-                    $message->setImageUrl('https://www.danskernesdigitalebibliotek.dk/fileadmin/_kulturstyrelsen/images/ddb/logo.png');
+                    $message->setImageUrl('https://images.bogportalen.dk/images/9788740050134.jpg');
                     $message->setOperation($vendorState ?? VendorState::INSERT);
                     break;
 

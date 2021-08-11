@@ -63,6 +63,11 @@
       <code>$withOutSearchCache</code>
     </PossiblyInvalidArgument>
   </file>
+  <file src="src/Command/Image/MissingImagesCommand.php">
+    <PossiblyUndefinedMethod occurrences="1">
+      <code>findById</code>
+    </PossiblyUndefinedMethod>
+  </file>
   <file src="src/Command/QueueInsertCommand.php">
     <PossiblyInvalidArgument occurrences="2">
       <code>$message</code>
