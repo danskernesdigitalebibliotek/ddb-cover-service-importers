@@ -23,12 +23,9 @@ class PopulateService
 
     const BATCH_SIZE = 1000;
 
-    /* @var SearchRepository $searchRepository */
-    private $searchRepository;
-    /* @var string $elasticHost */
-    private $elasticHost;
-    /* @var EntityManagerInterface $entityManager */
-    private $entityManager;
+    private SearchRepository $searchRepository;
+    private string $elasticHost;
+    private EntityManagerInterface $entityManager;
 
     /**
      * PopulateService constructor.
@@ -64,7 +61,7 @@ class PopulateService
      *
      * @return void
      */
-    public function populate(string $index, int $record_id = -1)
+    public function populate(string $index, int $record_id = -1): void
     {
         $this->progressStart('Starting populate process');
 

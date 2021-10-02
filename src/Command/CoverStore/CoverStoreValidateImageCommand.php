@@ -27,11 +27,11 @@ class CoverStoreValidateImageCommand extends Command
 {
     protected static $defaultName = 'app:cover:validate-image';
 
-    private $store;
-    private $sourceRepository;
-    private $vendorRepository;
-    private $imageValidatorService;
-    private $entityManager;
+    private CoverStoreInterface $store;
+    private SourceRepository $sourceRepository;
+    private VendorRepository $vendorRepository;
+    private VendorImageValidatorService $imageValidatorService;
+    private EntityManagerInterface $entityManager;
 
     /**
      * CoverStoreValidateImageCommand constructor.
@@ -55,10 +55,8 @@ class CoverStoreValidateImageCommand extends Command
 
     /**
      * Define the command.
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Validate that uploaded image exists in cover store')
             ->addOption('vendor-id', null, InputOption::VALUE_REQUIRED, 'The id of the vendor to validate image for')
@@ -68,8 +66,10 @@ class CoverStoreValidateImageCommand extends Command
 
     /**
      * {@inheritdoc}
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $vendorId = $input->getOption('vendor-id');
         $identifier = $input->getOption('identifier');

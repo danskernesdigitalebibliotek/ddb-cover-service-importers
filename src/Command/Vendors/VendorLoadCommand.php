@@ -25,7 +25,7 @@ class VendorLoadCommand extends Command
 {
     protected static $defaultName = 'app:vendor:load';
 
-    private $vendorFactory;
+    private VendorServiceFactory $vendorFactory;
 
     /**
      * VendorLoadCommand constructor.
@@ -55,12 +55,12 @@ class VendorLoadCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $limit = $input->getOption('limit');
+        $limit = (int) $input->getOption('limit');
         $dispatchToQueue = !$input->getOption('without-queue');
-        $withUpdates = $input->getOption('with-updates');
-        $force = $input->getOption('force');
+        $withUpdates = (bool) $input->getOption('with-updates');
+        $force = (bool) $input->getOption('force');
 
         $vendor = $input->getOption('vendor');
         // Ask 'all', 'none' or '<vendor>'
@@ -149,11 +149,13 @@ class VendorLoadCommand extends Command
     }
 
     /**
-     * Get succes/failure emoji.
+     * Get success/failure emoji.
      *
      * @param bool $success
+     *   The current status
      *
      * @return string
+     *   The emoji base on success parameter
      *
      * @psalm-return '✅'|'❌'
      */

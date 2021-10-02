@@ -17,9 +17,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  */
 class CreateDynamicStatsTemplateCommand extends Command
 {
-    /* @var string $elasticHost */
-    private $elasticHost;
-    private $elasticStatsIndexPrefix;
+    private string $elasticHost;
+    private string $elasticStatsIndexPrefix;
 
     protected static $defaultName = 'app:elastic:create-stats-template';
 
@@ -41,10 +40,8 @@ class CreateDynamicStatsTemplateCommand extends Command
 
     /**
      * {@inheritdoc}
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Create dynamic stats index template. Command is idempotent and can safely be called multiple times.');
     }

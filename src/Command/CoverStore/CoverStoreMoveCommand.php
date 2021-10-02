@@ -20,7 +20,7 @@ class CoverStoreMoveCommand extends Command
 {
     protected static $defaultName = 'app:cover:move';
 
-    private $store;
+    private CoverStoreInterface $store;
 
     /**
      * CoverStoreMoveCommand constructor.
@@ -36,10 +36,8 @@ class CoverStoreMoveCommand extends Command
 
     /**
      * Define the command.
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Move a cover in the cover store')
             ->addOption('source', null, InputOption::VALUE_REQUIRED, 'Resource id for the source "folder/image-name"')
@@ -49,7 +47,7 @@ class CoverStoreMoveCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $item = $this->store->move(
             $input->getOption('source'),

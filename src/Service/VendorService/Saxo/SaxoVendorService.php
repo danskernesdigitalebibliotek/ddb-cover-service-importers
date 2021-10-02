@@ -53,6 +53,8 @@ class SaxoVendorService implements VendorServiceInterface
             return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
+        $status = new VendorStatus();
+
         try {
             $this->progressStart('Opening sheet: "'.self::VENDOR_ARCHIVE_NAME.'"');
 
@@ -60,7 +62,6 @@ class SaxoVendorService implements VendorServiceInterface
 
             $totalRows = 0;
             $isbnArray = [];
-            $status = new VendorStatus();
 
             foreach ($reader->getSheetIterator() as $sheet) {
                 foreach ($sheet->getRowIterator() as $row) {
@@ -89,12 +90,16 @@ class SaxoVendorService implements VendorServiceInterface
             }
 
             $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
+
+            $this->logStatusMetrics($status);
             $this->progressFinish();
 
             $this->vendorCoreService->releaseLock($this->getVendorId());
 
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
+            $this->logStatusMetrics($status);
+
             return VendorImportResultMessage::error($exception->getMessage());
         }
     }

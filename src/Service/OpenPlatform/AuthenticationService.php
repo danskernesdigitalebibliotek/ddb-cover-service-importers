@@ -27,20 +27,20 @@ class AuthenticationService
     // limit to be 1 day, so it will be refresh before it expires.
     const TOKEN_EXPIRE_LIMIT = 86400;
 
-    private $params;
-    private $cache;
-    private $logger;
-    private $accessToken = '';
-    private $client;
+    private ParameterBagInterface $params;
+    private AdapterInterface $cache;
+    private LoggerInterface $logger;
+    private string $accessToken = '';
+    private ClientInterface $client;
 
     /**
      * Authentication constructor.
      *
-     * @param parameterBagInterface $params
+     * @param ParameterBagInterface $params
      *   Used to get parameters form the environment
-     * @param adapterInterface $cache
+     * @param AdapterInterface $cache
      *   Cache to store access token
-     * @param loggerInterface $informationLogger
+     * @param LoggerInterface $informationLogger
      *   Logger object to send stats to ES
      * @param ClientInterface $httpClient
      *   Guzzle Client
@@ -69,7 +69,7 @@ class AuthenticationService
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    public function getAccessToken($refresh = false)
+    public function getAccessToken(bool $refresh = false): string
     {
         if (empty($this->accessToken)) {
             $this->accessToken = $this->authenticate($refresh);
@@ -91,7 +91,7 @@ class AuthenticationService
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Psr\Cache\InvalidArgumentException
      */
-    private function authenticate($refresh = false)
+    private function authenticate(bool $refresh = false): string
     {
         // Try getting item from cache.
         $item = $this->cache->getItem('openplatform.access_token');

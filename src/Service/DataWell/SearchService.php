@@ -20,13 +20,13 @@ class SearchService
 {
     public const SEARCH_LIMIT = 50;
 
-    private $client;
+    private ClientInterface $client;
 
-    private $agency;
-    private $profile;
-    private $searchURL;
-    private $password;
-    private $user;
+    private string $agency;
+    private string $profile;
+    private string $searchURL;
+    private string $password;
+    private string $user;
 
     /**
      * SearchService constructor.
@@ -51,7 +51,7 @@ class SearchService
      * @param string $query
      * @param int $offset
      *
-     * @return (array|bool|int)[]
+     * @return array
      *
      * @throws DataWellVendorException Throws DataWellVendorException on network error
      *

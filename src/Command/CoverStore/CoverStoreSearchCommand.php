@@ -20,8 +20,7 @@ class CoverStoreSearchCommand extends Command
 {
     protected static $defaultName = 'app:cover:search';
 
-    /** @var CoverStoreInterface */
-    private $store;
+    private CoverStoreInterface $store;
 
     /**
      * CoverStoreSearchCommand constructor.
@@ -37,10 +36,8 @@ class CoverStoreSearchCommand extends Command
 
     /**
      * Define the command.
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Search a folder in the cover store')
             ->addOption('folder', null, InputOption::VALUE_REQUIRED, 'Name of the vendor that owns the image (folder in the store)')
@@ -50,7 +47,7 @@ class CoverStoreSearchCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $items = $this->store->search(
             $input->getOption('folder'),

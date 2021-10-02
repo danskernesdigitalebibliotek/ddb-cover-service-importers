@@ -18,14 +18,14 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class SearchPopulateCommand extends Command
 {
-    private $populateService;
+    private PopulateService $populateService;
 
     protected static $defaultName = 'app:search:populate';
 
     /**
      * SearchPopulateCommand constructor.
      *
-     * @param \App\Service\PopulateService $populateService
+     * @param PopulateService $populateService
      */
     public function __construct(PopulateService $populateService)
     {
@@ -35,10 +35,8 @@ class SearchPopulateCommand extends Command
 
     /**
      * {@inheritdoc}
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setDescription('Populate the search index with data from the search table.')
@@ -51,8 +49,8 @@ class SearchPopulateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $index = $input->getOption('index');
-        $id = $input->getOption('id');
+        $index = (string) $input->getOption('index');
+        $id = (int) $input->getOption('id');
 
         if (!$index) {
             throw new \RuntimeException('Index must be specified.');

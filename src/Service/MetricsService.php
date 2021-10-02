@@ -16,8 +16,8 @@ use Prometheus\Storage\Redis;
  */
 class MetricsService
 {
-    private $registry;
-    private $namespace = 'CoverService';
+    private CollectorRegistry $registry;
+    private string $namespace = 'CoverServiceImports';
 
     /**
      * MetricsService constructor.
@@ -43,9 +43,9 @@ class MetricsService
      * increase or be reset to zero on restart. For example, you can use a counter to represent the number of requests
      * served, tasks completed, or errors.
      *
-     * @param $name
+     * @param string $name
      *   The name of the metrics
-     * @param $help
+     * @param string $help
      *   Helper text for the matrices
      * @param int $value
      *   The value to increment with
@@ -54,7 +54,7 @@ class MetricsService
      *
      * @return void
      */
-    public function counter($name, $help, $value = 1, array $labels = []): void
+    public function counter(string $name, string $help, int $value = 1, array $labels = []): void
     {
         try {
             $counter = $this->registry->getOrRegisterCounter($this->namespace, $name, $help, array_keys($labels));
@@ -70,18 +70,18 @@ class MetricsService
      *
      * A gauge is a metric that represents a single numerical value that can arbitrarily go up and down.
      *
-     * @param $name
+     * @param string $name
      *   The name of the metrics
-     * @param $help
+     * @param string $help
      *   Helper text for the matrices
-     * @param $value
+     * @param int $value
      *   Value that the gauge should be set to
-     * @param $labels
+     * @param array $labels
      *   Labels to filter by in prometheus. Default empty array.
      *
      * @return void
      */
-    public function gauge(string $name, string $help, int $value, $labels = []): void
+    public function gauge(string $name, string $help, int $value, array $labels = []): void
     {
         try {
             $gauge = $this->registry->getOrRegisterGauge($this->namespace, $name, $help, array_keys($labels));
@@ -98,18 +98,18 @@ class MetricsService
      * A histogram samples observations (usually things like request durations or response sizes) and counts them in
      * configurable buckets. It also provides a sum of all observed values.
      *
-     * @param $name
+     * @param string $name
      *   The name of the metrics
-     * @param $help
+     * @param string $help
      *   Helper text for the matrices
-     * @param $value
+     * @param float $value
      *   The value that should be added to the histogram
-     * @param $labels
+     * @param array $labels
      *   Labels to filter by in prometheus. Default empty array.
      *
      * @return void
      */
-    public function histogram($name, $help, $value, $labels = []): void
+    public function histogram(string $name, string $help, float $value, array $labels = []): void
     {
         try {
             $histogram = $this->registry->getOrRegisterHistogram($this->namespace, $name, $help, array_keys($labels));

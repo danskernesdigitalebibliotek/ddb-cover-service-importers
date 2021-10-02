@@ -20,7 +20,7 @@ class CoverStoreUploadCommand extends Command
 {
     protected static $defaultName = 'app:cover:upload';
 
-    private $store;
+    private CoverStoreInterface $store;
 
     /**
      * CoverStoreUploadCommand constructor.
@@ -36,10 +36,8 @@ class CoverStoreUploadCommand extends Command
 
     /**
      * Define the command.
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Upload image to cover store form remote URL')
             ->addArgument('url', InputArgument::REQUIRED, 'URL to image to upload')
@@ -51,7 +49,7 @@ class CoverStoreUploadCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $item = $this->store->upload(
             $input->getArgument('url'),

@@ -14,12 +14,12 @@ use App\Exception\MaterialTypeException;
  */
 class Material
 {
-    private $title = 'Unknown';
-    private $creator = 'Unknown';
-    private $date = 'Unknown';
-    private $publisher = 'Unknown';
-    private $identifiers = [];
-    private $collection = false;
+    private string $title = 'Unknown';
+    private string $creator = 'Unknown';
+    private string $date = 'Unknown';
+    private string $publisher = 'Unknown';
+    private array $identifiers = [];
+    private bool $collection = false;
 
     public function __toString()
     {
@@ -51,7 +51,7 @@ class Material
      *
      * @return string
      */
-    public function getTitle()
+    public function getTitle(): string
     {
         return $this->title;
     }
@@ -59,7 +59,7 @@ class Material
     /**
      * Set the material title.
      *
-     * @param mixed $title
+     * @param string $title
      *
      * @return $this
      */
@@ -75,7 +75,7 @@ class Material
      *
      * @return string
      */
-    public function getCreator()
+    public function getCreator(): string
     {
         return $this->creator;
     }
@@ -99,7 +99,7 @@ class Material
      *
      * @return string
      */
-    public function getDate()
+    public function getDate(): string
     {
         return $this->date;
     }
@@ -160,7 +160,7 @@ class Material
      *
      * @return MaterialIdentifier[]
      */
-    public function getIdentifierByType(string $type)
+    public function getIdentifierByType(string $type): array
     {
         return array_filter($this->identifiers, function (MaterialIdentifier $identifier) use ($type) {
             return $identifier->getType() === $type;
@@ -178,7 +178,7 @@ class Material
      * @return bool
      *   TRUE if it exists else FALSE
      */
-    public function hasIdentifier(string $type, string $identifier)
+    public function hasIdentifier(string $type, string $identifier): bool
     {
         $ids = $this->getIdentifierByType($type);
         foreach ($ids as $id) {
