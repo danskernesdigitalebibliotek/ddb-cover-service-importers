@@ -25,6 +25,9 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
 
     protected string $vendorArchiveDir = 'AbstractTsvVendor';
     protected string $vendorArchiveName = 'covers.tsv';
+    protected string $fieldDelimiter = "\t";
+    protected bool $sheetHasHeaderRow = true;
+    protected array $sheetFields = [];
 
     private string $resourcesDir;
 
@@ -51,7 +54,7 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
         }
 
         try {
-            $this->progressStart('Opening tsv: "'.$this->vendorArchiveName.'"');
+            $this->progressStart('Opening resource: "'.$this->vendorArchiveName.'"');
 
             $reader = $this->getSheetReader();
 
@@ -60,10 +63,10 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
             $status = new VendorStatus();
 
             foreach ($reader->getSheetIterator() as $sheet) {
-                $fields = [];
+                $fields = $this->sheetFields;
                 foreach ($sheet->getRowIterator() as $row) {
                     $cellsArray = $row->getCells();
-                    if (0 === $totalRows) {
+                    if ($this->sheetHasHeaderRow && 0 === $totalRows) {
                         $fields = $this->findCellName($cellsArray);
                         // First row in the tsv file contains the headers.
                         if (!array_key_exists('faust', $fields) || !array_key_exists('ppid', $fields) || !array_key_exists('url', $fields)) {
@@ -124,7 +127,7 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
         $filePath = $fileLocator->locate($this->vendorArchiveName, null, true);
 
         $reader = ReaderEntityFactory::createCSVReader();
-        $reader->setFieldDelimiter("\t");
+        $reader->setFieldDelimiter($this->fieldDelimiter);
         $reader->open($filePath);
 
         return $reader;
@@ -143,15 +146,10 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
      */
     private function findCellName(array $cellsArray): array
     {
-        $ret = [];
+        $fields = array_map(function ($cell) {
+            return mb_strtolower($cell->getValue());
+        }, $cellsArray);
 
-        if (empty($ret)) {
-            $fields = array_map(function ($cell) {
-                return mb_strtolower($cell->getValue());
-            }, $cellsArray);
-            $ret = array_flip($fields);
-        }
-
-        return $ret;
+        return array_flip($fields);
     }
 }
