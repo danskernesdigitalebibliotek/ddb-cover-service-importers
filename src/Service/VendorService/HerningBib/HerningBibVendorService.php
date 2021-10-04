@@ -9,10 +9,7 @@ namespace App\Service\VendorService\HerningBib;
 use App\Service\VendorService\AbstractTsvVendorService;
 use App\Utils\Message\VendorImportResultMessage;
 use GuzzleHttp\Client;
-use League\Flysystem\FileAttributes;
 use League\Flysystem\Filesystem;
-use League\Flysystem\FilesystemException;
-use League\Flysystem\StorageAttributes;
 use League\Flysystem\UnreadableFileException;
 
 /**
@@ -25,7 +22,7 @@ class HerningBibVendorService extends AbstractTsvVendorService
 
     protected string $vendorArchiveDir = 'HerningBib';
     protected string $vendorArchiveName = 'index.tsv';
-    protected string $fieldDelimiter = " ";
+    protected string $fieldDelimiter = ' ';
     protected bool $sheetHasHeaderRow = false;
     protected array $sheetFields = ['ppid' => 0, 'url' => 1];
 
@@ -34,7 +31,7 @@ class HerningBibVendorService extends AbstractTsvVendorService
     private string $location;
 
     /**
-     * HerningBibVendorService constructor
+     * HerningBibVendorService constructor.
      *
      * @param Client $httpClient
      * @param Filesystem $local
@@ -44,14 +41,14 @@ class HerningBibVendorService extends AbstractTsvVendorService
         // Resource files is loaded from online location
         parent::__construct('');
 
-        $this->location = $this->vendorArchiveDir . '/'. $this->vendorArchiveName;
+        $this->location = $this->vendorArchiveDir.'/'.$this->vendorArchiveName;
 
         $this->httpClient = $httpClient;
         $this->local = $local;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      *
      * @throws UnreadableFileException
      */
@@ -63,15 +60,15 @@ class HerningBibVendorService extends AbstractTsvVendorService
             throw new UnreadableFileException('Failed to get TSV file from CDN');
         }
 
-        $this->vendorArchiveDir = $this->local->getAdapter()->getPathPrefix() . $this->vendorArchiveDir;
+        $this->vendorArchiveDir = $this->local->getAdapter()->getPathPrefix().$this->vendorArchiveDir;
 
         return parent::load();
     }
 
     /**
-     * Download the TSV file to local filesystem
+     * Download the TSV file to local filesystem.
      */
-    private function getTsv(string $location, string $url):bool
+    private function getTsv(string $location, string $url): bool
     {
         $response = $this->httpClient->get($url);
 
