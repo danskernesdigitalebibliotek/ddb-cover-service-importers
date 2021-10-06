@@ -23,7 +23,6 @@
         "friendsofsymfony/elastica-bundle": "^5.0",
         "guzzlehttp/guzzle": "^6.3",
         "karriere/json-decoder": "^2.1",
-        "league/flysystem-ziparchive": "^1.0",
         "league/oauth2-client": "^2.6",
         "nicebooks/isbn": "^0.2.56",
         "oneup/flysystem-bundle": "^3.0",

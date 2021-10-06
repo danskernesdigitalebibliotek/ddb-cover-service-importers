@@ -53,6 +53,11 @@
       <code>findOneById</code>
     </UndefinedMagicMethod>
   </file>
+  <file src="src/Command/Image/MissingImagesCommand.php">
+    <PossiblyUndefinedMethod occurrences="1">
+      <code>findById</code>
+    </PossiblyUndefinedMethod>
+  </file>
   <file src="src/Command/OpenPlatform/OpenPlatformSearchCommand.php">
     <ImplicitToStringCast occurrences="1">
       <code>$material</code>
@@ -62,11 +67,6 @@
       <code>$type</code>
       <code>$withOutSearchCache</code>
     </PossiblyInvalidArgument>
-  </file>
-  <file src="src/Command/Image/MissingImagesCommand.php">
-    <PossiblyUndefinedMethod occurrences="1">
-      <code>findById</code>
-    </PossiblyUndefinedMethod>
   </file>
   <file src="src/Command/QueueInsertCommand.php">
     <PossiblyInvalidArgument occurrences="2">
@@ -246,11 +246,21 @@
     </InvalidScalarArgument>
   </file>
   <file src="src/Service/DataWell/SearchService.php">
+    <InvalidPropertyAssignmentValue occurrences="5">
+      <code>$params-&gt;get('datawell.vendor.agency')</code>
+      <code>$params-&gt;get('datawell.vendor.password')</code>
+      <code>$params-&gt;get('datawell.vendor.profile')</code>
+      <code>$params-&gt;get('datawell.vendor.search_url')</code>
+      <code>$params-&gt;get('datawell.vendor.user')</code>
+    </InvalidPropertyAssignmentValue>
     <InvalidScalarArgument occurrences="1">
       <code>$exception-&gt;getCode()</code>
     </InvalidScalarArgument>
   </file>
   <file src="src/Service/OpenPlatform/AuthenticationService.php">
+    <InvalidArgument occurrences="1">
+      <code>$this-&gt;params-&gt;get('openPlatform.auth.url')</code>
+    </InvalidArgument>
     <InvalidScalarArgument occurrences="2">
       <code>$exception-&gt;getCode()</code>
       <code>$exception-&gt;getCode()</code>
@@ -261,12 +271,18 @@
     </InvalidThrow>
   </file>
   <file src="src/Service/OpenPlatform/SearchService.php">
+    <InvalidPropertyAssignmentValue occurrences="1">
+      <code>$this-&gt;params-&gt;get('openPlatform.search.url')</code>
+    </InvalidPropertyAssignmentValue>
     <InvalidScalarArgument occurrences="1">
       <code>$exception-&gt;getCode()</code>
     </InvalidScalarArgument>
     <InvalidThrow occurrences="1">
       <code>InvalidArgumentException</code>
     </InvalidThrow>
+    <PossiblyInvalidCast occurrences="1">
+      <code>$this-&gt;params-&gt;get('openPlatform.search.profile')</code>
+    </PossiblyInvalidCast>
   </file>
   <file src="src/Service/PopulateService.php">
     <PossiblyNullArgument occurrences="2">
@@ -286,10 +302,6 @@
     <PossiblyInvalidArgument occurrences="1">
       <code>$filePath</code>
     </PossiblyInvalidArgument>
-    <PossiblyUndefinedArrayOffset occurrences="2">
-      <code>$fields['ppid']</code>
-      <code>$fields['url']</code>
-    </PossiblyUndefinedArrayOffset>
   </file>
   <file src="src/Service/VendorService/BogPortalen/BogPortalenVendorService.php">
     <PossiblyFalseArgument occurrences="1">
@@ -321,6 +333,14 @@
     <PossiblyInvalidArgument occurrences="1">
       <code>$filePath</code>
     </PossiblyInvalidArgument>
+  </file>
+  <file src="src/Service/VendorService/HerningBib/HerningBibVendorService.php">
+    <PossiblyNullArgument occurrences="1">
+      <code>$response-&gt;getBody()-&gt;detach()</code>
+    </PossiblyNullArgument>
+    <UndefinedInterfaceMethod occurrences="1">
+      <code>getPathPrefix</code>
+    </UndefinedInterfaceMethod>
   </file>
   <file src="src/Service/VendorService/OverDrive/Api/Client.php">
     <InvalidThrow occurrences="8">
