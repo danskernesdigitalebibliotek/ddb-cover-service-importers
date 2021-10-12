@@ -20,7 +20,7 @@ class CoverStoreRemoveCommand extends Command
 {
     protected static $defaultName = 'app:cover:remove';
 
-    private $store;
+    private CoverStoreInterface $store;
 
     /**
      * CoverStoreUploadCommand constructor.
@@ -36,10 +36,8 @@ class CoverStoreRemoveCommand extends Command
 
     /**
      * Define the command.
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Remove image to cover store')
           ->addArgument('folder', InputArgument::REQUIRED, 'Name of the vendor that owns the image')
@@ -48,8 +46,15 @@ class CoverStoreRemoveCommand extends Command
 
     /**
      * {@inheritdoc}
+     *
+     * @throws \App\Exception\CoverStoreAlreadyExistsException
+     * @throws \App\Exception\CoverStoreCredentialException
+     * @throws \App\Exception\CoverStoreException
+     * @throws \App\Exception\CoverStoreNotFoundException
+     * @throws \App\Exception\CoverStoreTooLargeFileException
+     * @throws \App\Exception\CoverStoreUnexpectedException
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->store->remove($input->getArgument('folder'), $input->getArgument('identifier'));
 

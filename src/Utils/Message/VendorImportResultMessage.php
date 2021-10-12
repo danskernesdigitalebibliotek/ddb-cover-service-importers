@@ -13,20 +13,20 @@ use App\Utils\Types\VendorStatus;
  */
 class VendorImportResultMessage
 {
-    private $isSuccess;
-    private $message;
+    private bool $isSuccess;
+    private string $message;
 
-    private $totalRecords;
-    private $updated;
-    private $inserted;
-    private $deleted;
+    private int $totalRecords;
+    private int $updated;
+    private int $inserted;
+    private int $deleted;
 
     /**
      * VendorImportResultMessage constructor.
      *
-     * @param $success
+     * @param bool $success
      */
-    private function __construct($success)
+    private function __construct(bool $success)
     {
         $this->isSuccess = $success;
     }

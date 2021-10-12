@@ -23,7 +23,7 @@ class VendorJobCommand extends Command
 {
     protected static $defaultName = 'app:vendor:job-test';
 
-    private $bus;
+    private MessageBusInterface $bus;
 
     /**
      * VendorJobCommand constructor.
@@ -40,10 +40,8 @@ class VendorJobCommand extends Command
 
     /**
      * Define the command.
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Send job to test import job')
             ->addArgument('operation', InputArgument::REQUIRED, 'The operation to dispatch (insert/update/delete).')
@@ -55,7 +53,7 @@ class VendorJobCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $operation = $input->getArgument('operation');
         $identifier = $input->getArgument('identifier');

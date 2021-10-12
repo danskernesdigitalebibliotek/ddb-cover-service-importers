@@ -35,7 +35,6 @@ services:
             $httpClient: '@eight_points_guzzle.client.guzzle_client'
 
             $bindElasticSearchUrl: '%env(ELASTIC_URL)%'
-            $bindElasticStatsIndexPrefix: '%env(ELASTIC_STATS_INDEX_PREFIX)%'
 
             $bindMetricsHost: '%env(string:METRICS_HOST)%'
             $bindMetricsPort: '%env(int:METRICS_PORT)%'

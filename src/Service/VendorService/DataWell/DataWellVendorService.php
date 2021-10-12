@@ -26,12 +26,12 @@ class DataWellVendorService implements VendorServiceInterface
     protected const VENDOR_ID = 4;
     private const VENDOR_ARCHIVE_NAME = 'comics+';
 
-    private $datawell;
+    private DataWellSearchService $datawell;
 
     /**
      * DataWellVendorService constructor.
      *
-     * @param dataWellSearchService $datawell
+     * @param DataWellSearchService $datawell
      *   For searching the data well
      */
     public function __construct(DataWellSearchService $datawell)
@@ -75,10 +75,13 @@ class DataWellVendorService implements VendorServiceInterface
                 }
             } while ($more);
 
+            $this->logStatusMetrics($status);
             $this->vendorCoreService->releaseLock($this->getVendorId());
 
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
+            $this->logStatusMetrics($status);
+
             return VendorImportResultMessage::error($exception->getMessage());
         }
     }

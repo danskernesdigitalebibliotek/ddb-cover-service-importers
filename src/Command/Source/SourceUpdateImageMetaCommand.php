@@ -18,8 +18,8 @@ class SourceUpdateImageMetaCommand extends Command
 {
     protected static $defaultName = 'app:source:update-image-meta';
 
-    private $em;
-    private $validator;
+    private EntityManagerInterface $em;
+    private VendorImageValidatorService $validator;
 
     public function __construct(EntityManagerInterface $entityManager, VendorImageValidatorService $validator)
     {
@@ -31,10 +31,8 @@ class SourceUpdateImageMetaCommand extends Command
 
     /**
      * Define the command.
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Update image metadata information')
             ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'Only for this identifier');
@@ -43,7 +41,7 @@ class SourceUpdateImageMetaCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $identifier = $input->getOption('identifier');
         $batchSize = 50;

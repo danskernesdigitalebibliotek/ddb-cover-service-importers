@@ -11,9 +11,6 @@ oneup_flysystem:
                 password: ''
                 root: 'Public'
                 ssl: false
-        bogportalen_zip:
-            zip:
-                location: "%kernel.cache_dir%/flysystem/BOP-ProductAll.zip"
         rbdigital_ftp:
             ftp:
                 host: ''
@@ -31,6 +28,3 @@ oneup_flysystem:
 
         rbdigital_ftp:
             adapter: rbdigital_ftp
-
-        bogportalen_local_zip:
-            adapter: bogportalen_zip

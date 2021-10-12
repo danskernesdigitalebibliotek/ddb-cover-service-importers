@@ -17,7 +17,7 @@ class VendorPopulateCommand extends Command
 {
     protected static $defaultName = 'app:vendor:populate';
 
-    private $vendorFactory;
+    private VendorServiceFactory $vendorFactory;
 
     /**
      * VendorPopulateCommand constructor.
@@ -33,10 +33,8 @@ class VendorPopulateCommand extends Command
 
     /**
      * Define the command.
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Populate vendor options table in DB with missing vendor services.');
     }
@@ -44,7 +42,7 @@ class VendorPopulateCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 

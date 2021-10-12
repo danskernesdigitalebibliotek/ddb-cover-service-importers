@@ -23,8 +23,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class IndexEventSubscriber implements EventSubscriberInterface
 {
-    private $em;
-    private $logger;
+    private EntityManagerInterface $em;
+    private LoggerInterface $logger;
 
     /**
      * IndexEventSubscriber constructor.
@@ -41,7 +41,7 @@ class IndexEventSubscriber implements EventSubscriberInterface
     /**
      * {@inheritdoc}
      */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             IndexReadyEvent::NAME => 'onIndexEvent',

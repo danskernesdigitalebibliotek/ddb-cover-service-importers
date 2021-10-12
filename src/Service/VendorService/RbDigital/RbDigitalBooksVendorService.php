@@ -38,9 +38,9 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
         'Recorded Books eBook Classics Collection',
     ];
 
-    private $local;
-    private $ftp;
-    private $cache;
+    private Filesystem $local;
+    private Filesystem $ftp;
+    private AdapterInterface $cache;
 
     /**
      * RbDigitalVendorService constructor.
@@ -148,10 +148,13 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
                 $this->progressMessageFormatted($status);
                 $this->progressAdvance();
             } catch (\Exception $exception) {
+                $this->logStatusMetrics($status);
+
                 return VendorImportResultMessage::error($exception->getMessage());
             }
         }
 
+        $this->logStatusMetrics($status);
         $this->progressFinish();
 
         $this->vendorCoreService->releaseLock($this->getVendorId());

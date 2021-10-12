@@ -25,8 +25,8 @@ class SearchReindexCommand extends Command
 
     protected static $defaultName = 'app:search:reindex';
 
-    private $em;
-    private $bus;
+    private EntityManagerInterface $em;
+    private MessageBusInterface $bus;
 
     /**
      * SearchReindexCommand constructor.
@@ -44,10 +44,8 @@ class SearchReindexCommand extends Command
 
     /**
      * Define the command.
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Reindex search table')
             ->addOption('vendor-id', null, InputOption::VALUE_OPTIONAL, 'Limit the re-index to vendor with this id number')
@@ -59,7 +57,7 @@ class SearchReindexCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $vendorId = $input->getOption('vendor-id');
         $cleanUp = $input->getOption('clean-up');

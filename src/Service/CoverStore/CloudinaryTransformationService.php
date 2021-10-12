@@ -18,7 +18,7 @@ use App\Exception\CoverStoreTransformationException;
  */
 class CloudinaryTransformationService implements CoverStoreTransformationInterface
 {
-    private $transformations;
+    private array $transformations;
 
     /**
      * CloudinaryTransformationService constructor.

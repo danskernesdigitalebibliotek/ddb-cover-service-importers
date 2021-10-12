@@ -13,6 +13,7 @@ use App\Service\VendorService\UploadService\UploadServiceVendorService;
 use App\Utils\Types\IdentifierType;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
@@ -116,7 +117,8 @@ class UploadServiceVendorServiceTest extends TestCase
         $store = $this->createMock(CoverStoreInterface::class);
         $bus = $this->createMock(MessageBusInterface::class);
         $repos = $this->createMock(SourceRepository::class);
+        $logger = $this->createMock(LoggerInterface::class);
 
-        return new UploadServiceVendorService($bus, $entityManager, $store, $repos);
+        return new UploadServiceVendorService($bus, $entityManager, $store, $repos, $logger);
     }
 }

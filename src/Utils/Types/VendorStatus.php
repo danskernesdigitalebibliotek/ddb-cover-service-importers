@@ -9,10 +9,10 @@ namespace App\Utils\Types;
  */
 final class VendorStatus
 {
-    public $records = 0;
-    public $inserted = 0;
-    public $updated = 0;
-    public $deleted = 0;
+    public int $records = 0;
+    public int $inserted = 0;
+    public int $updated = 0;
+    public int $deleted = 0;
 
     /**
      * VendorStatus constructor.
@@ -26,7 +26,7 @@ final class VendorStatus
      * @param int $deleted
      *   Total number of records deleted
      */
-    public function __construct($records = 0, $inserted = 0, $updated = 0, $deleted = 0)
+    public function __construct(int $records = 0, int $inserted = 0, int $updated = 0, int $deleted = 0)
     {
         $this->records = $records;
         $this->inserted = $inserted;
@@ -37,11 +37,10 @@ final class VendorStatus
     /**
      * Add amount of records to the total count.
      *
-     * @param $amount
-     *   The amount to add
      * @param int $amount
+     *   The amount to add
      */
-    public function addRecords($amount): void
+    public function addRecords(int $amount): void
     {
         $this->records += $amount;
     }
@@ -49,7 +48,7 @@ final class VendorStatus
     /**
      * Add amount of inserted records to the total inserted count.
      *
-     * @param $amount
+     * @param int $amount
      *   The amount to add
      */
     public function addInserted(int $amount): void
@@ -60,7 +59,7 @@ final class VendorStatus
     /**
      * Add amount of updated records to the total updated count.
      *
-     * @param $amount
+     * @param int $amount
      *   The amount to add
      */
     public function addUpdated(int $amount): void
@@ -71,10 +70,10 @@ final class VendorStatus
     /**
      * Add amount of deleted records to the total deleted count.
      *
-     * @param $amount
+     * @param int $amount
      *   The amount to add
      */
-    public function addDeleted($amount): void
+    public function addDeleted(int $amount): void
     {
         $this->deleted += $amount;
     }
