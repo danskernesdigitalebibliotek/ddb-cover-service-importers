@@ -20,13 +20,13 @@ use Symfony\Component\Messenger\MessageBusInterface;
  */
 final class VendorCoreService
 {
-    private $em;
-    private $metricsService;
-    private $bus;
-    private $lockFactory;
+    private EntityManagerInterface $em;
+    private MetricsService $metricsService;
+    private MessageBusInterface $bus;
+    private LockFactory $lockFactory;
 
-    private $vendors = [];
-    private $locks = [];
+    private array $vendors = [];
+    private array $locks = [];
 
     /**
      * CoreVendorService constructor.
@@ -46,6 +46,17 @@ final class VendorCoreService
         $this->metricsService = $metricsService;
         $this->bus = $bus;
         $this->lockFactory = $vendorLockFactory;
+    }
+
+    /**
+     * Get metrics service.
+     *
+     * @return metricsService
+     *   The metrics service
+     */
+    public function getMetricsService(): MetricsService
+    {
+        return $this->metricsService;
     }
 
     /**
@@ -253,14 +264,6 @@ final class VendorCoreService
     public function deleteRemovedMaterials(array &$identifierArray): int
     {
         // @TODO implement queueing jobs for DeleteProcessor
-    }
-
-    /**
-     * Log statistics.
-     */
-    public function logStatistics(): void
-    {
-        $className = substr(\get_class($this), strrpos(\get_class($this), '\\') + 1);
     }
 
     /**

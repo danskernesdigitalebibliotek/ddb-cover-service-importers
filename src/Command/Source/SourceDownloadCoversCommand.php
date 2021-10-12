@@ -30,9 +30,9 @@ class SourceDownloadCoversCommand extends Command
 
     protected static $defaultName = 'app:source:download';
 
-    private $em;
-    private $validator;
-    private $bus;
+    private EntityManagerInterface $em;
+    private VendorImageValidatorService $validator;
+    private MessageBusInterface $bus;
 
     /**
      * SourceDownloadCoversCommand constructor.
@@ -55,10 +55,8 @@ class SourceDownloadCoversCommand extends Command
 
     /**
      * Define the command.
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Try to (re-)download source records that have not been downloaded into Cover store')
             ->addOption('vendor-id', null, InputOption::VALUE_OPTIONAL, 'Limit to this vendor')
@@ -68,7 +66,7 @@ class SourceDownloadCoversCommand extends Command
     /**
      * {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $vendorId = $input->getOption('vendor-id');
         $identifier = $input->getOption('identifier');

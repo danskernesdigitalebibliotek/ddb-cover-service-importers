@@ -12,7 +12,7 @@ namespace App\Logger;
  */
 class TraceIdProcessor
 {
-    private $traceId;
+    private string $traceId;
 
     /**
      * TraceIdProcessor constructor.
@@ -33,7 +33,7 @@ class TraceIdProcessor
      * @return array
      *   The record added require id in extras
      */
-    public function __invoke(array $record)
+    public function __invoke(array $record): array
     {
         $record['extra']['traceId'] = $this->traceId;
 

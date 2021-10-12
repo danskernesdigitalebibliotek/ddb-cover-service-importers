@@ -203,9 +203,6 @@
     "league/flysystem": {
         "version": "1.0.48"
     },
-    "league/flysystem-ziparchive": {
-        "version": "1.0.3"
-    },
     "league/mime-type-detection": {
         "version": "1.5.1"
     },

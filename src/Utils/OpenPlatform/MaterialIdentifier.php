@@ -14,8 +14,8 @@ use App\Utils\Types\IdentifierType;
  */
 class MaterialIdentifier
 {
-    private $type;
-    private $id;
+    private string $type;
+    private string $id;
 
     /**
      * MaterialIdentifier constructor.
@@ -26,7 +26,6 @@ class MaterialIdentifier
      *   The identifier for this material
      *
      * @throws MaterialTypeException
-     * @throws \ReflectionException
      */
     public function __construct(string $type, string $id)
     {

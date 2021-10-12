@@ -20,12 +20,12 @@ class OpenPlatformSearchCommand extends Command
 {
     protected static $defaultName = 'app:openplatform:search';
 
-    private $search;
+    private SearchService $search;
 
     /**
      * OpenPlatformSearchCommand constructor.
      *
-     * @param searchService $search
+     * @param SearchService $search
      *   The open platform search service
      */
     public function __construct(SearchService $search)
@@ -37,10 +37,8 @@ class OpenPlatformSearchCommand extends Command
 
     /**
      * Define the command.
-     *
-     * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Use environment configuration to test search')
             ->setHelp('Try search request against the open platform')
@@ -54,7 +52,7 @@ class OpenPlatformSearchCommand extends Command
      *
      * Execute an data well search and output the result.
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $is = $input->getOption('identifier');
         $type = $input->getOption('type');
