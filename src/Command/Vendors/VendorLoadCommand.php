@@ -6,6 +6,7 @@
 
 namespace App\Command\Vendors;
 
+use App\Service\MetricsService;
 use App\Service\VendorService\VendorServiceFactory;
 use App\Service\VendorService\VendorServiceInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -26,17 +27,17 @@ class VendorLoadCommand extends Command
     protected static $defaultName = 'app:vendor:load';
 
     private VendorServiceFactory $vendorFactory;
+    private MetricsService $metricsService;
 
     /**
      * VendorLoadCommand constructor.
-     *
-     * @param VendorServiceFactory $vendorFactory
      */
-    public function __construct(VendorServiceFactory $vendorFactory)
+    public function __construct(VendorServiceFactory $vendorFactory, MetricsService $metricsService)
     {
         $this->vendorFactory = $vendorFactory;
 
         parent::__construct();
+        $this->metricsService = $metricsService;
     }
 
     /**
@@ -90,6 +91,12 @@ class VendorLoadCommand extends Command
 
         $results = [];
         foreach ($vendorServices as $vendorService) {
+            $labels = [
+                'type' => 'vendor',
+                'vendorName' => $vendorService->getVendorName(),
+                'vendorId' => $vendorService->getVendorId(),
+            ];
+
             try {
                 /* @var VendorServiceInterface $vendorService */
                 $vendorService->setWithoutQueue($dispatchToQueue);
@@ -98,7 +105,9 @@ class VendorLoadCommand extends Command
                 $vendorService->setIgnoreLock($force);
                 $vendorService->setProgressBar($progressBarSheet);
                 $results[$vendorService->getVendorName()] = $vendorService->load();
+                $this->metricsService->counter('vendor_load_completed', 'Vendor load completed', 1, $labels);
             } catch (Exception $exception) {
+                $this->metricsService->counter('vendor_load_failed', 'Vendor load failed', 1, $labels);
                 $io->error('👎 '.$exception->getMessage());
             }
         }
