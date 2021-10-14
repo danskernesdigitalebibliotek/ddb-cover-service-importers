@@ -131,21 +131,18 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
                 ++$queriesIndex;
             }
 
-            $this->logStatusMetrics($status);
             $this->progressFinish();
 
             $this->vendorCoreService->releaseLock($this->getVendorId());
 
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
-            $this->logStatusMetrics($status);
-
             return VendorImportResultMessage::error($exception->getMessage());
         }
     }
 
     /**
-     * Set config fro service from DB vendor object.
+     * Set config from service from DB vendor object.
      */
     private function loadConfig(): void
     {

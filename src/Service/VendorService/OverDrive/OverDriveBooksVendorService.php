@@ -97,14 +97,12 @@ class OverDriveBooksVendorService implements VendorServiceInterface
                 $offset += self::BATCH_SIZE;
             } while ($offset < $totalCount);
 
-            $this->logStatusMetrics($status);
             $this->progressFinish();
 
             $this->vendorCoreService->releaseLock($this->getVendorId());
 
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
-            $this->logStatusMetrics($status);
 
             return VendorImportResultMessage::error($exception->getMessage());
         }

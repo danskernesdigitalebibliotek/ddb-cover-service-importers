@@ -148,13 +148,10 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
                 $this->progressMessageFormatted($status);
                 $this->progressAdvance();
             } catch (\Exception $exception) {
-                $this->logStatusMetrics($status);
-
                 return VendorImportResultMessage::error($exception->getMessage());
             }
         }
 
-        $this->logStatusMetrics($status);
         $this->progressFinish();
 
         $this->vendorCoreService->releaseLock($this->getVendorId());

@@ -75,13 +75,10 @@ class DataWellVendorService implements VendorServiceInterface
                 }
             } while ($more);
 
-            $this->logStatusMetrics($status);
             $this->vendorCoreService->releaseLock($this->getVendorId());
 
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
-            $this->logStatusMetrics($status);
-
             return VendorImportResultMessage::error($exception->getMessage());
         }
     }

@@ -34,27 +34,6 @@ trait VendorServiceTrait
     }
 
     /**
-     * Log result of an vendor import.
-     *
-     * @param vendorStatus $status
-     *   The vendor status object
-     *
-     * @throws UnknownVendorServiceException
-     */
-    public function logStatusMetrics(VendorStatus $status): void
-    {
-        $labels = [
-          'type' => 'vendor',
-          'vendorName' => $this->getVendorName(),
-          'vendorId' => $this->getVendorId(),
-        ];
-        $this->vendorCoreService->getMetricsService()->counter('vendor_inserted_total', 'Number of inserted records', $status->inserted, $labels);
-        $this->vendorCoreService->getMetricsService()->counter('vendor_updated_total', 'Number of updated records', $status->updated, $labels);
-        $this->vendorCoreService->getMetricsService()->counter('vendor_deleted_total', 'Number of deleted records', $status->deleted, $labels);
-        $this->vendorCoreService->getMetricsService()->counter('vendor_records_total', 'Number of records', $status->records, $labels);
-    }
-
-    /**
      * Get vendor id.
      *
      * @return int

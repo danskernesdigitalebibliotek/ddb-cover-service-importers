@@ -166,6 +166,8 @@ final class VendorCoreService
         $sourceRepo = $this->em->getRepository(Source::class);
 
         $offset = 0;
+        $inserted = 0;
+        $updated = 0;
         $count = \count($identifierImageUrlArray);
         $status->addRecords($count);
 
@@ -182,11 +184,16 @@ final class VendorCoreService
             }
 
             // Update status counts.
-            $status->addInserted(count($insertedIdentifiers));
-            $status->addUpdated(count($updatedIdentifiers));
+            $inserted += count($insertedIdentifiers);
+            $updated += count($updatedIdentifiers);
 
             $offset += $batchSize;
         }
+
+        // Log metrics here to en sure interrupted partial imports also get counted.
+        $this->logStatusMetrics($vendorId, $count, $inserted, $updated);
+        $status->addInserted($inserted);
+        $status->addUpdated($updated);
     }
 
     /**
@@ -265,6 +272,8 @@ final class VendorCoreService
     public function deleteRemovedMaterials(array &$identifierArray): int
     {
         // @TODO implement queueing jobs for DeleteProcessor
+
+        return 0;
     }
 
     /**
@@ -303,5 +312,26 @@ final class VendorCoreService
         }
 
         // @TODO: DELETED event???
+    }
+
+    /**
+     * Log result of an vendor import.
+     *
+     * @param vendorStatus $status
+     *   The vendor status object
+     *
+     * @throws UnknownVendorServiceException
+     */
+    private function logStatusMetrics(int $vendorId, int $count, int $inserted, int $updated): void
+    {
+        $vendor = $this->getVendor($vendorId);
+        $labels = [
+            'type' => 'vendor',
+            'vendorName' => $vendor->getName(),
+            'vendorId' => $vendor->getId(),
+        ];
+        $this->getMetricsService()->counter('vendor_inserted_total', 'Number of inserted records', $inserted, $labels);
+        $this->getMetricsService()->counter('vendor_updated_total', 'Number of updated records', $updated, $labels);
+        $this->getMetricsService()->counter('vendor_records_total', 'Number of records', $count, $labels);
     }
 }

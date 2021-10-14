@@ -96,12 +96,8 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
 
             $this->vendorCoreService->releaseLock($this->getVendorId());
 
-            $this->logStatusMetrics($status);
-
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
-            $this->logStatusMetrics($status);
-
             return VendorImportResultMessage::error($exception->getMessage());
         }
     }

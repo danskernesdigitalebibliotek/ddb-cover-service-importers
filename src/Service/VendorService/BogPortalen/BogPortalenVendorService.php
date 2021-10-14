@@ -99,13 +99,10 @@ class BogPortalenVendorService implements VendorServiceInterface
                     break;
                 }
             } catch (\Exception $e) {
-                $this->logStatusMetrics($status);
-
                 return VendorImportResultMessage::error($e->getMessage());
             }
         }
 
-        $this->logStatusMetrics($status);
         $this->progressFinish();
 
         $this->vendorCoreService->releaseLock($this->getVendorId());
