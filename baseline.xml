@@ -102,6 +102,9 @@
     <PossiblyInvalidArgument occurrences="1">
       <code>$vendor</code>
     </PossiblyInvalidArgument>
+    <PossiblyInvalidCast occurrences="1">
+      <code>$input-&gt;getOption('with-updates')</code>
+    </PossiblyInvalidCast>
     <UndefinedInterfaceMethod occurrences="1">
       <code>section</code>
     </UndefinedInterfaceMethod>
@@ -459,9 +462,6 @@
     </PossiblyNullReference>
   </file>
   <file src="src/Service/VendorService/VendorCoreService.php">
-    <InvalidReturnType occurrences="1">
-      <code>int</code>
-    </InvalidReturnType>
     <ParadoxicalCondition occurrences="1">
       <code>empty($this-&gt;vendors[$vendorId])</code>
     </ParadoxicalCondition>
