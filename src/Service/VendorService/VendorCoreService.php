@@ -12,7 +12,6 @@ use App\Utils\Types\VendorState;
 use App\Utils\Types\VendorStatus;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\QueryException;
-use Elastica\Processor\Date;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Messenger\MessageBusInterface;
 

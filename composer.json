@@ -96,10 +96,10 @@
         "post-update-cmd": [
             "@auto-scripts"
         ],
-        "check-coding-standards": [
+        "coding-standards-check": [
             "./vendor/bin/php-cs-fixer --config=.php_cs.dist fix --dry-run --format=checkstyle"
         ],
-        "apply-coding-standards": [
+        "coding-standards-apply": [
             "php-cs-fixer --config=.php_cs.dist fix"
         ],
         "phpunit": [

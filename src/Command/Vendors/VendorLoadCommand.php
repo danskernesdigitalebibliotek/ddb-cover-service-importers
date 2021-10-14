@@ -66,6 +66,7 @@ class VendorLoadCommand extends Command
         $withUpdatesDate = \DateTime::createFromFormat('Y-m-d', $date);
         if (false === $withUpdatesDate) {
             $output->writeln('<error>Unknown date format in --with-updates</error>');
+
             return 1;
         }
 

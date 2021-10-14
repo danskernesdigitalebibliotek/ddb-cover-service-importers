@@ -7,7 +7,6 @@
 namespace App\Service\VendorService;
 
 use App\Exception\UnknownVendorServiceException;
-use App\Utils\Types\VendorStatus;
 
 /**
  * Trait VendorServiceTrait.
@@ -85,7 +84,7 @@ trait VendorServiceTrait
      * Update all vendor records during import.
      *
      * @param \DateTime $date
-     *   Updated all records found after this date.
+     *   Updated all records found after this date
      */
     public function setWithUpdatesDate(\DateTime $date)
     {

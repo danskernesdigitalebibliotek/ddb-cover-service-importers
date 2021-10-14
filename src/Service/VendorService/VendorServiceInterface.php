@@ -71,7 +71,7 @@ interface VendorServiceInterface
      * Set the vendor to run updates on existing known covers from earlier imports.
      *
      * @param \DateTime $date
-     *  Date to limit the time back in time to preform updates.
+     *  Date to limit the time back in time to preform updates
      */
     public function setWithUpdatesDate(\DateTime $date);
 

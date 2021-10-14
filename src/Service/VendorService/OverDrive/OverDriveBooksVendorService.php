@@ -103,7 +103,6 @@ class OverDriveBooksVendorService implements VendorServiceInterface
 
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
-
             return VendorImportResultMessage::error($exception->getMessage());
         }
     }
