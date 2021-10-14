@@ -48,7 +48,7 @@ class VendorLoadCommand extends Command
         $this->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit the amount of records imported per vendor', 0);
         $this->addOption('vendor', null, InputOption::VALUE_OPTIONAL, 'Which Vendor should be loaded');
         $this->addOption('without-queue', null, InputOption::VALUE_NONE, 'Should the imported data be sent into the queues - image uploader');
-        $this->addOption('with-updates', null, InputOption::VALUE_NONE, 'Execute updates to existing covers');
+        $this->addOption('with-updates', null, InputOption::VALUE_OPTIONAL, 'Execute updates to existing covers base on from date to now e.g. 2021-09-17 (Y-m-d)', '1970-01-01');
         $this->addOption('force', null, InputOption::VALUE_NONE, 'Force execution ignoring locks');
     }
 
@@ -59,8 +59,16 @@ class VendorLoadCommand extends Command
     {
         $limit = (int) $input->getOption('limit');
         $dispatchToQueue = !$input->getOption('without-queue');
-        $withUpdates = (bool) $input->getOption('with-updates');
         $force = (bool) $input->getOption('force');
+
+        $withUpdatesDate = $input->getOption('with-updates');
+        if (!empty($withUpdatesDate)) {
+            $withUpdatesDate = \DateTime::createFromFormat('Y-m-d', $withUpdatesDate);
+            if (false === $withUpdatesDate) {
+                $output->writeln('<error>Unknown date format in --with-updates</error>');
+                return 1;
+            }
+        }
 
         $vendor = $input->getOption('vendor');
         // Ask 'all', 'none' or '<vendor>'
@@ -87,7 +95,7 @@ class VendorLoadCommand extends Command
             try {
                 /* @var VendorServiceInterface $vendorService */
                 $vendorService->setWithoutQueue($dispatchToQueue);
-                $vendorService->setWithUpdates($withUpdates);
+                $vendorService->setWithUpdatesDate($withUpdatesDate);
                 $vendorService->setLimit($limit);
                 $vendorService->setIgnoreLock($force);
                 $vendorService->setProgressBar($progressBarSheet);

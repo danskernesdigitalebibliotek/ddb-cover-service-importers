@@ -128,7 +128,7 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
 
                         if (0 === $count % self::LOCAL_BATCH_SIZE) {
                             RbDigitalBooksPublicUrlConverter::convertArrayValues($isbnImageUrlArray);
-                            $this->vendorCoreService->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::LOCAL_BATCH_SIZE);
+                            $this->vendorCoreService->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::LOCAL_BATCH_SIZE);
                             $isbnImageUrlArray = [];
 
                             $this->progressMessageFormatted($status);
@@ -142,7 +142,7 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
                 }
 
                 RbDigitalBooksPublicUrlConverter::convertArrayValues($isbnImageUrlArray);
-                $this->vendorCoreService->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::LOCAL_BATCH_SIZE);
+                $this->vendorCoreService->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::LOCAL_BATCH_SIZE);
                 $isbnImageUrlArray = [];
 
                 $this->progressMessageFormatted($status);

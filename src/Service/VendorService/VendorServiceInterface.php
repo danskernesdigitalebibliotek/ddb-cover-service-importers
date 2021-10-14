@@ -70,10 +70,10 @@ interface VendorServiceInterface
     /**
      * Set the vendor to run updates on existing known covers from earlier imports.
      *
-     * @param bool $withUpdates
-     *  If true updates to existing covers are executed
+     * @param \DateTime $date
+     *  Date to limit the time back in time to preform updates.
      */
-    public function setWithUpdates(bool $withUpdates = false);
+    public function setWithUpdatesDate(\DateTime $date);
 
     /**
      * Set force/ignore locks.

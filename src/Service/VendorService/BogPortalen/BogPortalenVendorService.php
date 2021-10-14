@@ -85,7 +85,7 @@ class BogPortalenVendorService implements VendorServiceInterface
                     $isbnBatch = \array_slice($isbnList, $offset, self::BATCH_SIZE, true);
 
                     $isbnImageUrlArray = $this->buildIsbnImageUrlArray($isbnBatch);
-                    $this->vendorCoreService->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
+                    $this->vendorCoreService->updateOrInsertMaterials($status, $isbnImageUrlArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
 
                     $this->progressMessageFormatted($status);
                     $this->progressAdvance();

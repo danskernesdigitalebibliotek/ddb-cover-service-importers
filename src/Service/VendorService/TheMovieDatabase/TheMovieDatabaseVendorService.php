@@ -106,7 +106,7 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
                     $batchOffset = 0;
                     while ($batchOffset < $batchSize) {
                         $batch = \array_slice($pidArray, $batchOffset, self::BATCH_SIZE, true);
-                        [$updatedIdentifiers, $insertedIdentifiers] = $this->vendorCoreService->processBatch($batch, $sourceRepo, IdentifierType::PID, $this->getVendorId(), $this->withUpdates);
+                        [$updatedIdentifiers, $insertedIdentifiers] = $this->vendorCoreService->processBatch($batch, $sourceRepo, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate);
 
                         $this->postProcess($updatedIdentifiers, $resultArray);
                         $this->postProcess($insertedIdentifiers, $resultArray);

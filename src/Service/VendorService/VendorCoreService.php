@@ -12,6 +12,7 @@ use App\Utils\Types\VendorState;
 use App\Utils\Types\VendorStatus;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\QueryException;
+use Elastica\Processor\Date;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Messenger\MessageBusInterface;
 
@@ -147,7 +148,7 @@ final class VendorCoreService
      *   The type of identifier
      * @param int $vendorId
      *   The vendor id of the vendor to process
-     * @param bool $withUpdates
+     * @param \DateTime $withUpdatesDate
      *   Process updates (default: false)
      * @param bool $withoutQueue
      *   Process without add jobs to queue system
@@ -159,7 +160,7 @@ final class VendorCoreService
      * @throws QueryException
      * @throws UnknownVendorServiceException
      */
-    public function updateOrInsertMaterials(VendorStatus $status, array &$identifierImageUrlArray, string $identifierType, int $vendorId, bool $withUpdates = false, bool $withoutQueue = false, int $batchSize = 200): void
+    public function updateOrInsertMaterials(VendorStatus $status, array &$identifierImageUrlArray, string $identifierType, int $vendorId, \DateTime $withUpdatesDate, bool $withoutQueue = false, int $batchSize = 200): void
     {
         /** @var SourceRepository $sourceRepo */
         $sourceRepo = $this->em->getRepository(Source::class);
@@ -173,11 +174,11 @@ final class VendorCoreService
             // 'INSERT ON DUPLICATE KEY UPDATE' we need to search for and load
             // sources already in the db.
             $batch = \array_slice($identifierImageUrlArray, $offset, $batchSize, true);
-            [$updatedIdentifiers, $insertedIdentifiers] = $this->processBatch($batch, $sourceRepo, $identifierType, $vendorId, $withUpdates);
+            [$updatedIdentifiers, $insertedIdentifiers] = $this->processBatch($batch, $sourceRepo, $identifierType, $vendorId, $withUpdatesDate);
 
             // Send event with the last batch to the job processors.
             if ($withoutQueue) {
-                $this->createVendorImageMessage($updatedIdentifiers, $insertedIdentifiers, $identifierType, $vendorId, $withUpdates);
+                $this->createVendorImageMessage($updatedIdentifiers, $insertedIdentifiers, $identifierType, $vendorId);
             }
 
             // Update status counts.
@@ -199,7 +200,7 @@ final class VendorCoreService
      *   The type of identifiers in to be processed
      * @param int $vendorId
      *   The Id of the vendor to process batch for
-     * @param bool $withUpdates
+     * @param \DateTime $withUpdatesDate
      *   Process updates (default: false)
      *
      * @return (int|string)[][] Array containing two arrays with identifiers for updated and inserted sources
@@ -209,7 +210,7 @@ final class VendorCoreService
      *
      * @psalm-return array{0: list<array-key>, 1: list<array-key>}
      */
-    public function processBatch(array $batch, SourceRepository $sourceRepo, string $identifierType, int $vendorId, bool $withUpdates): array
+    public function processBatch(array $batch, SourceRepository $sourceRepo, string $identifierType, int $vendorId, \DateTime $withUpdatesDate): array
     {
         // Split into to results arrays (updated and inserted).
         $updatedIdentifiers = [];
@@ -222,9 +223,9 @@ final class VendorCoreService
 
         foreach ($batch as $identifier => $imageUrl) {
             if (array_key_exists($identifier, $sources)) {
-                if ($withUpdates) {
-                    /* @var Source $source */
-                    $source = $sources[$identifier];
+                /* @var Source $source */
+                $source = $sources[$identifier];
+                if ($source->getDate() >= $withUpdatesDate && $source->getSearches()->count() < 1) {
                     $source->setMatchType($identifierType)
                         ->setMatchId($identifier)
                         ->setVendor($vendor)
@@ -277,10 +278,8 @@ final class VendorCoreService
      *   The type of identifiers in to be processed
      * @param int $vendorId
      *   The vendor's ID that are sending jobs into queue
-     * @param bool $withUpdates
-     *   If true existing covers will be updated
      */
-    public function createVendorImageMessage(array $updatedIdentifiers, array $insertedIdentifiers, string $identifierType, int $vendorId, bool $withUpdates = false): void
+    public function createVendorImageMessage(array $updatedIdentifiers, array $insertedIdentifiers, string $identifierType, int $vendorId): void
     {
         if (!empty($insertedIdentifiers)) {
             foreach ($insertedIdentifiers as $identifier) {
@@ -292,7 +291,7 @@ final class VendorCoreService
                 $this->bus->dispatch($message);
             }
         }
-        if (!empty($updatedIdentifiers) && $withUpdates) {
+        if (!empty($updatedIdentifiers)) {
             foreach ($updatedIdentifiers as $identifier) {
                 $message = new VendorImageMessage();
                 $message->setOperation(VendorState::UPDATE)

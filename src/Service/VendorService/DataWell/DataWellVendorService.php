@@ -65,7 +65,7 @@ class DataWellVendorService implements VendorServiceInterface
                 IversePublicUrlConverter::convertArrayValues($pidArray);
 
                 $batchSize = \count($pidArray);
-                $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, $batchSize);
+                $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, $batchSize);
 
                 $this->progressMessageFormatted($status);
                 $this->progressAdvance();

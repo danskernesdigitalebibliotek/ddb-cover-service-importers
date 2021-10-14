@@ -16,7 +16,7 @@ trait VendorServiceTrait
 {
     private int $limit = 0;
     private bool $withoutQueue = false;
-    private bool $withUpdates = false;
+    private \DateTime $withUpdatesDate;
     private bool $ignoreLock = false;
     private VendorCoreService $vendorCoreService;
 
@@ -105,12 +105,12 @@ trait VendorServiceTrait
     /**
      * Update all vendor records during import.
      *
-     * @param bool $withUpdates
-     *   If true all records will be updated
+     * @param \DateTime $date
+     *   Updated all records found after this date.
      */
-    public function setWithUpdates(bool $withUpdates = false)
+    public function setWithUpdatesDate(\DateTime $date)
     {
-        $this->withUpdates = $withUpdates;
+        $this->withUpdatesDate = $date;
     }
 
     /**
