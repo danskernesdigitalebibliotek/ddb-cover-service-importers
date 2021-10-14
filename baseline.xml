@@ -99,12 +99,10 @@
     <InvalidScalarArgument occurrences="1">
       <code>0</code>
     </InvalidScalarArgument>
-    <PossiblyInvalidArgument occurrences="1">
+    <PossiblyInvalidArgument occurrences="2">
+      <code>$date</code>
       <code>$vendor</code>
     </PossiblyInvalidArgument>
-    <PossiblyInvalidCast occurrences="1">
-      <code>$input-&gt;getOption('with-updates')</code>
-    </PossiblyInvalidCast>
     <UndefinedInterfaceMethod occurrences="1">
       <code>section</code>
     </UndefinedInterfaceMethod>

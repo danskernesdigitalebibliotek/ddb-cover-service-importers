@@ -49,7 +49,8 @@ class VendorLoadCommand extends Command
         $this->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit the amount of records imported per vendor', 0);
         $this->addOption('vendor', null, InputOption::VALUE_OPTIONAL, 'Which Vendor should be loaded');
         $this->addOption('without-queue', null, InputOption::VALUE_NONE, 'Should the imported data be sent into the queues - image uploader');
-        $this->addOption('with-updates', null, InputOption::VALUE_OPTIONAL, 'Execute updates to existing covers base on from date to now e.g. 2021-09-17 (Y-m-d)', '1970-01-01');
+        $this->addOption('with-updates-date', null, InputOption::VALUE_OPTIONAL, 'Execute updates to existing covers base on from date to now e.g. 2021-09-17 (Y-m-d)', '1970-01-01');
+        $this->addOption('days-ago', null, InputOption::VALUE_OPTIONAL, 'Update existing covers x days back from now (overrides --with-updates-date)');
         $this->addOption('force', null, InputOption::VALUE_NONE, 'Force execution ignoring locks');
     }
 
@@ -62,12 +63,24 @@ class VendorLoadCommand extends Command
         $dispatchToQueue = !$input->getOption('without-queue');
         $force = (bool) $input->getOption('force');
 
-        $date = (string) $input->getOption('with-updates');
+        $date = $input->getOption('with-updates-date');
         $withUpdatesDate = \DateTime::createFromFormat('Y-m-d', $date);
         if (false === $withUpdatesDate) {
             $output->writeln('<error>Unknown date format in --with-updates</error>');
 
             return 1;
+        }
+
+        $daysAgo = $input->getOption('days-ago');
+        if (!empty($daysAgo)) {
+            $withUpdatesDate = new \DateTime();
+            try {
+                $withUpdatesDate->sub(new \DateInterval('P'.(int) $daysAgo.'D'));
+            } catch (\Exception $e) {
+                $output->writeln('<error>Fail to parse the days-ago option</error>');
+
+                return 1;
+            }
         }
 
         $vendor = $input->getOption('vendor');
