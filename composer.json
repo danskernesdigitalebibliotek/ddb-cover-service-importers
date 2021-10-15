@@ -104,6 +104,9 @@
         ],
         "phpunit": [
             "./vendor/bin/phpunit"
+        ],
+        "queues": [
+            "bin/console messenger:consume --quiet --time-limit=900 async_priority_high async_priority_normal async_priority_low async_no_hit"
         ]
     },
     "conflict": {
