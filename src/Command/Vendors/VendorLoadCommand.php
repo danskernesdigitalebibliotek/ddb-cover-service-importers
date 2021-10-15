@@ -50,7 +50,7 @@ class VendorLoadCommand extends Command
         $this->addOption('vendor', null, InputOption::VALUE_OPTIONAL, 'Which Vendor should be loaded');
         $this->addOption('without-queue', null, InputOption::VALUE_NONE, 'Should the imported data be sent into the queues - image uploader');
         $this->addOption('with-updates-date', null, InputOption::VALUE_OPTIONAL, 'Execute updates to existing covers base on from date to now e.g. 2021-09-17 (Y-m-d)', '1970-01-01');
-        $this->addOption('days-ago', null, InputOption::VALUE_OPTIONAL, 'Update existing covers x days back from now (overrides --with-updates-date)');
+        $this->addOption('days-ago', null, InputOption::VALUE_OPTIONAL, 'Update existing covers x days back from now');
         $this->addOption('force', null, InputOption::VALUE_NONE, 'Force execution ignoring locks');
     }
 
@@ -73,6 +73,13 @@ class VendorLoadCommand extends Command
 
         $daysAgo = $input->getOption('days-ago');
         if (!empty($daysAgo)) {
+            // If the date take out from '--with-updates-date' is different from default value use have set both which
+            // do not make sens.
+            if ('1970-01-01' !== $date) {
+                $output->writeln('<error>You can not use both --with-updates-data and --days-ago in same command</error>');
+
+                return 1;
+            }
             $withUpdatesDate = new \DateTime();
             try {
                 $withUpdatesDate->sub(new \DateInterval('P'.(int) $daysAgo.'D'));
