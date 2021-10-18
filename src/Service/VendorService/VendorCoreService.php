@@ -28,6 +28,12 @@ final class VendorCoreService
     private array $vendors = [];
     private array $locks = [];
 
+    // When the vendor load command is used with --with-updates-date or --days-ago a date is given back in time for
+    // which we should look for covers that have not been indexed (no results found in the data well). Covers that have
+    // not been mapped in the data well will only have "this limit value" in the search table and only these should be
+    // re-index/re-search with the data well.
+    private const UPDATE_COVER_LIMIT = 1;
+
     /**
      * CoreVendorService constructor.
      *
@@ -38,7 +44,7 @@ final class VendorCoreService
      * @param metricsService $metricsService
      *   Metrics collection service
      * @param LockFactory $vendorLockFactory
-     *   Vendor lock-factory used to prevent more that one instance of import at one time
+     *   Vendor lock-factory used to prevent more than one instance of import at one time
      */
     public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, MetricsService $metricsService, LockFactory $vendorLockFactory)
     {
@@ -147,7 +153,7 @@ final class VendorCoreService
      *   The type of identifier
      * @param int $vendorId
      *   The vendor id of the vendor to process
-     * @param bool $withUpdates
+     * @param \DateTime $withUpdatesDate
      *   Process updates (default: false)
      * @param bool $withoutQueue
      *   Process without add jobs to queue system
@@ -159,12 +165,14 @@ final class VendorCoreService
      * @throws QueryException
      * @throws UnknownVendorServiceException
      */
-    public function updateOrInsertMaterials(VendorStatus $status, array &$identifierImageUrlArray, string $identifierType, int $vendorId, bool $withUpdates = false, bool $withoutQueue = false, int $batchSize = 200): void
+    public function updateOrInsertMaterials(VendorStatus $status, array &$identifierImageUrlArray, string $identifierType, int $vendorId, \DateTime $withUpdatesDate, bool $withoutQueue = false, int $batchSize = 200): void
     {
         /** @var SourceRepository $sourceRepo */
         $sourceRepo = $this->em->getRepository(Source::class);
 
         $offset = 0;
+        $inserted = 0;
+        $updated = 0;
         $count = \count($identifierImageUrlArray);
         $status->addRecords($count);
 
@@ -173,19 +181,24 @@ final class VendorCoreService
             // 'INSERT ON DUPLICATE KEY UPDATE' we need to search for and load
             // sources already in the db.
             $batch = \array_slice($identifierImageUrlArray, $offset, $batchSize, true);
-            [$updatedIdentifiers, $insertedIdentifiers] = $this->processBatch($batch, $sourceRepo, $identifierType, $vendorId, $withUpdates);
+            [$updatedIdentifiers, $insertedIdentifiers] = $this->processBatch($batch, $sourceRepo, $identifierType, $vendorId, $withUpdatesDate);
 
             // Send event with the last batch to the job processors.
             if ($withoutQueue) {
-                $this->createVendorImageMessage($updatedIdentifiers, $insertedIdentifiers, $identifierType, $vendorId, $withUpdates);
+                $this->createVendorImageMessage($updatedIdentifiers, $insertedIdentifiers, $identifierType, $vendorId);
             }
 
             // Update status counts.
-            $status->addInserted(count($insertedIdentifiers));
-            $status->addUpdated(count($updatedIdentifiers));
+            $inserted += count($insertedIdentifiers);
+            $updated += count($updatedIdentifiers);
 
             $offset += $batchSize;
         }
+
+        // Log metrics here to en sure interrupted partial imports also get counted.
+        $this->logStatusMetrics($vendorId, $count, $inserted, $updated);
+        $status->addInserted($inserted);
+        $status->addUpdated($updated);
     }
 
     /**
@@ -199,7 +212,7 @@ final class VendorCoreService
      *   The type of identifiers in to be processed
      * @param int $vendorId
      *   The Id of the vendor to process batch for
-     * @param bool $withUpdates
+     * @param \DateTime $withUpdatesDate
      *   Process updates (default: false)
      *
      * @return (int|string)[][] Array containing two arrays with identifiers for updated and inserted sources
@@ -209,7 +222,7 @@ final class VendorCoreService
      *
      * @psalm-return array{0: list<array-key>, 1: list<array-key>}
      */
-    public function processBatch(array $batch, SourceRepository $sourceRepo, string $identifierType, int $vendorId, bool $withUpdates): array
+    public function processBatch(array $batch, SourceRepository $sourceRepo, string $identifierType, int $vendorId, \DateTime $withUpdatesDate): array
     {
         // Split into to results arrays (updated and inserted).
         $updatedIdentifiers = [];
@@ -222,9 +235,9 @@ final class VendorCoreService
 
         foreach ($batch as $identifier => $imageUrl) {
             if (array_key_exists($identifier, $sources)) {
-                if ($withUpdates) {
-                    /* @var Source $source */
-                    $source = $sources[$identifier];
+                /* @var Source $source */
+                $source = $sources[$identifier];
+                if ($source->getDate() >= $withUpdatesDate && self::UPDATE_COVER_LIMIT === $source->getSearches()->count()) {
                     $source->setMatchType($identifierType)
                         ->setMatchId($identifier)
                         ->setVendor($vendor)
@@ -264,6 +277,8 @@ final class VendorCoreService
     public function deleteRemovedMaterials(array &$identifierArray): int
     {
         // @TODO implement queueing jobs for DeleteProcessor
+
+        return 0;
     }
 
     /**
@@ -277,10 +292,8 @@ final class VendorCoreService
      *   The type of identifiers in to be processed
      * @param int $vendorId
      *   The vendor's ID that are sending jobs into queue
-     * @param bool $withUpdates
-     *   If true existing covers will be updated
      */
-    public function createVendorImageMessage(array $updatedIdentifiers, array $insertedIdentifiers, string $identifierType, int $vendorId, bool $withUpdates = false): void
+    public function createVendorImageMessage(array $updatedIdentifiers, array $insertedIdentifiers, string $identifierType, int $vendorId): void
     {
         if (!empty($insertedIdentifiers)) {
             foreach ($insertedIdentifiers as $identifier) {
@@ -292,7 +305,7 @@ final class VendorCoreService
                 $this->bus->dispatch($message);
             }
         }
-        if (!empty($updatedIdentifiers) && $withUpdates) {
+        if (!empty($updatedIdentifiers)) {
             foreach ($updatedIdentifiers as $identifier) {
                 $message = new VendorImageMessage();
                 $message->setOperation(VendorState::UPDATE)
@@ -304,5 +317,26 @@ final class VendorCoreService
         }
 
         // @TODO: DELETED event???
+    }
+
+    /**
+     * Log result of an vendor import.
+     *
+     * @param vendorStatus $status
+     *   The vendor status object
+     *
+     * @throws UnknownVendorServiceException
+     */
+    private function logStatusMetrics(int $vendorId, int $count, int $inserted, int $updated): void
+    {
+        $vendor = $this->getVendor($vendorId);
+        $labels = [
+            'type' => 'vendor',
+            'vendorName' => $vendor->getName(),
+            'vendorId' => $vendor->getId(),
+        ];
+        $this->getMetricsService()->counter('vendor_inserted_total', 'Number of inserted records', $inserted, $labels);
+        $this->getMetricsService()->counter('vendor_updated_total', 'Number of updated records', $updated, $labels);
+        $this->getMetricsService()->counter('vendor_records_total', 'Number of records', $count, $labels);
     }
 }

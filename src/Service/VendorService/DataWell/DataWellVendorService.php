@@ -65,7 +65,7 @@ class DataWellVendorService implements VendorServiceInterface
                 IversePublicUrlConverter::convertArrayValues($pidArray);
 
                 $batchSize = \count($pidArray);
-                $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, $batchSize);
+                $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, $batchSize);
 
                 $this->progressMessageFormatted($status);
                 $this->progressAdvance();
@@ -75,13 +75,10 @@ class DataWellVendorService implements VendorServiceInterface
                 }
             } while ($more);
 
-            $this->logStatusMetrics($status);
             $this->vendorCoreService->releaseLock($this->getVendorId());
 
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
-            $this->logStatusMetrics($status);
-
             return VendorImportResultMessage::error($exception->getMessage());
         }
     }

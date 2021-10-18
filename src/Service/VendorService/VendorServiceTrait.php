@@ -7,7 +7,6 @@
 namespace App\Service\VendorService;
 
 use App\Exception\UnknownVendorServiceException;
-use App\Utils\Types\VendorStatus;
 
 /**
  * Trait VendorServiceTrait.
@@ -16,7 +15,7 @@ trait VendorServiceTrait
 {
     private int $limit = 0;
     private bool $withoutQueue = false;
-    private bool $withUpdates = false;
+    private \DateTime $withUpdatesDate;
     private bool $ignoreLock = false;
     private VendorCoreService $vendorCoreService;
 
@@ -31,27 +30,6 @@ trait VendorServiceTrait
     public function setVendorCoreService(VendorCoreService $vendorCoreService): void
     {
         $this->vendorCoreService = $vendorCoreService;
-    }
-
-    /**
-     * Log result of an vendor import.
-     *
-     * @param vendorStatus $status
-     *   The vendor status object
-     *
-     * @throws UnknownVendorServiceException
-     */
-    public function logStatusMetrics(VendorStatus $status): void
-    {
-        $labels = [
-          'type' => 'vendor',
-          'vendorName' => $this->getVendorName(),
-          'vendorId' => $this->getVendorId(),
-        ];
-        $this->vendorCoreService->getMetricsService()->counter('vendor_inserted_total', 'Number of inserted records', $status->inserted, $labels);
-        $this->vendorCoreService->getMetricsService()->counter('vendor_updated_total', 'Number of updated records', $status->updated, $labels);
-        $this->vendorCoreService->getMetricsService()->counter('vendor_deleted_total', 'Number of deleted records', $status->deleted, $labels);
-        $this->vendorCoreService->getMetricsService()->counter('vendor_records_total', 'Number of records', $status->records, $labels);
     }
 
     /**
@@ -105,12 +83,12 @@ trait VendorServiceTrait
     /**
      * Update all vendor records during import.
      *
-     * @param bool $withUpdates
-     *   If true all records will be updated
+     * @param \DateTime $date
+     *   Updated all records found after this date
      */
-    public function setWithUpdates(bool $withUpdates = false)
+    public function setWithUpdatesDate(\DateTime $date)
     {
-        $this->withUpdates = $withUpdates;
+        $this->withUpdatesDate = $date;
     }
 
     /**

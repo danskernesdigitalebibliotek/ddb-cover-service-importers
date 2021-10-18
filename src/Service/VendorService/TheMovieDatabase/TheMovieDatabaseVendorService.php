@@ -106,7 +106,7 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
                     $batchOffset = 0;
                     while ($batchOffset < $batchSize) {
                         $batch = \array_slice($pidArray, $batchOffset, self::BATCH_SIZE, true);
-                        [$updatedIdentifiers, $insertedIdentifiers] = $this->vendorCoreService->processBatch($batch, $sourceRepo, IdentifierType::PID, $this->getVendorId(), $this->withUpdates);
+                        [$updatedIdentifiers, $insertedIdentifiers] = $this->vendorCoreService->processBatch($batch, $sourceRepo, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate);
 
                         $this->postProcess($updatedIdentifiers, $resultArray);
                         $this->postProcess($insertedIdentifiers, $resultArray);
@@ -131,21 +131,18 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
                 ++$queriesIndex;
             }
 
-            $this->logStatusMetrics($status);
             $this->progressFinish();
 
             $this->vendorCoreService->releaseLock($this->getVendorId());
 
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
-            $this->logStatusMetrics($status);
-
             return VendorImportResultMessage::error($exception->getMessage());
         }
     }
 
     /**
-     * Set config fro service from DB vendor object.
+     * Set config from service from DB vendor object.
      */
     private function loadConfig(): void
     {
