@@ -28,6 +28,12 @@ final class VendorCoreService
     private array $vendors = [];
     private array $locks = [];
 
+    // When the vendor load command is used with --with-updates-date or --days-ago a date is given back in time for
+    // which we should look for covers that have not been indexed (no results found in the data well). Covers that have
+    // not been mapped in the data well will only have "this limit value" in the search table and only these should be
+    // re-index/re-search with the data well.
+    private const UPDATE_COVER_LIMIT = 1;
+
     /**
      * CoreVendorService constructor.
      *
@@ -38,7 +44,7 @@ final class VendorCoreService
      * @param metricsService $metricsService
      *   Metrics collection service
      * @param LockFactory $vendorLockFactory
-     *   Vendor lock-factory used to prevent more that one instance of import at one time
+     *   Vendor lock-factory used to prevent more than one instance of import at one time
      */
     public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, MetricsService $metricsService, LockFactory $vendorLockFactory)
     {
@@ -231,7 +237,7 @@ final class VendorCoreService
             if (array_key_exists($identifier, $sources)) {
                 /* @var Source $source */
                 $source = $sources[$identifier];
-                if ($source->getDate() >= $withUpdatesDate && $source->getSearches()->count() < 1) {
+                if ($source->getDate() >= $withUpdatesDate && self::UPDATE_COVER_LIMIT === $source->getSearches()->count()) {
                     $source->setMatchType($identifierType)
                         ->setMatchId($identifier)
                         ->setVendor($vendor)

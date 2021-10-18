@@ -26,6 +26,9 @@ class VendorLoadCommand extends Command
 {
     protected static $defaultName = 'app:vendor:load';
 
+    // The default fallback date for the --with-updates-date parameter to the command.
+    const DEFAULT_DATE = '1970-01-01';
+
     private VendorServiceFactory $vendorFactory;
     private MetricsService $metricsService;
 
@@ -49,7 +52,7 @@ class VendorLoadCommand extends Command
         $this->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit the amount of records imported per vendor', 0);
         $this->addOption('vendor', null, InputOption::VALUE_OPTIONAL, 'Which Vendor should be loaded');
         $this->addOption('without-queue', null, InputOption::VALUE_NONE, 'Should the imported data be sent into the queues - image uploader');
-        $this->addOption('with-updates-date', null, InputOption::VALUE_OPTIONAL, 'Execute updates to existing covers base on from date to now e.g. 2021-09-17 (Y-m-d)', '1970-01-01');
+        $this->addOption('with-updates-date', null, InputOption::VALUE_OPTIONAL, 'Execute updates to existing covers base on from date to now', self::DEFAULT_DATE);
         $this->addOption('days-ago', null, InputOption::VALUE_OPTIONAL, 'Update existing covers x days back from now');
         $this->addOption('force', null, InputOption::VALUE_NONE, 'Force execution ignoring locks');
     }
