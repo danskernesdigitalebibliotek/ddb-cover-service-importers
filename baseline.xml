@@ -99,7 +99,8 @@
     <InvalidScalarArgument occurrences="1">
       <code>0</code>
     </InvalidScalarArgument>
-    <PossiblyInvalidArgument occurrences="1">
+    <PossiblyInvalidArgument occurrences="2">
+      <code>$date</code>
       <code>$vendor</code>
     </PossiblyInvalidArgument>
     <UndefinedInterfaceMethod occurrences="1">
@@ -459,9 +460,6 @@
     </PossiblyNullReference>
   </file>
   <file src="src/Service/VendorService/VendorCoreService.php">
-    <InvalidReturnType occurrences="1">
-      <code>int</code>
-    </InvalidReturnType>
     <ParadoxicalCondition occurrences="1">
       <code>empty($this-&gt;vendors[$vendorId])</code>
     </ParadoxicalCondition>

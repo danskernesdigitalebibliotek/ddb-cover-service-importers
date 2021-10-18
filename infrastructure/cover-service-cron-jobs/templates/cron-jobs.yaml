@@ -26,6 +26,7 @@ spec:
                 - "app:vendor:load"
                 - "--no-debug"
                 - "--vendor={{ required "A valid vendorName required!" .Values.vendorName }}"
+                - "--days-ago={{ .Values.days_ago }}"
               env:
                 - name: APP_DB_USERNAME
                   valueFrom:

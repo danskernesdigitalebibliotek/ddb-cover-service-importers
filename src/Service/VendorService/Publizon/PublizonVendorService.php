@@ -151,7 +151,7 @@ class PublizonVendorService implements VendorServiceInterface
                 }
 
                 if (0 === $totalProducts % 100) {
-                    $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
+                    $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
 
                     $isbnArray = [];
 
@@ -160,14 +160,11 @@ class PublizonVendorService implements VendorServiceInterface
                 }
             }
 
-            $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
+            $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
         } catch (\Exception $e) {
-            $this->logStatusMetrics($status);
-
             return VendorImportResultMessage::error($e->getMessage());
         }
 
-        $this->logStatusMetrics($status);
         $this->progressFinish();
 
         $this->vendorCoreService->releaseLock($this->getVendorId());
