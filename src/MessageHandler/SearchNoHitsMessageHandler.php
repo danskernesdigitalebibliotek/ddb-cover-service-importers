@@ -10,12 +10,13 @@ namespace App\MessageHandler;
 use App\Entity\Search;
 use App\Entity\Source;
 use App\Exception\MaterialTypeException;
+use App\Exception\OpenPlatformSearchException;
 use App\Exception\PlatformAuthException;
 use App\Exception\PlatformSearchException;
 use App\Message\SearchMessage;
 use App\Message\SearchNoHitsMessage;
 use App\Message\VendorImageMessage;
-use App\Service\CoverStore\CoverStoreInterface;
+use App\Service\MetricsService;
 use App\Service\OpenPlatform\SearchService;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
@@ -37,41 +38,35 @@ use Symfony\Component\Messenger\MessageBusInterface;
 class SearchNoHitsMessageHandler implements MessageHandlerInterface
 {
     private EntityManagerInterface $em;
-    private CoverStoreInterface $coverStore;
     private MessageBusInterface $bus;
     private LoggerInterface $logger;
     private SearchService $searchService;
     private VendorImageValidatorService $validatorService;
+    private MetricsService $metricsService;
 
     const VENDOR = 'Unknown';
 
     /**
      * SearchNoHitsMessageHandler constructor.
-     *
-     * @param EntityManagerInterface $entityManager
-     * @param CoverStoreInterface $coverStore
-     * @param MessageBusInterface $bus
-     * @param LoggerInterface $statsLogger
-     * @param SearchService $searchService
-     * @param VendorImageValidatorService $validatorService
      */
-    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $coverStore, MessageBusInterface $bus, LoggerInterface $statsLogger, SearchService $searchService, VendorImageValidatorService $validatorService)
+    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, LoggerInterface $statsLogger, SearchService $searchService, VendorImageValidatorService $validatorService, MetricsService $metricsService)
     {
         $this->em = $entityManager;
-        $this->coverStore = $coverStore;
         $this->bus = $bus;
         $this->logger = $statsLogger;
         $this->searchService = $searchService;
         $this->validatorService = $validatorService;
+        $this->metricsService = $metricsService;
     }
 
     /**
      * @param SearchNoHitsMessage $message
      *
+     * @throws InvalidArgumentException
      * @throws MaterialTypeException
      * @throws PlatformAuthException
      * @throws PlatformSearchException
-     * @throws InvalidArgumentException
+     * @throws OpenPlatformSearchException
      */
     public function __invoke(SearchNoHitsMessage $message)
     {
@@ -87,7 +82,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                 // Try to get basic pid.
                 $basicPid = Material::translatePidToFaust($identifier);
 
-                // There may exists a race condition when multiple queues are
+                // There may exist a race condition when multiple queues are
                 // running. To ensure we don't insert duplicates we need to
                 // wrap our search/update/insert in a transaction.
                 $this->em->getConnection()->beginTransaction();
@@ -110,6 +105,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                         $this->em->getConnection()->commit();
 
                         // Log that a new record was created.
+                        $this->metricsService->counter('no_hit_katelog_mapped', 'No-hit katelog was mapped', 1, ['type' => 'nohit']);
                         $this->logger->info('Katalog recorded have been generated', [
                             'service' => 'SearchNoHitsProcessor',
                             'message' => 'New katalog search record have been generated',
@@ -118,10 +114,13 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                         ]);
 
                         return;
+                    } else {
+                        $this->metricsService->counter('no_hit_katelog_not_mapped', 'No-hit katelog not mapped', 1, ['type' => 'nohit']);
                     }
                 } catch (\Exception $exception) {
                     $this->em->getConnection()->rollBack();
 
+                    $this->metricsService->counter('no_hit_katelog_error', 'No-hit katelog error', 1, ['type' => 'nohit']);
                     $this->logger->error('Database exception: '.get_class($exception), [
                         'service' => 'SearchNoHitsProcessor',
                         'message' => $exception->getMessage(),
@@ -130,6 +129,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                     ]);
                 }
             } catch (ConnectionException $exception) {
+                $this->metricsService->counter('no_hit_katelog_error', 'No-hit katelog error', 1, ['type' => 'nohit']);
                 $this->logger->error('Database Connection Exception', [
                     'service' => 'SearchNoHitsProcessor',
                     'message' => $exception->getMessage(),
@@ -138,7 +138,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                 ]);
             }
         } else {
-            // Try to search the data well and match source entity. This might work as there is an race between when
+            // Try to search the data well and match source entity. This might work as there is a race between when
             // vendors have a given cover and when the material is indexed into the data-well.
             $type = $message->getIdentifierType();
             $material = $this->searchService->search($identifier, $type);
@@ -160,11 +160,14 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                             ->setImageId($source->getImage()->getId())
                             ->setUseSearchCache(true);
                         $this->bus->dispatch($message);
+                        $this->metricsService->counter('no_hit_source_found', 'No-hit source found', 1, ['type' => 'nohit']);
                     }
 
                     // If the source image is null. It might have been made available since we asked the vendor for the
                     // cover.
                     if (is_null($source->getImage()) && !is_null($source->getOriginalFile())) {
+                        $this->metricsService->counter('no_hit_without_image', 'No-hit source found without image', 1, ['type' => 'nohit']);
+
                         $item = new VendorImageItem();
                         $item->setOriginalFile($source->getOriginalFile());
                         try {
@@ -182,6 +185,8 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                                 ->setVendorId($source->getVendor()->getId())
                                 ->setIdentifierType($source->getMatchType());
                             $this->bus->dispatch($message);
+
+                            $this->metricsService->counter('no_hit_without_image_new', 'No-hit source found with new image', 1, ['type' => 'nohit']);
                         }
                     }
                 }
@@ -190,7 +195,9 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
             return;
         }
 
-        // Log current not handled no hit.
+        $this->metricsService->counter('no_hit_failed', 'No-hit mapping not found', 1, ['type' => 'nohit']);
+
+        // Log current not handled no-hit.
         $this->logger->info('No hit', [
             'service' => 'SearchNoHitsProcessor',
             'message' => 'No hit found and send to auto generate queue',

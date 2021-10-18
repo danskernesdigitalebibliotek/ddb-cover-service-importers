@@ -11,6 +11,9 @@ cron:
   failedLimit: 1
   startingDeadlineSeconds: 300
 
+# The number of days to preform updates to existing covers for the selected vendor.
+days_ago: 180
+
 app:
   image:
     version: latest

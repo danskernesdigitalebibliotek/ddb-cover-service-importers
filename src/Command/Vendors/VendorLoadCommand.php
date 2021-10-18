@@ -6,6 +6,7 @@
 
 namespace App\Command\Vendors;
 
+use App\Service\MetricsService;
 use App\Service\VendorService\VendorServiceFactory;
 use App\Service\VendorService\VendorServiceInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
@@ -25,18 +26,21 @@ class VendorLoadCommand extends Command
 {
     protected static $defaultName = 'app:vendor:load';
 
+    // The default fallback date for the --with-updates-date parameter to the command.
+    const DEFAULT_DATE = '1970-01-01';
+
     private VendorServiceFactory $vendorFactory;
+    private MetricsService $metricsService;
 
     /**
      * VendorLoadCommand constructor.
-     *
-     * @param VendorServiceFactory $vendorFactory
      */
-    public function __construct(VendorServiceFactory $vendorFactory)
+    public function __construct(VendorServiceFactory $vendorFactory, MetricsService $metricsService)
     {
         $this->vendorFactory = $vendorFactory;
 
         parent::__construct();
+        $this->metricsService = $metricsService;
     }
 
     /**
@@ -48,7 +52,8 @@ class VendorLoadCommand extends Command
         $this->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit the amount of records imported per vendor', 0);
         $this->addOption('vendor', null, InputOption::VALUE_OPTIONAL, 'Which Vendor should be loaded');
         $this->addOption('without-queue', null, InputOption::VALUE_NONE, 'Should the imported data be sent into the queues - image uploader');
-        $this->addOption('with-updates', null, InputOption::VALUE_NONE, 'Execute updates to existing covers');
+        $this->addOption('with-updates-date', null, InputOption::VALUE_OPTIONAL, 'Execute updates to existing covers base on from date to now', self::DEFAULT_DATE);
+        $this->addOption('days-ago', null, InputOption::VALUE_OPTIONAL, 'Update existing covers x days back from now');
         $this->addOption('force', null, InputOption::VALUE_NONE, 'Force execution ignoring locks');
     }
 
@@ -59,8 +64,34 @@ class VendorLoadCommand extends Command
     {
         $limit = (int) $input->getOption('limit');
         $dispatchToQueue = !$input->getOption('without-queue');
-        $withUpdates = (bool) $input->getOption('with-updates');
         $force = (bool) $input->getOption('force');
+
+        $date = $input->getOption('with-updates-date');
+        $withUpdatesDate = \DateTime::createFromFormat('Y-m-d', $date);
+        if (false === $withUpdatesDate) {
+            $output->writeln('<error>Unknown date format in --with-updates</error>');
+
+            return 1;
+        }
+
+        $daysAgo = $input->getOption('days-ago');
+        if (!empty($daysAgo)) {
+            // If the date take out from '--with-updates-date' is different from default value use have set both which
+            // do not make sens.
+            if ('1970-01-01' !== $date) {
+                $output->writeln('<error>You can not use both --with-updates-data and --days-ago in same command</error>');
+
+                return 1;
+            }
+            $withUpdatesDate = new \DateTime();
+            try {
+                $withUpdatesDate->sub(new \DateInterval('P'.(int) $daysAgo.'D'));
+            } catch (\Exception $e) {
+                $output->writeln('<error>Fail to parse the days-ago option</error>');
+
+                return 1;
+            }
+        }
 
         $vendor = $input->getOption('vendor');
         // Ask 'all', 'none' or '<vendor>'
@@ -84,15 +115,23 @@ class VendorLoadCommand extends Command
 
         $results = [];
         foreach ($vendorServices as $vendorService) {
+            $labels = [
+                'type' => 'vendor',
+                'vendorName' => $vendorService->getVendorName(),
+                'vendorId' => $vendorService->getVendorId(),
+            ];
+
             try {
                 /* @var VendorServiceInterface $vendorService */
                 $vendorService->setWithoutQueue($dispatchToQueue);
-                $vendorService->setWithUpdates($withUpdates);
+                $vendorService->setWithUpdatesDate($withUpdatesDate);
                 $vendorService->setLimit($limit);
                 $vendorService->setIgnoreLock($force);
                 $vendorService->setProgressBar($progressBarSheet);
                 $results[$vendorService->getVendorName()] = $vendorService->load();
+                $this->metricsService->counter('vendor_load_completed', 'Vendor load completed', 1, $labels);
             } catch (Exception $exception) {
+                $this->metricsService->counter('vendor_load_failed', 'Vendor load failed', 1, $labels);
                 $io->error('👎 '.$exception->getMessage());
             }
         }

@@ -91,7 +91,7 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
                     }
 
                     if (0 === $totalRows % $this->tsvBatchSize) {
-                        $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
+                        $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
 
                         $pidArray = [];
 
@@ -101,7 +101,7 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
                 }
             }
 
-            $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
+            $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
             $this->progressFinish();
 
             $this->vendorCoreService->releaseLock($this->getVendorId());

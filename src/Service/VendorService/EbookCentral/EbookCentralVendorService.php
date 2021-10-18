@@ -100,7 +100,7 @@ class EbookCentralVendorService implements VendorServiceInterface
                     }
 
                     if (0 === $totalRows % 100) {
-                        $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
+                        $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
                         $isbnArray = [];
 
                         $this->progressMessageFormatted($status);
@@ -120,17 +120,14 @@ class EbookCentralVendorService implements VendorServiceInterface
                 }
             }
 
-            $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdates, $this->withoutQueue, self::BATCH_SIZE);
+            $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
 
-            $this->logStatusMetrics($status);
             $this->progressFinish();
 
             $this->vendorCoreService->releaseLock($this->getVendorId());
 
             return VendorImportResultMessage::success($status);
         } catch (\Exception $exception) {
-            $this->logStatusMetrics($status);
-
             return VendorImportResultMessage::error($exception->getMessage());
         }
     }
