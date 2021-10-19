@@ -1,94 +1,124 @@
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   namespace: {{ .Release.Namespace }}
   name: {{ .Release.Name }}-importers
-  annotations:
-    checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
 spec:
-  containers:
-  - name: importers
-    image: danskernesdigitalebibliotek/cover-service-importers:{{ .Values.app.image.version }}
-    imagePullPolicy: {{ .Values.app.image.imagePullPolicy }}
-    resources:
-      requests:
-        memory: "640Mi"
-        cpu: "300m"
-      limits:
-        memory: "640Mi"
-        cpu: "500m"
-    env:
-      - name: APP_DB_USERNAME
-        valueFrom:
-          secretKeyRef:
-            name: {{ .Release.Name }}-secret
-            key: APP_DB_USERNAME
-      - name: APP_DB_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: {{ .Release.Name }}-secret
-            key: APP_DB_PASSWORD
-      - name: APP_OPENPLATFORM_ID
-        valueFrom:
-          secretKeyRef:
-            name: {{ .Release.Name }}-secret
-            key: APP_OPENPLATFORM_ID
-      - name: APP_OPENPLATFORM_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: {{ .Release.Name }}-secret
-            key: APP_OPENPLATFORM_SECRET
-      - name: APP_OPENPLATFORM_AGENCY
-        valueFrom:
-          secretKeyRef:
-            name: {{ .Release.Name }}-secret
-            key: APP_OPENPLATFORM_AGENCY
-      - name: APP_DATAWELL_VENDOR_USER
-        valueFrom:
-          secretKeyRef:
-            name: {{ .Release.Name }}-secret
-            key: APP_DATAWELL_VENDOR_USER
-      - name: APP_DATAWELL_VENDOR_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: {{ .Release.Name }}-secret
-            key: APP_DATAWELL_VENDOR_PASSWORD
-      - name: APP_CLOUDINARY_ID
-        valueFrom:
-          secretKeyRef:
-            name: {{ .Release.Name }}-secret
-            key: APP_CLOUDINARY_ID
-      - name: APP_CLOUDINARY_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: {{ .Release.Name }}-secret
-            key: APP_CLOUDINARY_SECRET
-      - name: APP_CLOUDINARY_DOMAIN
-        valueFrom:
-          secretKeyRef:
-            name: {{ .Release.Name }}-secret
-            key: APP_CLOUDINARY_DOMAIN
-      - name: APP_THEMOVIEDATABASE_APIKEY
-        valueFrom:
-          secretKeyRef:
-            name: {{ .Release.Name }}-secret
-            key: APP_THEMOVIEDATABASE_APIKEY
-      - name: APP_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: {{ .Release.Name }}-secret
-            key: APP_SECRET
-      - name: APP_AMQP_USERNAME
-        valueFrom:
-          secretKeyRef:
-            name: {{ .Release.Name }}-secret
-            key: APP_AMQP_USERNAME
-      - name: APP_AMQP_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: {{ .Release.Name }}-secret
-            key: APP_AMQP_PASSWORD
-    envFrom:
-      - configMapRef:
-          name: {{ .Release.Name }}-configmap
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-importers
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-importers
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      containers:
+      - name: importers
+        image: danskernesdigitalebibliotek/cover-service-importers:{{ .Values.app.image.version }}
+        imagePullPolicy: {{ .Values.app.image.imagePullPolicy }}
+        resources:
+          requests:
+            memory: "640Mi"
+            cpu: "300m"
+          limits:
+            memory: "640Mi"
+            cpu: "500m"
+        env:
+          - name: APP_DB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: APP_DB_USERNAME
+          - name: APP_DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: APP_DB_PASSWORD
+          - name: APP_OPENPLATFORM_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: APP_OPENPLATFORM_ID
+          - name: APP_OPENPLATFORM_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: APP_OPENPLATFORM_SECRET
+          - name: APP_OPENPLATFORM_AGENCY
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: APP_OPENPLATFORM_AGENCY
+          - name: APP_DATAWELL_VENDOR_USER
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: APP_DATAWELL_VENDOR_USER
+          - name: APP_DATAWELL_VENDOR_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: APP_DATAWELL_VENDOR_PASSWORD
+          - name: APP_CLOUDINARY_ID
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: APP_CLOUDINARY_ID
+          - name: APP_CLOUDINARY_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: APP_CLOUDINARY_SECRET
+          - name: APP_CLOUDINARY_DOMAIN
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: APP_CLOUDINARY_DOMAIN
+          - name: APP_THEMOVIEDATABASE_APIKEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: APP_THEMOVIEDATABASE_APIKEY
+          - name: APP_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: APP_SECRET
+          - name: APP_AMQP_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: APP_AMQP_USERNAME
+          - name: APP_AMQP_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}-secret
+                key: APP_AMQP_PASSWORD
+        envFrom:
+          - configMapRef:
+              name: {{ .Release.Name }}-configmap
+      - name: nginx
+        image: nginx:{{ .Values.nginx.image.version }}
+        ports:
+          - containerPort: 80
+        volumeMounts:
+          - mountPath: /etc/nginx/nginx.conf
+            name: nginx-conf
+            subPath: nginx.conf
+            readOnly: true
+          - mountPath: /etc/nginx/conf.d/default.conf
+            name: nginx-conf
+            subPath: default.conf
+            readOnly: true
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: {{ .Release.Name }}-nginx-config
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+              - key: default.conf
+                path: default.conf
