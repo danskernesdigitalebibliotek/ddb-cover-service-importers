@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4e15404e051dbee1f93a6234a089be77",
+    "content-hash": "544011a60adab69b80cf8c9bf527f0b0",
     "packages": [
         {
             "name": "box/spout",
@@ -2304,6 +2304,51 @@
                 "source": "https://github.com/guzzle/psr7/tree/1.8.2"
             },
             "time": "2021-04-26T09:17:50+00:00"
+        },
+        {
+            "name": "itkdev/metrics-bundle",
+            "version": "0.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/itk-dev/ItkDevMetricsBundle.git",
+                "reference": "9f68c16cf98f44562c233628b4c5ff7a2b704a91"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/itk-dev/ItkDevMetricsBundle/zipball/9f68c16cf98f44562c233628b4c5ff7a2b704a91",
+                "reference": "9f68c16cf98f44562c233628b4c5ff7a2b704a91",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^7.4|^8.0|^8.1",
+                "promphp/prometheus_client_php": "^2.2"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.2",
+                "vimeo/psalm": "^4.7"
+            },
+            "type": "symfony-bundle",
+            "autoload": {
+                "psr-4": {
+                    "ItkDev\\MetricsBundle\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Jesper Kristensen",
+                    "email": "cableman@linuxdev.dk"
+                }
+            ],
+            "description": "Provide metrics for prometheus",
+            "support": {
+                "issues": "https://github.com/itk-dev/ItkDevMetricsBundle/issues",
+                "source": "https://github.com/itk-dev/ItkDevMetricsBundle/tree/0.0.1"
+            },
+            "time": "2021-10-19T08:27:23+00:00"
         },
         {
             "name": "jdorn/sql-formatter",
@@ -11596,6 +11641,7 @@
     "prefer-lowest": false,
     "platform": {
         "php": "^7.4 | 8.0",
+        "ext-amqp": "*",
         "ext-ctype": "*",
         "ext-curl": "*",
         "ext-ftp": "*",
@@ -11604,8 +11650,7 @@
         "ext-redis": "*",
         "ext-xmlreader": "*",
         "ext-zend-opcache": "*",
-        "ext-zip": "*",
-        "ext-amqp": "*"
+        "ext-zip": "*"
     },
     "platform-dev": [],
     "plugin-api-version": "2.1.0"

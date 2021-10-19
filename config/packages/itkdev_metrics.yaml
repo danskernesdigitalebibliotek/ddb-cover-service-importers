@@ -1,0 +1,13 @@
+---
+itkdev_metrics:
+    namespace: '%env(METRICS_NAMESPACE)%'
+    adapter:
+        type: redis
+        options:
+            host: '%env(METRICS_HOST)%'
+            port: '%env(int:METRICS_PORT)%'
+
+    # Export metrics for these extensions
+    extensions:
+        opcache: false
+        apcu: false

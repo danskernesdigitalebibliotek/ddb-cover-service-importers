@@ -188,6 +188,9 @@
     "guzzlehttp/streams": {
         "version": "3.0.0"
     },
+    "itkdev/metrics-bundle": {
+        "version": "0.0.1"
+    },
     "jdorn/sql-formatter": {
         "version": "v1.2.17"
     },
