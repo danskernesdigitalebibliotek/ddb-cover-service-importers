@@ -7,11 +7,11 @@ use App\Entity\Vendor;
 use App\Exception\UnknownVendorServiceException;
 use App\Message\VendorImageMessage;
 use App\Repository\SourceRepository;
-use App\Service\MetricsService;
 use App\Utils\Types\VendorState;
 use App\Utils\Types\VendorStatus;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\QueryException;
+use ItkDev\MetricsBundle\Service\MetricsService;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Messenger\MessageBusInterface;
 
