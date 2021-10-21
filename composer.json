@@ -22,7 +22,7 @@
         "elasticsearch/elasticsearch": "^6.7",
         "friendsofsymfony/elastica-bundle": "^5.0",
         "guzzlehttp/guzzle": "^6.3",
-        "itkdev/metrics-bundle": "^0.0.1",
+        "itk-dev/metrics-bundle": "^0.0.1",
         "karriere/json-decoder": "^2.1",
         "league/oauth2-client": "^2.6",
         "nicebooks/isbn": "^0.2.56",
