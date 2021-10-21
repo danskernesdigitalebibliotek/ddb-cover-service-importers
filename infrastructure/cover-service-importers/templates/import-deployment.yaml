@@ -103,6 +103,8 @@ spec:
         envFrom:
           - configMapRef:
               name: {{ .Release.Name }}-configmap
+        ports:
+            - containerPort: 9000
       - name: nginx
         image: nginx:{{ .Values.nginx.image.version }}
         imagePullPolicy: {{ .Values.nginx.image.imagePullPolicy }}
