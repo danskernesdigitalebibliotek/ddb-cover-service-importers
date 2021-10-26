@@ -6,9 +6,9 @@
 
 namespace App\Command\Vendors;
 
-use App\Service\MetricsService;
 use App\Service\VendorService\VendorServiceFactory;
 use App\Service\VendorService\VendorServiceInterface;
+use ItkDev\MetricsBundle\Service\MetricsService;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
