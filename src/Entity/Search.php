@@ -11,7 +11,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *        @ORM\UniqueConstraint(name="record_unique",
  *            columns={"is_type", "is_identifier"})
  *    },
-*     indexes={
+ *     indexes={
  *        @ORM\Index(name="is_identifier_idx", columns={"is_identifier"})
  *    }
  * )
