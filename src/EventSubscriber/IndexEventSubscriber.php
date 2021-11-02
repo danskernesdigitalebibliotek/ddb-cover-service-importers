@@ -61,10 +61,10 @@ class IndexEventSubscriber implements EventSubscriberInterface
         $image = $this->getImage($event->getImageId());
         $source = $image->getSource();
 
-        $repos = $this->em->getRepository(Search::class);
+        $searchRepos = $this->em->getRepository(Search::class);
 
         try {
-            // There may exists a race condition when multiple queues are
+            // There may exist a race condition when multiple queues are
             // running. To ensure we don't insert duplicates we need to
             // wrap our search/update/insert in a transaction.
             $this->em->getConnection()->beginTransaction();
@@ -72,13 +72,13 @@ class IndexEventSubscriber implements EventSubscriberInterface
             try {
                 foreach ($material->getIdentifiers() as $identifier) {
                     /* @var Search $search */
-                    $search = $repos->findOneBy([
+                    $search = $searchRepos->findOneBy([
                         'isIdentifier' => $identifier->getId(),
                         'isType' => $identifier->getType(),
                     ]);
 
                     if (empty($search)) {
-                        // It did not exists, so create new record. Which will automatically update the search indexes
+                        // It did not exist, so create new record. Which will automatically update the search indexes
                         // on flush.
                         $search = new Search();
                         $search->setIsType($identifier->getType())
@@ -144,7 +144,7 @@ class IndexEventSubscriber implements EventSubscriberInterface
         if ($sourceRank <= $searchRank) {
             // Collection should not override covers on items that already have unique cover.
             if ($material->isCollection()) {
-                // Unless it is marked as an collection search entity then this may be an image update.
+                // Unless it is marked as a collection search entity then this may be an image update.
                 if ($search->isCollection()) {
                     return true;
                 }

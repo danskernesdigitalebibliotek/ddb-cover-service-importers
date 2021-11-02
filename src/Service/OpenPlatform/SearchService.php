@@ -160,13 +160,6 @@ class SearchService
                 case 'pid':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::PID, $item);
-
-                        // We know that the last part of the PID is the material faust
-                        // so we extract that here and add that as a identifier as
-                        // well.
-                        if (preg_match('/:(1?\d{8}$)/', $item, $matches)) {
-                            $material->addIdentifier(IdentifierType::FAUST, $matches[1]);
-                        }
                     }
                     break;
 

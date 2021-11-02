@@ -182,7 +182,7 @@ class Material
     {
         $ids = $this->getIdentifierByType($type);
         foreach ($ids as $id) {
-            if ($id->getId() == $identifier) {
+            if (strcasecmp($id->getId(), $identifier) === 0) {
                 return true;
             }
         }

@@ -88,7 +88,11 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                 $this->em->getConnection()->beginTransaction();
 
                 try {
-                    $search = $searchRepos->findOneByisIdentifier($faust);
+                    /* @var Search $search */
+                    $search = $searchRepos->findOneBy([
+                        'isIdentifier' => $faust,
+                        'isType' => IdentifierType::FAUST,
+                    ]);
 
                     if (!empty($search)) {
                         $newSearch = new Search();
