@@ -25,59 +25,59 @@ class Search
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private int $id;
 
     /**
      * @ORM\Column(type="string", length=50)
      *
      * @Groups({"read"})
      */
-    private $isIdentifier;
+    private ?string $isIdentifier;
 
     /**
      * @ORM\Column(type="string", length=5)
      *
      * @Groups({"read"})
      */
-    private $isType;
+    private ?string $isType;
 
     /**
      * @ORM\Column(type="text")
      *
      * @Groups({"read"})
      */
-    private $imageUrl;
+    private ?string $imageUrl;
 
     /**
      * @ORM\Column(type="string", length=255)
      *
      * @Groups({"read"})
      */
-    private $imageFormat;
+    private ?string $imageFormat;
 
     /**
      * @ORM\Column(type="integer")
      *
      * @Groups({"read"})
      */
-    private $width;
+    private int $width;
 
     /**
      * @ORM\Column(type="integer")
      *
      * @Groups({"read"})
      */
-    private $height;
+    private ?int $height;
 
     /**
      * @ORM\Column(type="boolean", options={"default" : false})
      */
-    private $collection = false;
+    private bool $collection = false;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Source", inversedBy="searches")
      */
-    private $source;
+    private ?Source $source;
 
     public function getId(): ?int
     {
