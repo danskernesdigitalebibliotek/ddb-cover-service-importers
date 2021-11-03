@@ -7,6 +7,13 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
+ * @ORM\Table(name="vendor",
+ *    indexes={
+ *        @ORM\Index(name="vendor_class_idx", columns={"class"}),
+ *        @ORM\Index(name="vendor_name_idx", columns={"name"}),
+ *        @ORM\Index(name="vendor_rank_idx", columns={"rank"})
+ *    }
+ * )
  * @ORM\Entity(repositoryClass="App\Repository\VendorRepository")
  */
 class Vendor
