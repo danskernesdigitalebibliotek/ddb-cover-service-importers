@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Index event subscriber that updates the searches database table thereby ensuring that the material gets indexed into
+ * Index event subscriber that updates the "search" database table thereby ensuring that the material gets indexed into
  * the search engine.
  */
 
@@ -124,7 +124,7 @@ class IndexEventSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * Determind if the search record should be overridden.
+     * Determine if the search record should be overridden.
      *
      * @param Material $material
      *   Material from search result
