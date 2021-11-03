@@ -76,11 +76,11 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
         // "basic" identifier exits and create the mapping.
         if (strpos($identifier, '-katalog:')) {
             $searchRepos = $this->em->getRepository(Search::class);
-            $basicPid = null;
+            $faust = null;
 
             try {
                 // Try to get basic pid.
-                $basicPid = Material::translatePidToFaust($identifier);
+                $faust = Material::translatePidToFaust($identifier);
 
                 // There may exist a race condition when multiple queues are
                 // running. To ensure we don't insert duplicates we need to
@@ -88,7 +88,11 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                 $this->em->getConnection()->beginTransaction();
 
                 try {
-                    $search = $searchRepos->findOneByisIdentifier($basicPid);
+                    /* @var Search $search */
+                    $search = $searchRepos->findOneBy([
+                        'isIdentifier' => $faust,
+                        'isType' => IdentifierType::FAUST,
+                    ]);
 
                     if (!empty($search)) {
                         $newSearch = new Search();
@@ -110,7 +114,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                             'service' => 'SearchNoHitsProcessor',
                             'message' => 'New katalog search record have been generated',
                             'identifier' => $identifier,
-                            'source' => $basicPid,
+                            'source' => $faust,
                         ]);
 
                         return;
@@ -125,7 +129,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                         'service' => 'SearchNoHitsProcessor',
                         'message' => $exception->getMessage(),
                         'identifier' => $identifier,
-                        'source' => $basicPid,
+                        'source' => $faust,
                     ]);
                 }
             } catch (ConnectionException $exception) {
@@ -134,7 +138,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                     'service' => 'SearchNoHitsProcessor',
                     'message' => $exception->getMessage(),
                     'identifier' => $identifier,
-                    'source' => $basicPid ?: 'unknown',
+                    'source' => $faust ?: 'unknown',
                 ]);
             }
         } else {

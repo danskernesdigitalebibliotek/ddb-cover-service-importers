@@ -43,9 +43,6 @@ class PopulateService
         $this->entityManager = $entityManager;
 
         $this->elasticHost = $bindElasticSearchUrl;
-
-        // Make sure that the sql logger is not enabled to avoid memory issues.
-        $entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
     }
 
     /**

@@ -7,6 +7,13 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
+ * @ORM\Table(name="vendor",
+ *    indexes={
+ *        @ORM\Index(name="vendor_class_idx", columns={"class"}),
+ *        @ORM\Index(name="vendor_name_idx", columns={"name"}),
+ *        @ORM\Index(name="vendor_rank_idx", columns={"rank"})
+ *    }
+ * )
  * @ORM\Entity(repositoryClass="App\Repository\VendorRepository")
  */
 class Vendor
@@ -16,47 +23,47 @@ class Vendor
      * @ORM\GeneratedValue(strategy="NONE")
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private int $id;
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
      */
-    private $class;
+    private string $class;
 
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $name;
+    private ?string $name;
 
     /**
      * @ORM\Column(type="integer", unique=true)
      */
-    private $rank;
+    private int $rank;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $imageServerURI;
+    private ?string $imageServerURI;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $dataServerURI;
+    private ?string $dataServerURI;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $dataServerUser;
+    private ?string $dataServerUser;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $dataServerPassword;
+    private ?string $dataServerPassword;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Source", mappedBy="vendor", orphanRemoval=true)
      */
-    private $sources;
+    private Collection $sources;
 
     public function __construct()
     {

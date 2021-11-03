@@ -131,14 +131,6 @@ class SearchService
                 $material->addIdentifier($type, $identifier);
             }
 
-            // If the vendor provided type is PID, then we should be able to get the faust number as well.
-            if (IdentifierType::PID === $type) {
-                $faust = Material::translatePidToFaust($identifier);
-                if (!$material->hasIdentifier(IdentifierType::FAUST, $faust)) {
-                    $material->addIdentifier(IdentifierType::FAUST, $faust);
-                }
-            }
-
             $item->expiresAfter($this->searchCacheTTL);
             $item->set($material);
             $this->cache->save($item);
@@ -168,13 +160,6 @@ class SearchService
                 case 'pid':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::PID, $item);
-
-                        // We know that the last part of the PID is the material faust
-                        // so we extract that here and add that as a identifier as
-                        // well.
-                        if (preg_match('/:(1?\d{8}$)/', $item, $matches)) {
-                            $material->addIdentifier(IdentifierType::FAUST, $matches[1]);
-                        }
                     }
                     break;
 

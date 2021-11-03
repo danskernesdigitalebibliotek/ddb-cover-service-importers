@@ -14,37 +14,37 @@ class Image
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private int $id;
 
     /**
      * @ORM\Column(type="string", length=4, nullable=true)
      */
-    private $imageFormat;
+    private ?string $imageFormat;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private $size;
+    private ?int $size;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private $width;
+    private ?int $width;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private $height;
+    private ?int $height;
 
     /**
      * @ORM\Column(type="text", nullable=false)
      */
-    private $coverStoreURL;
+    private ?string $coverStoreURL;
 
     /**
      * @ORM\OneToOne(targetEntity="Source", mappedBy="image", cascade={"persist", "remove"})
      */
-    private $source;
+    private ?Source $source;
 
     public function getId(): ?int
     {
