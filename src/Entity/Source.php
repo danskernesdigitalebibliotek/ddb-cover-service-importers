@@ -74,6 +74,11 @@ class Source
     private Collection $searches;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private \DateTime $lastIndexed;
+
+    /**
      * @return Collection
      */
     public function getSearches(): Collection
@@ -231,6 +236,24 @@ class Source
                 $search->setSource(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getLastIndexed(): ?\DateTime
+    {
+        return $this->lastIndexed;
+    }
+
+    /**
+     * @param \DateTime $lastIndexed
+     */
+    public function setLastIndexed(\DateTime $lastIndexed): self
+    {
+        $this->lastIndexed = $lastIndexed;
 
         return $this;
     }

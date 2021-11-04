@@ -51,7 +51,9 @@ class SearchReindexCommand extends Command
             ->addOption('vendor-id', null, InputOption::VALUE_OPTIONAL, 'Limit the re-index to vendor with this id number')
             ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'If set only this identifier will be re-index (requires that you set vendor id)')
             ->addOption('clean-up', null, InputOption::VALUE_NONE, 'Remove all rows from the search table related to a given source before insert')
-            ->addOption('without-search-cache', null, InputOption::VALUE_NONE, 'If set do not use search cache during re-index');
+            ->addOption('without-search-cache', null, InputOption::VALUE_NONE, 'If set do not use search cache during re-index')
+            ->addOption('last-indexed-date', null, InputOption::VALUE_OPTIONAL, 'The date used when re-indexing in batches to have keeps track index by date (24-10-2021)')
+            ->addOption('batch-size', null, InputOption::VALUE_OPTIONAL, 'Batch size to index, requires an last-indexed-date is given');
     }
 
     /**
@@ -63,6 +65,8 @@ class SearchReindexCommand extends Command
         $cleanUp = $input->getOption('clean-up');
         $identifier = $input->getOption('identifier');
         $withOutSearchCache = $input->getOption('without-search-cache');
+        $lastIndexedDate = $input->getOption('last-indexed-date');
+        $batchIndexSize = $input->getOption('batch-size');
 
         $batchSize = 200;
         $i = 0;
@@ -80,6 +84,24 @@ class SearchReindexCommand extends Command
         }
         if (!is_null($vendorId)) {
             $query .= ' AND s.vendor = '.$vendorId;
+        }
+
+        if (!is_null($batchIndexSize)) {
+            if (is_null($lastIndexedDate)) {
+                $output->writeln('<error>Batch size can not be given without last-indexed-date</error>');
+                return -1;
+            }
+
+            $format = 'd-m-Y';
+            $inputDate = \DateTime::createFromFormat($format, $lastIndexedDate);
+            if (!($inputDate && $inputDate->format($format) == $lastIndexedDate)) {
+                $output->writeln('<error>Lasted indexed date should have the format "m-d-Y"</error>');
+                return -1;
+            }
+
+            //$lastIndexedDate = $inputDate;
+
+            $query .= ' AND s.lastIndexed < ' . $lastIndexedDate;
         }
 
         // Progress bar setup.
