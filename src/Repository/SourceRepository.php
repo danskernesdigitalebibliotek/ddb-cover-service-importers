@@ -101,6 +101,20 @@ class SourceRepository extends ServiceEntityRepository
         return end($sources);
     }
 
+    /**
+     * Get a paginator for source that is limited by the parameters.
+     *
+     * @param int $batchSize
+     *   The number of records to fetch
+     * @param \DateTime|null $lastIndexedDate
+     *   Limit the fetched records by last indexed time
+     * @param int|null $vendorId
+     *   The vendor to fetch sources for
+     * @param string|null $identifier
+     *   Limit to single identifier
+     *
+     * @return DoctrinePaginator
+     */
     public function findReindexabledSources(int $batchSize, ?\DateTime $lastIndexedDate = null, ?int $vendorId = null, ?string $identifier = null): DoctrinePaginator
     {
         $queryBuilder = $this->createQueryBuilder('s');
