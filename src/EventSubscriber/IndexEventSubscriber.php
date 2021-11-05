@@ -103,6 +103,8 @@ class IndexEventSubscriber implements EventSubscriberInterface
                     }
                 }
 
+                $source->setLastIndexed(new \DateTime());
+
                 // Make every thing stick.
                 $this->em->flush();
                 $this->em->getConnection()->commit();

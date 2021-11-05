@@ -81,6 +81,7 @@ class SearchReindexCommand extends Command
         if (!is_null($batchSize)) {
             if (is_null($lastIndexedDate)) {
                 $output->writeln('<error>Batch size can not be given without last-indexed-date</error>');
+
                 return -1;
             }
 
@@ -88,13 +89,12 @@ class SearchReindexCommand extends Command
             $inputDate = \DateTime::createFromFormat($format, $lastIndexedDate);
             if (!($inputDate && $inputDate->format($format) == $lastIndexedDate)) {
                 $output->writeln('<error>Lasted indexed date should have the format "m-d-Y"</error>');
+
                 return -1;
             }
+        } else {
+            $batchSize = 200;
         }
-
-        /** @var SourceRepository $sourceRepos */
-        $sourceRepos = $this->em->getRepository(Source::class);
-        $paginator = $sourceRepos->findReindexabledSources($batchSize, $inputDate, $vendorId, $identifier);
 
         // Progress bar setup.
         $section = $output->section('Sheet');
@@ -103,29 +103,44 @@ class SearchReindexCommand extends Command
         $this->setProgressBar($progressBarSheet);
         $this->progressStart('Loading database source');
 
+        /** @var SourceRepository $sourceRepos */
+        $sourceRepos = $this->em->getRepository(Source::class);
+        $paginator = $sourceRepos->findReindexabledSources($batchSize, $inputDate, $vendorId, $identifier);
         $i = 0;
 
-        /* @var Source $source */
-        foreach ($paginator as $source) {
-            // Build and create new search job which will trigger index event.
-            $message = new SearchMessage();
-            $message->setIdentifier($source->getMatchId())
-                ->setOperation(true === $cleanUp ? VendorState::DELETE_AND_UPDATE : VendorState::UPDATE)
-                ->setIdentifierType($source->getMatchType())
-                ->setVendorId($source->getVendor()->getId())
-                ->setImageId($source->getImage()->getId())
-                ->setUseSearchCache(!$withOutSearchCache);
-            $this->bus->dispatch($message);
+        // This loop should run until it's broken from inside. This is to enabled batching over all sources in batches
+        // of $batchSize if $lastIndexed data is not give. But at the same time loop over one batch of size given when
+        // date is given.
+        while (true) {
+            /* @var Source $source */
+            foreach ($paginator as $source) {
+                // Build and create new search job which will trigger index event.
+                $message = new SearchMessage();
+                $message->setIdentifier($source->getMatchId())
+                    ->setOperation(true === $cleanUp ? VendorState::DELETE_AND_UPDATE : VendorState::UPDATE)
+                    ->setIdentifierType($source->getMatchType())
+                    ->setVendorId($source->getVendor()->getId())
+                    ->setImageId($source->getImage()->getId())
+                    ->setUseSearchCache(!$withOutSearchCache);
+                $this->bus->dispatch($message);
 
-            // Free memory every 200 iterations.
-            if (0 === ($i % 200)) {
-                $this->em->clear();
-                gc_collect_cycles();
+                // Free memory every 200 iterations.
+                if (0 === ($i % 200)) {
+                    $this->em->clear();
+                    gc_collect_cycles();
+                }
+
+                ++$i;
+                $this->progressAdvance();
+                $this->progressMessage('Source rows found '.$i.' in DB');
             }
 
-            ++$i;
-            $this->progressAdvance();
-            $this->progressMessage('Source rows found '.$i.' in DB');
+            // Refresh the paginator to the next set, if date is not given.
+            if (is_null($inputDate) && 0 === ($i % $batchSize) && $paginator->count() > $i) {
+                $paginator = $sourceRepos->findReindexabledSources($batchSize, $inputDate, $vendorId, $identifier);
+            } else {
+                break;
+            }
         }
 
         $this->progressFinish();

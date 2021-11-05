@@ -250,6 +250,8 @@ class Source
 
     /**
      * @param \DateTime $lastIndexed
+     *
+     * @return $this
      */
     public function setLastIndexed(\DateTime $lastIndexed): self
     {

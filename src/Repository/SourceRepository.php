@@ -122,6 +122,9 @@ class SourceRepository extends ServiceEntityRepository
                 ->setParameter('lastIndexedDate', $lastIndexedDate);
         }
 
+        // Order by date to ensure the newest is fetched first during reindex as they maybe the most wanted.
+        $queryBuilder->orderBy('s.date', 'DESC');
+
         $query = $queryBuilder->getQuery()
             ->setFirstResult(0)
             ->setMaxResults($batchSize);
