@@ -9,6 +9,7 @@ namespace App\Command\Search;
 
 use App\Entity\Source;
 use App\Message\SearchMessage;
+use App\Repository\SourceRepository;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
@@ -66,27 +67,18 @@ class SearchReindexCommand extends Command
         $identifier = $input->getOption('identifier');
         $withOutSearchCache = $input->getOption('without-search-cache');
         $lastIndexedDate = $input->getOption('last-indexed-date');
-        $batchIndexSize = $input->getOption('batch-size');
+        $batchSize = $input->getOption('batch-size');
 
-        $batchSize = 200;
-        $i = 0;
-
-        // @TODO: Move into repository and use query builder.
-        $query = 'SELECT s FROM App\Entity\Source s WHERE s.image IS NOT NULL';
+        $inputDate = null;
         if (!is_null($identifier)) {
-            if (!is_null($vendorId)) {
-                $query .= ' AND s.matchId = \''.$identifier.'\'';
-            } else {
+            if (is_null($vendorId)) {
                 $output->writeln('<error>Missing vendor id required in combination with identifier</error>');
 
                 return 1;
             }
         }
-        if (!is_null($vendorId)) {
-            $query .= ' AND s.vendor = '.$vendorId;
-        }
 
-        if (!is_null($batchIndexSize)) {
+        if (!is_null($batchSize)) {
             if (is_null($lastIndexedDate)) {
                 $output->writeln('<error>Batch size can not be given without last-indexed-date</error>');
                 return -1;
@@ -98,25 +90,23 @@ class SearchReindexCommand extends Command
                 $output->writeln('<error>Lasted indexed date should have the format "m-d-Y"</error>');
                 return -1;
             }
-
-            //$lastIndexedDate = $inputDate;
-
-            $query .= ' AND s.lastIndexed < ' . $lastIndexedDate;
         }
+
+        /** @var SourceRepository $sourceRepos */
+        $sourceRepos = $this->em->getRepository(Source::class);
+        $paginator = $sourceRepos->findReindexabledSources($batchSize, $inputDate, $vendorId, $identifier);
 
         // Progress bar setup.
         $section = $output->section('Sheet');
         $progressBarSheet = new ProgressBar($section);
         $progressBarSheet->setFormat('[%bar%] %elapsed% (%memory%) - %message%');
         $this->setProgressBar($progressBarSheet);
-        $this->progressStart('Loading database source table in batches of '.$batchSize.' records');
+        $this->progressStart('Loading database source');
 
-        $query = $this->em->createQuery($query);
-        $iterableResult = $query->iterate();
-        foreach ($iterableResult as $row) {
-            /* @var Source $source */
-            $source = $row[0];
+        $i = 0;
 
+        /* @var Source $source */
+        foreach ($paginator as $source) {
             // Build and create new search job which will trigger index event.
             $message = new SearchMessage();
             $message->setIdentifier($source->getMatchId())
@@ -127,14 +117,13 @@ class SearchReindexCommand extends Command
                 ->setUseSearchCache(!$withOutSearchCache);
             $this->bus->dispatch($message);
 
-            // Free memory when batch size is reached.
-            if (0 === ($i % $batchSize)) {
+            // Free memory every 200 iterations.
+            if (0 === ($i % 200)) {
                 $this->em->clear();
                 gc_collect_cycles();
             }
 
             ++$i;
-
             $this->progressAdvance();
             $this->progressMessage('Source rows found '.$i.' in DB');
         }

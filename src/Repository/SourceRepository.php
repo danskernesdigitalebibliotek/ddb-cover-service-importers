@@ -6,6 +6,7 @@ use App\Entity\Source;
 use App\Entity\Vendor;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Query\QueryException;
+use Doctrine\ORM\Tools\Pagination\Paginator as DoctrinePaginator;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 class SourceRepository extends ServiceEntityRepository
@@ -98,5 +99,33 @@ class SourceRepository extends ServiceEntityRepository
             ->getResult();
 
         return end($sources);
+    }
+
+    public function findReindexabledSources(int $batchSize, ?\DateTime $lastIndexedDate = null, ?int $vendorId = null, ?string $identifier = null): DoctrinePaginator
+    {
+        $queryBuilder = $this->createQueryBuilder('s');
+        $queryBuilder->select('s')
+            ->where('s.image IS NOT NULL');
+
+        if (!is_null($vendorId)) {
+            $queryBuilder->andWhere('s.vendor = :vendorId')
+                ->setParameter('vendorId', $vendorId);
+        }
+
+        if (!is_null($identifier)) {
+            $queryBuilder->andWhere('s.matchId = :identifier')
+                ->setParameter('identifier', $identifier);
+        }
+
+        if (!is_null($lastIndexedDate)) {
+            $queryBuilder->andWhere('s.lastIndexed < :lastIndexedDate OR s.lastIndexed is null')
+                ->setParameter('lastIndexedDate', $lastIndexedDate);
+        }
+
+        $query = $queryBuilder->getQuery()
+            ->setFirstResult(0)
+            ->setMaxResults($batchSize);
+
+        return new DoctrinePaginator($query);
     }
 }
