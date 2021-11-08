@@ -5,8 +5,8 @@ namespace App\Repository;
 use App\Entity\Source;
 use App\Entity\Vendor;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Internal\Hydration\IterableResult;
 use Doctrine\ORM\Query\QueryException;
-use Doctrine\ORM\Tools\Pagination\Paginator as DoctrinePaginator;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 class SourceRepository extends ServiceEntityRepository
@@ -104,29 +104,29 @@ class SourceRepository extends ServiceEntityRepository
     /**
      * Get a paginator for source that is limited by the parameters.
      *
-     * @param int $batchSize
+     * @param int $limit
      *   The number of records to fetch
      * @param \DateTime|null $lastIndexedDate
      *   Limit the fetched records by last indexed time
-     * @param int|null $vendorId
+     * @param int $vendorId
      *   The vendor to fetch sources for
-     * @param string|null $identifier
+     * @param string $identifier
      *   Limit to single identifier
      *
-     * @return DoctrinePaginator
+     * @return IterableResult
      */
-    public function findReindexabledSources(int $batchSize, ?\DateTime $lastIndexedDate = null, ?int $vendorId = null, ?string $identifier = null): DoctrinePaginator
+    public function findReindexabledSources(int $limit = 0, ?\DateTime $lastIndexedDate = null, int $vendorId = 0, string $identifier = ''): IterableResult
     {
         $queryBuilder = $this->createQueryBuilder('s');
         $queryBuilder->select('s')
             ->where('s.image IS NOT NULL');
 
-        if (!is_null($vendorId)) {
+        if (0 < ($vendorId)) {
             $queryBuilder->andWhere('s.vendor = :vendorId')
                 ->setParameter('vendorId', $vendorId);
         }
 
-        if (!is_null($identifier)) {
+        if (!empty($identifier)) {
             $queryBuilder->andWhere('s.matchId = :identifier')
                 ->setParameter('identifier', $identifier);
         }
@@ -139,10 +139,8 @@ class SourceRepository extends ServiceEntityRepository
         // Order by date to ensure the newest is fetched first during reindex as they maybe the most wanted.
         $queryBuilder->orderBy('s.date', 'DESC');
 
-        $query = $queryBuilder->getQuery()
-            ->setFirstResult(0)
-            ->setMaxResults($batchSize);
-
-        return new DoctrinePaginator($query);
+        return $queryBuilder->getQuery()
+            ->setMaxResults($limit)
+            ->iterate();
     }
 }
