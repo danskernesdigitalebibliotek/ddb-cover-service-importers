@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.8.1@f73f2299dbc59a3e6c4d66cff4605176e728ee69">
+<files psalm-version="4.12.0@e42bc4a23f67acba28a23bb09c348e2ff38a1d87">
   <file src="src/.bootstrap.php">
     <PossiblyUndefinedGlobalVariable occurrences="1">
       <code>$p</code>
@@ -12,33 +12,20 @@
     <ImplicitToStringCast occurrences="1">
       <code>$item</code>
     </ImplicitToStringCast>
-    <PossiblyInvalidArgument occurrences="2">
+    <PossiblyNullArgument occurrences="2">
       <code>$input-&gt;getOption('destination')</code>
       <code>$input-&gt;getOption('source')</code>
-    </PossiblyInvalidArgument>
-  </file>
-  <file src="src/Command/CoverStore/CoverStoreRemoveCommand.php">
-    <PossiblyInvalidArgument occurrences="2">
-      <code>$input-&gt;getArgument('folder')</code>
-      <code>$input-&gt;getArgument('identifier')</code>
-    </PossiblyInvalidArgument>
+    </PossiblyNullArgument>
   </file>
   <file src="src/Command/CoverStore/CoverStoreSearchCommand.php">
-    <PossiblyInvalidArgument occurrences="2">
+    <PossiblyNullArgument occurrences="1">
       <code>$input-&gt;getOption('folder')</code>
-      <code>$input-&gt;getOption('query')</code>
-    </PossiblyInvalidArgument>
+    </PossiblyNullArgument>
   </file>
   <file src="src/Command/CoverStore/CoverStoreUploadCommand.php">
     <ImplicitToStringCast occurrences="1">
       <code>$item</code>
     </ImplicitToStringCast>
-    <PossiblyInvalidArgument occurrences="4">
-      <code>$input-&gt;getArgument('folder')</code>
-      <code>$input-&gt;getArgument('identifier')</code>
-      <code>$input-&gt;getArgument('tags')</code>
-      <code>$input-&gt;getArgument('url')</code>
-    </PossiblyInvalidArgument>
   </file>
   <file src="src/Command/CoverStore/CoverStoreValidateImageCommand.php">
     <PossiblyNullArgument occurrences="2">
@@ -62,23 +49,21 @@
     <ImplicitToStringCast occurrences="1">
       <code>$material</code>
     </ImplicitToStringCast>
-    <PossiblyInvalidArgument occurrences="3">
+    <PossiblyNullArgument occurrences="2">
       <code>$is</code>
       <code>$type</code>
-      <code>$withOutSearchCache</code>
-    </PossiblyInvalidArgument>
+    </PossiblyNullArgument>
   </file>
   <file src="src/Command/QueueInsertCommand.php">
-    <PossiblyInvalidArgument occurrences="2">
+    <PossiblyInvalidArgument occurrences="1">
       <code>$message</code>
-      <code>$vendorState ?? VendorState::INSERT</code>
     </PossiblyInvalidArgument>
   </file>
   <file src="src/Command/Search/SearchReindexCommand.php">
-    <PossiblyInvalidArgument occurrences="2">
-      <code>$identifier</code>
-      <code>$lastIndexedDate</code>
-    </PossiblyInvalidArgument>
+    <RedundantCast occurrences="2">
+      <code>(bool) $input-&gt;getOption('clean-up')</code>
+      <code>(bool) $input-&gt;getOption('without-search-cache')</code>
+    </RedundantCast>
     <UndefinedInterfaceMethod occurrences="1">
       <code>section</code>
     </UndefinedInterfaceMethod>
@@ -87,9 +72,6 @@
     <InvalidScalarArgument occurrences="1">
       <code>-1</code>
     </InvalidScalarArgument>
-    <PossiblyInvalidCast occurrences="1">
-      <code>$input-&gt;getOption('index')</code>
-    </PossiblyInvalidCast>
   </file>
   <file src="src/Command/Source/SourceDownloadCoversCommand.php">
     <PossiblyNullArgument occurrences="1">
@@ -103,10 +85,12 @@
     <InvalidScalarArgument occurrences="1">
       <code>0</code>
     </InvalidScalarArgument>
-    <PossiblyInvalidArgument occurrences="2">
+    <PossiblyNullArgument occurrences="1">
       <code>$date</code>
-      <code>$vendor</code>
-    </PossiblyInvalidArgument>
+    </PossiblyNullArgument>
+    <RedundantCast occurrences="1">
+      <code>(bool) $input-&gt;getOption('force')</code>
+    </RedundantCast>
     <UndefinedInterfaceMethod occurrences="1">
       <code>section</code>
     </UndefinedInterfaceMethod>
@@ -162,13 +146,14 @@
     </PossiblyNullReference>
   </file>
   <file src="src/EventSubscriber/IndexEventSubscriber.php">
-    <ArgumentTypeCoercion occurrences="1">
-      <code>$search</code>
-    </ArgumentTypeCoercion>
-    <PossiblyNullArgument occurrences="4">
+    <PossiblyNullArgument occurrences="8">
+      <code>$image-&gt;getCoverStoreURL()</code>
       <code>$image-&gt;getCoverStoreURL()</code>
       <code>$image-&gt;getHeight()</code>
+      <code>$image-&gt;getHeight()</code>
       <code>$image-&gt;getImageFormat()</code>
+      <code>$image-&gt;getImageFormat()</code>
+      <code>$image-&gt;getWidth()</code>
       <code>$image-&gt;getWidth()</code>
     </PossiblyNullArgument>
     <PossiblyNullReference occurrences="3">
@@ -176,9 +161,9 @@
       <code>getRank</code>
       <code>getVendor</code>
     </PossiblyNullReference>
-    <UndefinedInterfaceMethod occurrences="1">
+    <UndefinedMagicMethod occurrences="1">
       <code>findOneById</code>
-    </UndefinedInterfaceMethod>
+    </UndefinedMagicMethod>
   </file>
   <file src="src/Exception/XmlReaderException.php">
     <UndefinedClass occurrences="1">
@@ -215,9 +200,30 @@
     <InvalidThrow occurrences="1">
       <code>InvalidArgumentException</code>
     </InvalidThrow>
-    <UndefinedInterfaceMethod occurrences="1">
-      <code>findOneByVendorRank</code>
-    </UndefinedInterfaceMethod>
+    <PossiblyInvalidMethodCall occurrences="11">
+      <code>getImage</code>
+      <code>getImage</code>
+      <code>getImage</code>
+      <code>getMatchId</code>
+      <code>getMatchId</code>
+      <code>getMatchType</code>
+      <code>getMatchType</code>
+      <code>getOriginalFile</code>
+      <code>getOriginalFile</code>
+      <code>getVendor</code>
+      <code>getVendor</code>
+    </PossiblyInvalidMethodCall>
+    <PossiblyNullArgument occurrences="4">
+      <code>$search-&gt;getHeight()</code>
+      <code>$search-&gt;getImageFormat()</code>
+      <code>$search-&gt;getImageUrl()</code>
+      <code>$source-&gt;getOriginalFile()</code>
+    </PossiblyNullArgument>
+    <PossiblyNullReference occurrences="3">
+      <code>getId</code>
+      <code>getId</code>
+      <code>getId</code>
+    </PossiblyNullReference>
   </file>
   <file src="src/MessageHandler/VendorImageMessageHandler.php">
     <PossiblyNullArgument occurrences="4">
@@ -232,6 +238,13 @@
       <code>getId</code>
     </PossiblyNullReference>
   </file>
+  <file src="src/Repository/SourceRepository.php">
+    <QueryBuilderSetParameter occurrences="3">
+      <code>$lastIndexedDate</code>
+      <code>$vendor</code>
+      <code>$vendor</code>
+    </QueryBuilderSetParameter>
+  </file>
   <file src="src/Service/CoverStore/CloudinaryCoverStoreService.php">
     <InvalidScalarArgument occurrences="8">
       <code>$error-&gt;getCode()</code>
@@ -245,21 +258,11 @@
     </InvalidScalarArgument>
   </file>
   <file src="src/Service/DataWell/SearchService.php">
-    <InvalidPropertyAssignmentValue occurrences="5">
-      <code>$params-&gt;get('datawell.vendor.agency')</code>
-      <code>$params-&gt;get('datawell.vendor.password')</code>
-      <code>$params-&gt;get('datawell.vendor.profile')</code>
-      <code>$params-&gt;get('datawell.vendor.search_url')</code>
-      <code>$params-&gt;get('datawell.vendor.user')</code>
-    </InvalidPropertyAssignmentValue>
     <InvalidScalarArgument occurrences="1">
       <code>$exception-&gt;getCode()</code>
     </InvalidScalarArgument>
   </file>
   <file src="src/Service/OpenPlatform/AuthenticationService.php">
-    <InvalidArgument occurrences="1">
-      <code>$this-&gt;params-&gt;get('openPlatform.auth.url')</code>
-    </InvalidArgument>
     <InvalidScalarArgument occurrences="2">
       <code>$exception-&gt;getCode()</code>
       <code>$exception-&gt;getCode()</code>
@@ -271,15 +274,12 @@
   </file>
   <file src="src/Service/OpenPlatform/SearchService.php">
     <InvalidCatch occurrences="1"/>
-    <InvalidPropertyAssignmentValue occurrences="1">
-      <code>$this-&gt;params-&gt;get('openPlatform.search.url')</code>
-    </InvalidPropertyAssignmentValue>
     <InvalidScalarArgument occurrences="1">
       <code>$exception-&gt;getCode()</code>
     </InvalidScalarArgument>
-    <PossiblyInvalidCast occurrences="1">
-      <code>$this-&gt;params-&gt;get('openPlatform.search.profile')</code>
-    </PossiblyInvalidCast>
+    <RedundantCast occurrences="1">
+      <code>(string) $this-&gt;params-&gt;get('openPlatform.search.profile')</code>
+    </RedundantCast>
   </file>
   <file src="src/Service/PopulateService.php">
     <PossiblyNullArgument occurrences="2">
@@ -296,9 +296,6 @@
     <MismatchingDocblockReturnType occurrences="1">
       <code>array&lt;false|string, array-key&gt;</code>
     </MismatchingDocblockReturnType>
-    <PossiblyInvalidArgument occurrences="1">
-      <code>$filePath</code>
-    </PossiblyInvalidArgument>
   </file>
   <file src="src/Service/VendorService/BogPortalen/BogPortalenVendorService.php">
     <PossiblyFalseArgument occurrences="1">
@@ -325,11 +322,6 @@
       <code>$vendor-&gt;getDataServerURI()</code>
       <code>$vendor-&gt;getDataServerUser()</code>
     </PossiblyNullArgument>
-  </file>
-  <file src="src/Service/VendorService/EbookCentral/EbookCentralVendorService.php">
-    <PossiblyInvalidArgument occurrences="1">
-      <code>$filePath</code>
-    </PossiblyInvalidArgument>
   </file>
   <file src="src/Service/VendorService/HerningBib/HerningBibVendorService.php">
     <PossiblyNullArgument occurrences="1">
@@ -419,16 +411,12 @@
       <code>setUsername</code>
     </UndefinedInterfaceMethod>
   </file>
-  <file src="src/Service/VendorService/Saxo/SaxoVendorService.php">
-    <PossiblyInvalidArgument occurrences="1">
-      <code>$filePath</code>
-    </PossiblyInvalidArgument>
-  </file>
   <file src="src/Service/VendorService/TheMovieDatabase/TheMovieDatabaseApiService.php">
     <InvalidArgument occurrences="1">
       <code>$retryAfterHeader</code>
     </InvalidArgument>
-    <RedundantCondition occurrences="1">
+    <RedundantCondition occurrences="2">
+      <code>$result</code>
       <code>$result</code>
     </RedundantCondition>
   </file>
@@ -450,16 +438,21 @@
     </PossiblyNullReference>
   </file>
   <file src="src/Service/VendorService/VendorCoreService.php">
-    <ParadoxicalCondition occurrences="1">
+    <TypeDoesNotContainType occurrences="1">
       <code>empty($this-&gt;vendors[$vendorId])</code>
-    </ParadoxicalCondition>
-    <UndefinedInterfaceMethod occurrences="1">
+    </TypeDoesNotContainType>
+    <UndefinedMagicMethod occurrences="1">
       <code>findOneById</code>
-    </UndefinedInterfaceMethod>
+    </UndefinedMagicMethod>
   </file>
   <file src="src/Service/VendorService/VendorServiceFactory.php">
     <PossiblyFalseOperand occurrences="1">
       <code>strrpos($className, '\\')</code>
     </PossiblyFalseOperand>
+  </file>
+  <file src="src/Service/VendorService/VendorServiceTrait.php">
+    <UndefinedConstant occurrences="1">
+      <code>$this::VENDOR_ID</code>
+    </UndefinedConstant>
   </file>
 </files>
