@@ -308,6 +308,9 @@
     "promphp/prometheus_client_php": {
         "version": "v2.2.2"
     },
+    "psalm/plugin-symfony": {
+        "version": "v3.0.4"
+    },
     "psr/cache": {
         "version": "1.0.1"
     },
