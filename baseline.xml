@@ -123,11 +123,7 @@
     </PossiblyNullReference>
   </file>
   <file src="src/EventSubscriber/IndexEventSubscriber.php">
-    <PossiblyNullArgument occurrences="5">
-      <code>$image-&gt;getCoverStoreURL()</code>
-      <code>$image-&gt;getHeight()</code>
-      <code>$image-&gt;getImageFormat()</code>
-      <code>$image-&gt;getWidth()</code>
+    <PossiblyNullArgument occurrences="1">
       <code>$source</code>
     </PossiblyNullArgument>
     <PossiblyNullReference occurrences="4">
@@ -136,6 +132,9 @@
       <code>getSource</code>
       <code>getVendor</code>
     </PossiblyNullReference>
+    <UndefinedMagicMethod occurrences="1">
+      <code>findOneById</code>
+    </UndefinedMagicMethod>
   </file>
   <file src="src/Exception/XmlReaderException.php">
     <UndefinedClass occurrences="1">
@@ -143,8 +142,9 @@
     </UndefinedClass>
   </file>
   <file src="src/MessageHandler/CoverStoreMessageHandler.php">
-    <PossiblyNullArgument occurrences="1">
+    <PossiblyNullArgument occurrences="2">
       <code>$message-&gt;useSearchCache()</code>
+      <code>$vendor-&gt;getName()</code>
     </PossiblyNullArgument>
     <PossiblyNullReference occurrences="9">
       <code>getImage</code>
@@ -159,6 +159,9 @@
     </PossiblyNullReference>
   </file>
   <file src="src/MessageHandler/DeleteMessageHandler.php">
+    <PossiblyNullArgument occurrences="1">
+      <code>$vendor-&gt;getName()</code>
+    </PossiblyNullArgument>
     <PossiblyNullReference occurrences="1">
       <code>getName</code>
     </PossiblyNullReference>
@@ -175,6 +178,15 @@
     <InvalidThrow occurrences="1">
       <code>InvalidArgumentException</code>
     </InvalidThrow>
+    <PossiblyNullArgument occurrences="2">
+      <code>$search-&gt;getHeight()</code>
+      <code>$source-&gt;getOriginalFile()</code>
+    </PossiblyNullArgument>
+    <PossiblyNullReference occurrences="3">
+      <code>getId</code>
+      <code>getId</code>
+      <code>getId</code>
+    </PossiblyNullReference>
   </file>
   <file src="src/MessageHandler/VendorImageMessageHandler.php">
     <PossiblyNullArgument occurrences="4">
@@ -364,9 +376,6 @@
     <InvalidArgument occurrences="1">
       <code>$retryAfterHeader</code>
     </InvalidArgument>
-    <RedundantCondition occurrences="1">
-      <code>$result</code>
-    </RedundantCondition>
   </file>
   <file src="src/Service/VendorService/TheMovieDatabase/TheMovieDatabaseSearchService.php">
     <InvalidScalarArgument occurrences="1">
@@ -385,6 +394,14 @@
       <code>setImageFormat</code>
     </PossiblyNullReference>
   </file>
+  <file src="src/Service/VendorService/VendorCoreService.php">
+    <TypeDoesNotContainType occurrences="1">
+      <code>empty($this-&gt;vendors[$vendorId])</code>
+    </TypeDoesNotContainType>
+    <UndefinedMagicMethod occurrences="1">
+      <code>findOneById</code>
+    </UndefinedMagicMethod>
+  </file>
   <file src="src/Service/VendorService/VendorServiceFactory.php">
     <PossiblyFalseOperand occurrences="1">
       <code>strrpos($className, '\\')</code>
@@ -394,5 +411,8 @@
     <InvalidNullableReturnType occurrences="1">
       <code>string</code>
     </InvalidNullableReturnType>
+    <UndefinedConstant occurrences="1">
+      <code>$this::VENDOR_ID</code>
+    </UndefinedConstant>
   </file>
 </files>

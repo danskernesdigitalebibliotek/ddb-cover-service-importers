@@ -54,8 +54,8 @@ class OpenPlatformSearchCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $is = $input->getOption('identifier');
-        $type = $input->getOption('type');
+        $is = (string) $input->getOption('identifier');
+        $type = (string) $input->getOption('type');
         $withOutSearchCache = $input->getOption('without-search-cache');
 
         $material = $this->search->search($is, $type, $withOutSearchCache);

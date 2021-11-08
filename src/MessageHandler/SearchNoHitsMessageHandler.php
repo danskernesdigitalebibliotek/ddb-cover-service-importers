@@ -99,8 +99,8 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                         $newSearch->setIsType(IdentifierType::PID)
                             ->setIsIdentifier($identifier)
                             ->setSource($search->getSource())
-                            ->setImageUrl($search->getImageUrl())
-                            ->setImageFormat($search->getImageFormat())
+                            ->setImageUrl((string) $search->getImageUrl())
+                            ->setImageFormat((string) $search->getImageFormat())
                             ->setWidth($search->getWidth())
                             ->setHeight($search->getHeight());
                         $this->em->persist($newSearch);
@@ -153,7 +153,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
 
                 // Found matches in source table based on the data well search, so create jobs to re-index the source
                 // entities.
-                if (false !== $source) {
+                if ($source instanceof Source) {
                     // Also check that the source record has an image from the vendor as not all do.
                     if (!is_null($source->getImage())) {
                         $message = new SearchMessage();
