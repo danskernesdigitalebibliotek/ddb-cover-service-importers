@@ -49,10 +49,10 @@ class CoverStoreMoveCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $item = $this->store->move(
-            $input->getOption('source'),
-            $input->getOption('destination')
-        );
+        $source = (string) $input->getOption('source');
+        $destination = (string) $input->getOption('destination');
+
+        $item = $this->store->move($source, $destination);
 
         // If not moved exceptions should have been thrown.
         $output->writeln($item);

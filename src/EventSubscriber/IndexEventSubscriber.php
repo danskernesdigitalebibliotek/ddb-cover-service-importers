@@ -95,20 +95,20 @@ class IndexEventSubscriber implements EventSubscriberInterface
                         $search = new Search();
                         $search->setIsType($identifier->getType())
                             ->setIsIdentifier($identifier->getId())
-                            ->setImageUrl($image->getCoverStoreURL())
-                            ->setImageFormat($image->getImageFormat())
-                            ->setWidth($image->getWidth())
-                            ->setHeight($image->getHeight())
+                            ->setImageUrl((string) $image->getCoverStoreURL())
+                            ->setImageFormat((string) $image->getImageFormat())
+                            ->setWidth((int) $image->getWidth())
+                            ->setHeight((int) $image->getHeight())
                             ->setCollection($material->isCollection())
                             ->setSource($source);
 
                         $this->em->persist($search);
                     } else {
                         if ($this->shouldOverride($material, $source, $search)) {
-                            $search->setImageUrl($image->getCoverStoreURL())
-                                ->setImageFormat($image->getImageFormat())
-                                ->setWidth($image->getWidth())
-                                ->setHeight($image->getHeight())
+                            $search->setImageUrl((string) $image->getCoverStoreURL())
+                                ->setImageFormat((string) $image->getImageFormat())
+                                ->setWidth((int) $image->getWidth())
+                                ->setHeight((int) $image->getHeight())
                                 ->setCollection($material->isCollection())
                                 ->setSource($source);
                         }
