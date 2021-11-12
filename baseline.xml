@@ -216,9 +216,8 @@
     <InvalidThrow occurrences="1">
       <code>InvalidArgumentException</code>
     </InvalidThrow>
-    <UndefinedInterfaceMethod occurrences="2">
+    <UndefinedInterfaceMethod occurrences="1">
       <code>findOneByVendorRank</code>
-      <code>findOneByisIdentifier</code>
     </UndefinedInterfaceMethod>
   </file>
   <file src="src/MessageHandler/VendorImageMessageHandler.php">
