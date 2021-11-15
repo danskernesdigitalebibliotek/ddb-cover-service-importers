@@ -89,15 +89,19 @@ class SearchService
      * @return Material
      *   Material object with the result
      *
-     * @throws InvalidArgumentException
      * @throws MaterialTypeException
      * @throws OpenPlatformSearchException
      * @throws OpenPlatformAuthException
      */
     public function search(string $identifier, string $type, bool $refresh = false): Material
     {
-        // Try getting item from cache.
-        $item = $this->cache->getItem('openplatform.search_query'.str_replace(':', '', $identifier));
+        try {
+            // Try getting item from cache.
+            $item = $this->cache->getItem('openplatform.search_query'.str_replace(':', '', $identifier));
+        }
+        catch (InvalidArgumentException $exception) {
+            throw new OpenPlatformSearchException('Invalid cache argument');
+        }
 
         // We return the material object and not the $item->get() as that
         // prevents proper testing of the service.

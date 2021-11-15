@@ -57,13 +57,13 @@ class IndexEventSubscriber implements EventSubscriberInterface
      */
     public function onIndexEvent(IndexReadyEvent $event): void
     {
-        $material = $event->getMaterial();
-        $image = $this->getImage($event->getImageId());
-        $source = $image->getSource();
-
-        $searchRepos = $this->em->getRepository(Search::class);
-
         try {
+            $material = $event->getMaterial();
+            $image = $this->getImage($event->getImageId());
+            $source = $image->getSource();
+
+            $searchRepos = $this->em->getRepository(Search::class);
+
             // There may exist a race condition when multiple queues are
             // running. To ensure we don't insert duplicates we need to
             // wrap our search/update/insert in a transaction.
@@ -121,6 +121,11 @@ class IndexEventSubscriber implements EventSubscriberInterface
                 'service' => 'IndexEventSubscriber',
                 'message' => $exception->getMessage(),
                 'identifiers' => $material->getIdentifiers(),
+            ]);
+        } catch (\Exception $exception) {
+            $this->logger->error('Index Exception', [
+                'service' => 'IndexEventSubscriber',
+                'message' => $exception->getMessage(),
             ]);
         }
     }

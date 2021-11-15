@@ -51,7 +51,6 @@ class SearchMessageHandler implements MessageHandlerInterface
     /**
      * @param SearchMessage $message
      *
-     * @throws InvalidArgumentException
      * @throws OpenPlatformAuthException
      * @throws OpenPlatformSearchException
      */
@@ -109,7 +108,7 @@ class SearchMessageHandler implements MessageHandlerInterface
             throw new UnrecoverableMessageHandlingException('Unknown material type found');
         }
 
-        // Check if this was an zero hit search.
+        // Check if this was a zero hit search.
         if ($material->isEmpty()) {
             $this->logger->info('Search zero-hit', [
                 'service' => 'SearchProcessor',
