@@ -7,7 +7,8 @@
 
 namespace Tests;
 
-use App\Exception\PlatformAuthException;
+use App\Exception\MaterialTypeException;
+use App\Exception\OpenPlatformSearchException;
 use App\Service\OpenPlatform\AuthenticationService;
 use App\Service\OpenPlatform\SearchService;
 use GuzzleHttp\Client;
@@ -18,6 +19,7 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -33,10 +35,9 @@ class SearchServiceTest extends TestCase
     /**
      * Test that an search reponse is parsed correctly.
      *
-     * @throws PlatformAuthException
-     * @throws \App\Exception\MaterialTypeException
-     * @throws \App\Exception\PlatformSearchException
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws MaterialTypeException
+     * @throws OpenPlatformSearchException
+     * @throws InvalidArgumentException
      */
     public function testSearch()
     {

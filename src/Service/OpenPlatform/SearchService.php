@@ -8,9 +8,8 @@
 namespace App\Service\OpenPlatform;
 
 use App\Exception\MaterialTypeException;
+use App\Exception\OpenPlatformAuthException;
 use App\Exception\OpenPlatformSearchException;
-use App\Exception\PlatformAuthException;
-use App\Exception\PlatformSearchException;
 use App\Utils\OpenPlatform\Material;
 use App\Utils\Types\IdentifierType;
 use GuzzleHttp\ClientInterface;
@@ -18,7 +17,6 @@ use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use Nicebooks\Isbn\IsbnTools;
 use Psr\Cache\InvalidArgumentException;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
@@ -29,7 +27,6 @@ class SearchService
 {
     private ParameterBagInterface $params;
     private AdapterInterface $cache;
-    private LoggerInterface $logger;
     private AuthenticationService $authenticationService;
     private ClientInterface $client;
 
@@ -59,18 +56,15 @@ class SearchService
      *   Access to environment variables
      * @param AdapterInterface $cache
      *   Cache object to store results
-     * @param LoggerInterface $informationLogger
-     *   Logger object to send stats to ES
      * @param AuthenticationService $authenticationService
      *   The Open Platform authentication service
      * @param ClientInterface $httpClient
      *   Guzzle Client
      */
-    public function __construct(ParameterBagInterface $params, AdapterInterface $cache, LoggerInterface $informationLogger, AuthenticationService $authenticationService, ClientInterface $httpClient)
+    public function __construct(ParameterBagInterface $params, AdapterInterface $cache, AuthenticationService $authenticationService, ClientInterface $httpClient)
     {
         $this->params = $params;
         $this->cache = $cache;
-        $this->logger = $informationLogger;
         $this->authenticationService = $authenticationService;
         $this->client = $httpClient;
 
@@ -98,8 +92,7 @@ class SearchService
      * @throws InvalidArgumentException
      * @throws MaterialTypeException
      * @throws OpenPlatformSearchException
-     * @throws PlatformAuthException
-     * @throws PlatformSearchException
+     * @throws OpenPlatformAuthException
      */
     public function search(string $identifier, string $type, bool $refresh = false): Material
     {
@@ -116,7 +109,7 @@ class SearchService
                 $token = $this->authenticationService->getAccessToken();
                 $res = $this->recursiveSearch($token, $identifier, $type);
             } catch (GuzzleException $exception) {
-                throw new PlatformSearchException($exception->getMessage(), $exception->getCode());
+                throw new OpenPlatformSearchException($exception->getMessage(), $exception->getCode());
             }
 
             $material = $this->parseResult($res);
@@ -202,7 +195,7 @@ class SearchService
             }
         }
 
-        // Try to detect if this is an collection (used later on to not override existing covers).
+        // Try to detect if this is a collection (used later on to not override existing covers).
         $material->setCollection((!empty($result['title']) && count($result['title']) > 1));
 
         return $material;

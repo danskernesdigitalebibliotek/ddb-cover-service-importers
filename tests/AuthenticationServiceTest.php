@@ -7,7 +7,7 @@
 
 namespace Tests;
 
-use App\Exception\PlatformAuthException;
+use App\Exception\OpenPlatformAuthException;
 use App\Service\OpenPlatform\AuthenticationService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -28,7 +28,7 @@ class AuthenticationServiceTest extends TestCase
     /**
      * Test that token is returned.
      *
-     * @throws \App\Exception\PlatformAuthException
+     * @throws \App\Exception\OpenPlatformAuthException
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Psr\Cache\InvalidArgumentException
      */
@@ -42,7 +42,7 @@ class AuthenticationServiceTest extends TestCase
     /**
      * Test that a token is return if cache is enabled.
      *
-     * @throws \App\Exception\PlatformAuthException
+     * @throws \App\Exception\OpenPlatformAuthException
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Psr\Cache\InvalidArgumentException
      */
@@ -55,13 +55,13 @@ class AuthenticationServiceTest extends TestCase
     /**
      * Test that PlatformAuthException is throw on client error.
      *
-     * @throws PlatformAuthException
+     * @throws OpenPlatformAuthException
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Psr\Cache\InvalidArgumentException
      */
     public function testErrorHandling()
     {
-        $this->expectException(PlatformAuthException::class);
+        $this->expectException(OpenPlatformAuthException::class);
         $service = $this->getAuthenticationService(false, '');
         $service->getAccessToken();
     }

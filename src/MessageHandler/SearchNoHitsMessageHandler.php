@@ -10,9 +10,8 @@ namespace App\MessageHandler;
 use App\Entity\Search;
 use App\Entity\Source;
 use App\Exception\MaterialTypeException;
+use App\Exception\OpenPlatformAuthException;
 use App\Exception\OpenPlatformSearchException;
-use App\Exception\PlatformAuthException;
-use App\Exception\PlatformSearchException;
 use App\Message\SearchMessage;
 use App\Message\SearchNoHitsMessage;
 use App\Message\VendorImageMessage;
@@ -64,8 +63,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
      *
      * @throws InvalidArgumentException
      * @throws MaterialTypeException
-     * @throws PlatformAuthException
-     * @throws PlatformSearchException
+     * @throws OpenPlatformAuthException
      * @throws OpenPlatformSearchException
      */
     public function __invoke(SearchNoHitsMessage $message)
