@@ -103,8 +103,6 @@ class IndexEventSubscriber implements EventSubscriberInterface
                     }
                 }
 
-                $source->setLastIndexed(new \DateTime());
-
                 // Make every thing stick.
                 $this->em->flush();
                 $this->em->getConnection()->commit();
@@ -116,6 +114,10 @@ class IndexEventSubscriber implements EventSubscriberInterface
                     'identifiers' => $material->getIdentifiers(),
                 ]);
             }
+
+            // Set the lasted indexed out side the transaction, so it will always be set even at search entity errors.
+            $source->setLastIndexed(new \DateTime());
+            $this->em->flush();
         } catch (ConnectionException $exception) {
             $this->logger->error('Database Connection Exception', [
                 'service' => 'IndexEventSubscriber',
