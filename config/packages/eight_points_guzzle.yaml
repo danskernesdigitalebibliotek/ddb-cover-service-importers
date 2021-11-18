@@ -3,7 +3,8 @@
 # https://github.com/8p/EightPointsGuzzleBundle/blob/master/src/Resources/doc/configuration-reference.md
 eight_points_guzzle:
     clients:
-        guzzle_client:
+        # Naming the client 'http' allows for dependency injection of 'ClientInterface $httpClient'
+        http:
             # Write here the host where to do requests
             # base_url: "http://target.url"
 
