@@ -1,5 +1,2 @@
-# config/packages/lock.yaml
 framework:
-  # named locks
-  lock:
-    vendor: ['%env(REDIS_VENDOR_LOCK_DNS)%']
+    lock: '%env(REDIS_VENDOR_LOCK_DNS)%'

@@ -4,6 +4,7 @@ framework:
         # failure_transport: failed
 
         transports:
+            # https://symfony.com/doc/current/messenger.html#transport-configuration
             async_priority_high:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                 options:
@@ -41,6 +42,7 @@ framework:
             #failed: 'doctrine://default?queue_name=failed'
 
         routing:
+            # Route your messages to the transports
             'App\Message\SearchMessage': async_priority_high
             'App\Message\VendorImageMessage': async_priority_high
             'App\Message\CoverStoreMessage': async_priority_high
