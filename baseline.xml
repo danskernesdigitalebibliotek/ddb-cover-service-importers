@@ -324,20 +324,6 @@
     </PossiblyNullArrayOffset>
   </file>
   <file src="src/Service/VendorService/Publizon/PublizonXmlReaderService.php">
-    <InvalidClass occurrences="12">
-      <code>XmlreaderException</code>
-      <code>XmlreaderException</code>
-      <code>XmlreaderException</code>
-      <code>XmlreaderException</code>
-      <code>XmlreaderException</code>
-      <code>XmlreaderException</code>
-      <code>XmlreaderException</code>
-      <code>XmlreaderException</code>
-      <code>XmlreaderException</code>
-      <code>XmlreaderException</code>
-      <code>XmlreaderException</code>
-      <code>XmlreaderException</code>
-    </InvalidClass>
     <InvalidStaticInvocation occurrences="1">
       <code>\XMLReader::open($apiEndpoint)</code>
     </InvalidStaticInvocation>
