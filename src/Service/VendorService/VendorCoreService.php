@@ -113,18 +113,18 @@ final class VendorCoreService
      *
      * @param int $vendorId
      *   Using the vendor ID to identify the lock
-     * @param bool $ingnore
+     * @param bool $ignore
      *   Ignore the lock if not acquired
      *
      * @return bool
-     *   Whether or not the lock had been acquired
+     *   Whether the lock had been acquired
      */
-    public function acquireLock(int $vendorId, bool $ingnore = false): bool
+    public function acquireLock(int $vendorId, bool $ignore = false): bool
     {
         $this->locks[$vendorId] = $this->lockFactory->createLock('app-vendor-service-load-'.$vendorId, 1800, false);
         $acquired = $this->locks[$vendorId]->acquire();
 
-        return $ingnore ? true : $acquired;
+        return $ignore ? true : $acquired;
     }
 
     /**
