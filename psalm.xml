@@ -7,15 +7,10 @@
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
     errorBaseline="baseline.xml"
 >
-    <plugins>
-        <pluginClass class="Psalm\SymfonyPsalmPlugin\Plugin" >
-            <containerXml>var/cache/dev/srcApp_KernelDevDebugContainer.xml</containerXml>
-        </pluginClass>
-    </plugins>
     <projectFiles>
-        <directory name="src" />
+        <directory name="src"/>
         <ignoreFiles>
-            <directory name="vendor" />
+            <directory name="vendor"/>
         </ignoreFiles>
     </projectFiles>
-</psalm>
+<plugins><pluginClass class="Psalm\SymfonyPsalmPlugin\Plugin"/></plugins></psalm>

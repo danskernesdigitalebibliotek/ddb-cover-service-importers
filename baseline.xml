@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <files psalm-version="4.12.0@e42bc4a23f67acba28a23bb09c348e2ff38a1d87">
   <file src="src/.bootstrap.php">
+    <InvalidArgument occurrences="1">
+      <code>false</code>
+    </InvalidArgument>
     <PossiblyUndefinedGlobalVariable occurrences="1">
       <code>$p</code>
     </PossiblyUndefinedGlobalVariable>
@@ -31,11 +34,6 @@
       <code>findOneById</code>
     </UndefinedMagicMethod>
   </file>
-  <file src="src/Command/Image/MissingImagesCommand.php">
-    <PossiblyUndefinedMethod occurrences="1">
-      <code>findById</code>
-    </PossiblyUndefinedMethod>
-  </file>
   <file src="src/Command/OpenPlatform/OpenPlatformSearchCommand.php">
     <ImplicitToStringCast occurrences="1">
       <code>$material</code>
@@ -55,11 +53,6 @@
       <code>section</code>
     </UndefinedInterfaceMethod>
   </file>
-  <file src="src/Command/SearchPopulateCommand.php">
-    <InvalidScalarArgument occurrences="1">
-      <code>-1</code>
-    </InvalidScalarArgument>
-  </file>
   <file src="src/Command/Source/SourceDownloadCoversCommand.php">
     <PossiblyNullArgument occurrences="1">
       <code>$source-&gt;getOriginalFile()</code>
@@ -69,20 +62,14 @@
     </PossiblyNullReference>
   </file>
   <file src="src/Command/Vendors/VendorLoadCommand.php">
-    <InvalidScalarArgument occurrences="1">
-      <code>0</code>
-    </InvalidScalarArgument>
     <UndefinedInterfaceMethod occurrences="1">
       <code>section</code>
     </UndefinedInterfaceMethod>
   </file>
   <file src="src/DataFixtures/AppFixtures.php">
-    <MethodSignatureMismatch occurrences="1">
-      <code>$manager</code>
-    </MethodSignatureMismatch>
-    <MoreSpecificImplementedParamType occurrences="1">
-      <code>$manager</code>
-    </MoreSpecificImplementedParamType>
+    <InvalidArgument occurrences="1">
+      <code>$faker-&gt;date</code>
+    </InvalidArgument>
     <PossiblyNullArgument occurrences="13">
       <code>$image-&gt;getCoverStoreURL()</code>
       <code>$image-&gt;getCoverStoreURL()</code>
@@ -102,11 +89,10 @@
       <code>dataServerURI</code>
       <code>imageServerURI</code>
     </UndefinedMagicMethod>
-    <UndefinedMagicPropertyFetch occurrences="11">
+    <UndefinedMagicPropertyFetch occurrences="10">
       <code>$faker-&gt;coverStoreURL</code>
       <code>$faker-&gt;dataServerPassword</code>
       <code>$faker-&gt;dataServerUser</code>
-      <code>$faker-&gt;date</code>
       <code>$faker-&gt;faust</code>
       <code>$faker-&gt;height</code>
       <code>$faker-&gt;matchId</code>
@@ -115,11 +101,6 @@
       <code>$faker-&gt;pid</code>
       <code>$faker-&gt;width</code>
     </UndefinedMagicPropertyFetch>
-  </file>
-  <file src="src/DataFixtures/Faker/Provider/VendorProvider.php">
-    <UndefinedMagicMethod occurrences="1">
-      <code>username</code>
-    </UndefinedMagicMethod>
   </file>
   <file src="src/Entity/Image.php">
     <PossiblyNullReference occurrences="1">
@@ -145,27 +126,14 @@
     <PossiblyNullArgument occurrences="1">
       <code>$message-&gt;useSearchCache()</code>
     </PossiblyNullArgument>
-    <PossiblyNullReference occurrences="9">
-      <code>getImage</code>
+    <PossiblyNullReference occurrences="1">
       <code>getName</code>
-      <code>getOriginalFile</code>
-      <code>getOriginalFile</code>
-      <code>getOriginalFile</code>
-      <code>setImage</code>
-      <code>setOriginalContentLength</code>
-      <code>setOriginalFile</code>
-      <code>setOriginalLastModified</code>
     </PossiblyNullReference>
   </file>
   <file src="src/MessageHandler/DeleteMessageHandler.php">
     <PossiblyNullReference occurrences="1">
       <code>getName</code>
     </PossiblyNullReference>
-  </file>
-  <file src="src/MessageHandler/SearchMessageHandler.php">
-    <TooManyArguments occurrences="1">
-      <code>dispatch</code>
-    </TooManyArguments>
   </file>
   <file src="src/MessageHandler/SearchNoHitsMessageHandler.php">
     <InvalidThrow occurrences="1">
@@ -189,7 +157,15 @@
       <code>$source-&gt;getOriginalFile()</code>
     </PossiblyNullArgument>
   </file>
+  <file src="src/Repository/ImageRepository.php">
+    <LessSpecificImplementedReturnType occurrences="1">
+      <code>Image[]</code>
+    </LessSpecificImplementedReturnType>
+  </file>
   <file src="src/Repository/SearchRepository.php">
+    <LessSpecificImplementedReturnType occurrences="1">
+      <code>Search[]</code>
+    </LessSpecificImplementedReturnType>
     <PossiblyNullReference occurrences="1">
       <code>getId</code>
     </PossiblyNullReference>
@@ -198,6 +174,11 @@
     <QueryBuilderSetParameter occurrences="1">
       <code>$lastIndexedDate</code>
     </QueryBuilderSetParameter>
+  </file>
+  <file src="src/Repository/VendorRepository.php">
+    <LessSpecificImplementedReturnType occurrences="1">
+      <code>Vendor[]</code>
+    </LessSpecificImplementedReturnType>
   </file>
   <file src="src/Service/CoverStore/CloudinaryCoverStoreService.php">
     <InvalidScalarArgument occurrences="8">
@@ -212,11 +193,21 @@
     </InvalidScalarArgument>
   </file>
   <file src="src/Service/DataWell/SearchService.php">
+    <InvalidPropertyAssignmentValue occurrences="5">
+      <code>$params-&gt;get('datawell.vendor.agency')</code>
+      <code>$params-&gt;get('datawell.vendor.password')</code>
+      <code>$params-&gt;get('datawell.vendor.profile')</code>
+      <code>$params-&gt;get('datawell.vendor.search_url')</code>
+      <code>$params-&gt;get('datawell.vendor.user')</code>
+    </InvalidPropertyAssignmentValue>
     <InvalidScalarArgument occurrences="1">
       <code>$exception-&gt;getCode()</code>
     </InvalidScalarArgument>
   </file>
   <file src="src/Service/OpenPlatform/AuthenticationService.php">
+    <InvalidArgument occurrences="1">
+      <code>$this-&gt;params-&gt;get('openPlatform.auth.url')</code>
+    </InvalidArgument>
     <InvalidScalarArgument occurrences="2">
       <code>$exception-&gt;getCode()</code>
       <code>$exception-&gt;getCode()</code>
@@ -228,6 +219,10 @@
   </file>
   <file src="src/Service/OpenPlatform/SearchService.php">
     <InvalidCatch occurrences="1"/>
+    <InvalidPropertyAssignmentValue occurrences="2">
+      <code>$this-&gt;params-&gt;get('openPlatform.search.profile')</code>
+      <code>$this-&gt;params-&gt;get('openPlatform.search.url')</code>
+    </InvalidPropertyAssignmentValue>
     <InvalidScalarArgument occurrences="1">
       <code>$exception-&gt;getCode()</code>
     </InvalidScalarArgument>
