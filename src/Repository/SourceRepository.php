@@ -115,7 +115,7 @@ class SourceRepository extends ServiceEntityRepository
      *
      * @return IterableResult
      */
-    public function findReindexabledSources(int $limit = 0, ?\DateTime $lastIndexedDate = null, int $vendorId = 0, string $identifier = ''): IterableResult
+    public function findReindexabledSources(int $limit = 0, ?\DateTime $lastIndexedDate = null, int $vendorId = 0, ?string $identifier = ''): IterableResult
     {
         $queryBuilder = $this->createQueryBuilder('s');
         $queryBuilder->select('s')

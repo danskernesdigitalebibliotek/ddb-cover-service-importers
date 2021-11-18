@@ -10,7 +10,7 @@
 
 namespace App\Service\OpenPlatform;
 
-use App\Exception\PlatformAuthException;
+use App\Exception\OpenPlatformAuthException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Log\LoggerInterface;
@@ -23,8 +23,8 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 class AuthenticationService
 {
     // Used to give the token some grace-period so it will not expire will
-    // being used. Currently the token is valid for 30 days. So we set the
-    // limit to be 1 day, so it will be refresh before it expires.
+    // being used. Currently, the token is valid for 30 days. So we set the
+    // limit to be 1 day, so it will be refreshed before it expires.
     const TOKEN_EXPIRE_LIMIT = 86400;
 
     private ParameterBagInterface $params;
@@ -65,7 +65,7 @@ class AuthenticationService
      * @return string
      *   The access token
      *
-     * @throws PlatformAuthException
+     * @throws OpenPlatformAuthException
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Psr\Cache\InvalidArgumentException
      */
@@ -87,7 +87,7 @@ class AuthenticationService
      * @return string
      *   The token if successful else the empty string,
      *
-     * @throws PlatformAuthException
+     * @throws OpenPlatformAuthException
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Psr\Cache\InvalidArgumentException
      */
@@ -125,14 +125,14 @@ class AuthenticationService
                     'message' => $exception->getMessage(),
                 ]);
 
-                throw new PlatformAuthException($exception->getMessage(), $exception->getCode());
+                throw new OpenPlatformAuthException($exception->getMessage(), $exception->getCode());
             } catch (\Exception $exception) {
                 $this->logger->error('Unknown error in acquiring access token', [
                     'service' => 'AuthenticationService',
                     'message' => $exception->getMessage(),
                 ]);
 
-                throw new PlatformAuthException($exception->getMessage(), $exception->getCode());
+                throw new OpenPlatformAuthException($exception->getMessage(), $exception->getCode());
             }
 
             // Get the content and parse json object as an array.

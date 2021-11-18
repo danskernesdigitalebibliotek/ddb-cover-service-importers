@@ -57,13 +57,25 @@ class IndexEventSubscriber implements EventSubscriberInterface
      */
     public function onIndexEvent(IndexReadyEvent $event): void
     {
-        $material = $event->getMaterial();
-        $image = $this->getImage($event->getImageId());
-        $source = $image->getSource();
-
-        $searchRepos = $this->em->getRepository(Search::class);
-
         try {
+            $material = $event->getMaterial();
+            $image = $this->getImage($event->getImageId());
+            $source = (null !== $image) ? $image->getSource() : null;
+
+            // If image or source are null something is broken in the data,
+            // so we can't proceed
+            if (null === $image || null === $source) {
+                $this->logger->error('Index Ready Event Error', [
+                    'service' => 'IndexEventSubscriber',
+                    'message' => 'Image and/or Source are null for material',
+                    'identifiers' => $material->getIdentifiers(),
+                ]);
+
+                return;
+            }
+
+            $searchRepos = $this->em->getRepository(Search::class);
+
             // There may exist a race condition when multiple queues are
             // running. To ensure we don't insert duplicates we need to
             // wrap our search/update/insert in a transaction.
@@ -103,8 +115,6 @@ class IndexEventSubscriber implements EventSubscriberInterface
                     }
                 }
 
-                $source->setLastIndexed(new \DateTime());
-
                 // Make every thing stick.
                 $this->em->flush();
                 $this->em->getConnection()->commit();
@@ -116,11 +126,20 @@ class IndexEventSubscriber implements EventSubscriberInterface
                     'identifiers' => $material->getIdentifiers(),
                 ]);
             }
+
+            // Set the lasted indexed out side the transaction, so it will always be set even at search entity errors.
+            $source->setLastIndexed(new \DateTime());
+            $this->em->flush();
         } catch (ConnectionException $exception) {
             $this->logger->error('Database Connection Exception', [
                 'service' => 'IndexEventSubscriber',
                 'message' => $exception->getMessage(),
-                'identifiers' => $material->getIdentifiers(),
+                'identifiers' => $event->getMaterial()->getIdentifiers(),
+            ]);
+        } catch (\Exception $exception) {
+            $this->logger->error('Index Exception', [
+                'service' => 'IndexEventSubscriber',
+                'message' => $exception->getMessage(),
             ]);
         }
     }

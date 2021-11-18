@@ -92,6 +92,10 @@ class SearchReindexCommand extends Command
 
                 return -1;
             }
+
+            // Set the time to last sec. of the day to ensure the time of command execution don't influence the date in
+            // the database, which is a timestamp.
+            $inputDate->setTime(23, 59, 59);
         }
 
         // Progress bar setup.

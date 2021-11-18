@@ -85,6 +85,8 @@ trait VendorServiceTrait
      *
      * @param \DateTime $date
      *   Updated all records found after this date
+     *
+     * @return void
      */
     public function setWithUpdatesDate(\DateTime $date)
     {
@@ -98,6 +100,8 @@ trait VendorServiceTrait
      *
      * @param bool $force
      *   If true locks are ignored
+     *
+     * @return void
      */
     public function setIgnoreLock(bool $force = false)
     {

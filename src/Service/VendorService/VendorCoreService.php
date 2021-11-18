@@ -71,11 +71,11 @@ final class VendorCoreService
      * @param int $vendorId
      *   The identifier for the vendor
      *
-     * @return string|null
+     * @return string
      *
      * @throws UnknownVendorServiceException
      */
-    public function getVendorName(int $vendorId): ?string
+    public function getVendorName(int $vendorId): string
     {
         return $this->getVendor($vendorId)->getName();
     }

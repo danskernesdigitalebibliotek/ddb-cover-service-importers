@@ -46,8 +46,10 @@ class TraceIdEnvVarProcessor implements EnvVarProcessorInterface
      * Generate new unique id.
      *
      * @throws \Exception
+     *
+     * @return void
      */
-    private function generate()
+    private function generate(): void
     {
         $this::$id = bin2hex(random_bytes(16));
     }

@@ -33,7 +33,7 @@ class Vendor
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private ?string $name;
+    private string $name;
 
     /**
      * @ORM\Column(type="integer", unique=true)
@@ -91,7 +91,7 @@ class Vendor
         return $this;
     }
 
-    public function getClass()
+    public function getClass(): string
     {
         return $this->class;
     }
@@ -121,7 +121,7 @@ class Vendor
         return $this;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
         return $this->name;
     }

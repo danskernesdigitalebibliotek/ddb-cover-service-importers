@@ -6,6 +6,6 @@
 
 namespace App\Exception;
 
-class PlatformAuthException extends \Exception
+class OpenPlatformAuthException extends \Exception
 {
 }

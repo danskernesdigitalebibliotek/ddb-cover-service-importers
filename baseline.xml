@@ -75,6 +75,10 @@
     </PossiblyInvalidArgument>
   </file>
   <file src="src/Command/Search/SearchReindexCommand.php">
+    <PossiblyInvalidArgument occurrences="2">
+      <code>$identifier</code>
+      <code>$lastIndexedDate</code>
+    </PossiblyInvalidArgument>
     <UndefinedInterfaceMethod occurrences="1">
       <code>section</code>
     </UndefinedInterfaceMethod>
@@ -161,17 +165,15 @@
     <ArgumentTypeCoercion occurrences="1">
       <code>$search</code>
     </ArgumentTypeCoercion>
-    <PossiblyNullArgument occurrences="5">
+    <PossiblyNullArgument occurrences="4">
       <code>$image-&gt;getCoverStoreURL()</code>
       <code>$image-&gt;getHeight()</code>
       <code>$image-&gt;getImageFormat()</code>
       <code>$image-&gt;getWidth()</code>
-      <code>$source</code>
     </PossiblyNullArgument>
-    <PossiblyNullReference occurrences="4">
+    <PossiblyNullReference occurrences="3">
       <code>getRank</code>
       <code>getRank</code>
-      <code>getSource</code>
       <code>getVendor</code>
     </PossiblyNullReference>
     <UndefinedInterfaceMethod occurrences="1">
@@ -205,9 +207,6 @@
     </PossiblyNullReference>
   </file>
   <file src="src/MessageHandler/SearchMessageHandler.php">
-    <InvalidThrow occurrences="1">
-      <code>InvalidArgumentException</code>
-    </InvalidThrow>
     <TooManyArguments occurrences="1">
       <code>dispatch</code>
     </TooManyArguments>
@@ -271,15 +270,13 @@
     </InvalidThrow>
   </file>
   <file src="src/Service/OpenPlatform/SearchService.php">
+    <InvalidCatch occurrences="1"/>
     <InvalidPropertyAssignmentValue occurrences="1">
       <code>$this-&gt;params-&gt;get('openPlatform.search.url')</code>
     </InvalidPropertyAssignmentValue>
     <InvalidScalarArgument occurrences="1">
       <code>$exception-&gt;getCode()</code>
     </InvalidScalarArgument>
-    <InvalidThrow occurrences="1">
-      <code>InvalidArgumentException</code>
-    </InvalidThrow>
     <PossiblyInvalidCast occurrences="1">
       <code>$this-&gt;params-&gt;get('openPlatform.search.profile')</code>
     </PossiblyInvalidCast>
@@ -408,16 +405,10 @@
     </InvalidStaticInvocation>
   </file>
   <file src="src/Service/VendorService/RbDigital/RbDigitalBooksVendorService.php">
-    <InvalidNullableReturnType occurrences="1">
-      <code>string</code>
-    </InvalidNullableReturnType>
     <InvalidThrow occurrences="2">
       <code>InvalidArgumentException</code>
       <code>InvalidArgumentException</code>
     </InvalidThrow>
-    <NullableReturnStatement occurrences="1">
-      <code>$this-&gt;vendorCoreService-&gt;getVendorName($this-&gt;getVendorId())</code>
-    </NullableReturnStatement>
     <PossiblyFalseArgument occurrences="1">
       <code>$this-&gt;ftp-&gt;read($mrcFileName)</code>
     </PossiblyFalseArgument>
@@ -470,10 +461,5 @@
     <PossiblyFalseOperand occurrences="1">
       <code>strrpos($className, '\\')</code>
     </PossiblyFalseOperand>
-  </file>
-  <file src="src/Service/VendorService/VendorServiceTrait.php">
-    <InvalidNullableReturnType occurrences="1">
-      <code>string</code>
-    </InvalidNullableReturnType>
   </file>
 </files>
