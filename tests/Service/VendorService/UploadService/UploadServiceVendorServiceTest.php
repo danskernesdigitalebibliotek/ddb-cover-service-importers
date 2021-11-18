@@ -5,7 +5,7 @@
  * Test cases for the upload service.
  */
 
-namespace Tests;
+namespace Tests\Service\VendorService\UploadService;
 
 use App\Repository\SourceRepository;
 use App\Service\CoverStore\CoverStoreInterface;

@@ -5,7 +5,7 @@
  * Test cases for the Open Platform authentication service.
  */
 
-namespace Tests;
+namespace Tests\Service\OpenPlatform;
 
 use App\Exception\MaterialTypeException;
 use App\Exception\OpenPlatformAuthException;
