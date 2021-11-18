@@ -270,10 +270,8 @@
     </PossiblyNullArgument>
   </file>
   <file src="src/Service/VendorService/HerningBib/HerningBibVendorService.php">
-    <PossiblyNullArgument occurrences="1">
-      <code>$response-&gt;getBody()-&gt;detach()</code>
-    </PossiblyNullArgument>
-    <UndefinedInterfaceMethod occurrences="1">
+    <UndefinedInterfaceMethod occurrences="2">
+      <code>get</code>
       <code>getPathPrefix</code>
     </UndefinedInterfaceMethod>
   </file>
