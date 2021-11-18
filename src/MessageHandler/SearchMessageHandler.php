@@ -16,7 +16,6 @@ use App\Message\SearchMessage;
 use App\Service\OpenPlatform\SearchService;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;

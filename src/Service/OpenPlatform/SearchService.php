@@ -98,8 +98,7 @@ class SearchService
         try {
             // Try getting item from cache.
             $item = $this->cache->getItem('openplatform.search_query'.str_replace(':', '', $identifier));
-        }
-        catch (InvalidArgumentException $exception) {
+        } catch (InvalidArgumentException $exception) {
             throw new OpenPlatformSearchException('Invalid cache argument');
         }
 
