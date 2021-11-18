@@ -91,7 +91,7 @@ class Vendor
         return $this;
     }
 
-    public function getClass()
+    public function getClass(): string
     {
         return $this->class;
     }
