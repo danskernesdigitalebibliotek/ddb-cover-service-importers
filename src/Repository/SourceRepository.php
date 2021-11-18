@@ -47,7 +47,7 @@ class SourceRepository extends ServiceEntityRepository
             ->andWhere('s.vendor = (:vendor)')
             ->setParameter('type', $matchType)
             ->setParameter('ids', $idList)
-            ->setParameter('vendor', $vendor, Vendor::class)
+            ->setParameter('vendor', $vendor)
             ->orderBy('s.matchId', 'ASC')
             ->indexBy('s', 's.matchId')
             ->getQuery()

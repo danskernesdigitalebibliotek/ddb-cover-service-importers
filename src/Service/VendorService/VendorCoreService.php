@@ -215,12 +215,11 @@ final class VendorCoreService
      * @param \DateTime $withUpdatesDate
      *   Process updates (default: false)
      *
-     * @return (int|string)[][] Array containing two arrays with identifiers for updated and inserted sources
+     * @return array (int|string)[][]
+     *   Array containing two arrays with identifiers for updated and inserted sources
      *
      * @throws QueryException
      * @throws UnknownVendorServiceException
-     *
-     * @psalm-return array{0: list<array-key>, 1: list<array-key>}
      */
     public function processBatch(array $batch, SourceRepository $sourceRepo, string $identifierType, int $vendorId, \DateTime $withUpdatesDate): array
     {
