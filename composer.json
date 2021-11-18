@@ -23,7 +23,7 @@
         "doctrine/orm": "^2.10",
         "eightpoints/guzzle-bundle": "^8.0",
         "elasticsearch/elasticsearch": "^6.7",
-        "friendsofsymfony/elastica-bundle": "^5.3",
+        "friendsofsymfony/elastica-bundle": "^5.2",
         "itk-dev/metrics-bundle": "^0.0.1",
         "karriere/json-decoder": "^2.1",
         "league/oauth2-client": "^2.6",
