@@ -689,6 +689,9 @@
             "config/packages/routing.yaml"
         ]
     },
+    "symfony/runtime": {
+        "version": "v5.3.10"
+    },
     "symfony/serializer": {
         "version": "v5.3.10"
     },
