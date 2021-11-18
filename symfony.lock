@@ -780,6 +780,9 @@
     "webmozart/path-util": {
         "version": "2.3.0"
     },
+    "weirdan/doctrine-psalm-plugin": {
+        "version": "v2.0.1"
+    },
     "zendframework/zend-code": {
         "version": "3.3.1"
     },
