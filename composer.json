@@ -54,7 +54,7 @@
         "doctrine/doctrine-fixtures-bundle": "^3.0",
         "escapestudios/symfony2-coding-standard": "^3.10",
         "fakerphp/faker": "^1.14",
-        "friendsofphp/php-cs-fixer": "^2.13",
+        "friendsofphp/php-cs-fixer": "^3.0",
         "phpunit/phpunit": "^9.5",
         "psalm/plugin-symfony": "^3.0",
         "symfony/css-selector": "^4.4",
@@ -104,10 +104,10 @@
             "@auto-scripts"
         ],
         "coding-standards-check": [
-            "./vendor/bin/php-cs-fixer --config=.php_cs.dist fix --dry-run --format=checkstyle"
+            "./vendor/bin/php-cs-fixer fix --dry-run --format=checkstyle"
         ],
         "coding-standards-apply": [
-            "php-cs-fixer --config=.php_cs.dist fix"
+            "php-cs-fixer fix"
         ],
         "phpunit": [
             "./vendor/bin/phpunit"
