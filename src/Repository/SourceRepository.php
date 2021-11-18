@@ -47,7 +47,7 @@ class SourceRepository extends ServiceEntityRepository
             ->andWhere('s.vendor = (:vendor)')
             ->setParameter('type', $matchType)
             ->setParameter('ids', $idList)
-            ->setParameter('vendor', $vendor)
+            ->setParameter('vendor', $vendor, Vendor::class)
             ->orderBy('s.matchId', 'ASC')
             ->indexBy('s', 's.matchId')
             ->getQuery()
@@ -69,7 +69,7 @@ class SourceRepository extends ServiceEntityRepository
             ->andWhere('s.matchId NOT IN (:ids)')
             ->andWhere('s.vendor = (:vendor)')
             ->setParameter('ids', $matchIdList)
-            ->setParameter('vendor', $vendor)
+            ->setParameter('vendor', $vendor, Vendor::class)
             ->getQuery()
             ->getResult();
     }

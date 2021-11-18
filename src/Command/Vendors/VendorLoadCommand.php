@@ -64,9 +64,9 @@ class VendorLoadCommand extends Command
     {
         $limit = (int) $input->getOption('limit');
         $dispatchToQueue = !$input->getOption('without-queue');
-        $force = (bool) $input->getOption('force');
+        $force = $input->getOption('force');
 
-        $date = $input->getOption('with-updates-date');
+        $date = (string) $input->getOption('with-updates-date');
         $withUpdatesDate = \DateTime::createFromFormat('Y-m-d', $date);
         if (false === $withUpdatesDate) {
             $output->writeln('<error>Unknown date format in --with-updates</error>');

@@ -19,9 +19,9 @@ class TheMovieDatabaseApiService
     private const SEARCH_URL = 'https://api.themoviedb.org/3/search/movie';
     private const BASE_IMAGE_PATH = 'https://image.tmdb.org/t/p/original';
 
-    private $apiKey;
-    private $client;
-    private $logger;
+    private string $apiKey;
+    private ClientInterface $client;
+    private LoggerInterface $logger;
 
     /**
      * TheMovieDatabaseApiService constructor.
@@ -40,9 +40,9 @@ class TheMovieDatabaseApiService
     /**
      * Search in the movie database for a poster url by title, year and director.
      *
-     * @param string $title
+     * @param ?string $title
      *   The title of the item
-     * @param string $originalYear
+     * @param ?string $originalYear
      *   The release year of the item
      * @param string|null $director
      *   The director of the movie
@@ -154,7 +154,7 @@ class TheMovieDatabaseApiService
      */
     private function getPosterUrl(\stdClass $result): ?string
     {
-        return ($result && !empty($result->poster_path)) ? self::BASE_IMAGE_PATH.$result->poster_path : null;
+        return !empty($result->poster_path) ? self::BASE_IMAGE_PATH.$result->poster_path : null;
     }
 
     /**
