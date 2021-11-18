@@ -8,6 +8,7 @@
 namespace Tests;
 
 use App\Exception\MaterialTypeException;
+use App\Exception\OpenPlatformAuthException;
 use App\Exception\OpenPlatformSearchException;
 use App\Service\OpenPlatform\AuthenticationService;
 use App\Service\OpenPlatform\SearchService;
@@ -33,11 +34,11 @@ class SearchServiceTest extends TestCase
     const IDENTIFIER = '9788770531214';
 
     /**
-     * Test that an search reponse is parsed correctly.
+     * Test that a search response is parsed correctly.
      *
      * @throws MaterialTypeException
      * @throws OpenPlatformSearchException
-     * @throws InvalidArgumentException
+     * @throws OpenPlatformAuthException
      */
     public function testSearch()
     {
@@ -112,7 +113,7 @@ class SearchServiceTest extends TestCase
             ->method('getAccessToken')
             ->willReturn($this::TOKEN);
 
-        return new SearchService($parameters, $cache, $logger, $authentication, $this->mockHttpClient($body));
+        return new SearchService($parameters, $cache, $authentication, $this->mockHttpClient($body));
     }
 
     /**
@@ -124,7 +125,7 @@ class SearchServiceTest extends TestCase
      * @return client
      *   Http mock client
      */
-    private function mockHttpClient($body)
+    private function mockHttpClient($body): Client
     {
         $mock = new MockHandler();
 
