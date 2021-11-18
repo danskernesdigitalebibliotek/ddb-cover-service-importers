@@ -19,10 +19,10 @@ Other repositories:
 
 ## Tech Stack
 
-This is a Symfony 4 (flex) project.
+This is a Symfony 5 (flex) project.
 
-Server/hosting reference requirements: _PHP 7.3, Nginx 1.14, MariaDB 10.3,
-ElasticSearch 6.5, Redis Server 3.2.
+Server/hosting reference requirements: PHP 7.4, Nginx 1.14, MariaDB 10.3,
+ElasticSearch 6.8, Redis Server 6, RabbitMQ 3.9.
 
 The application is currently developed and hosted on this stack. However, the
 individual components can be swapped for relevant alternatives. Apache can be
@@ -33,7 +33,7 @@ respectively, and can be changed as needed.
 
 Application components:
 
-* [Symfony 4 (flex)](https://symfony.com/) - underlying Web Application
+* [Symfony 5 (flex)](https://symfony.com/) - underlying Web Application
   framework
 * [Doctrine 2](https://www.doctrine-project.org/) - database DBAL/ORM layer
 * [RabbitMq](https://www.rabbitmq.com/) - RabbitMQ is used for async jobs
@@ -294,20 +294,13 @@ bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority
 
 ### Testing
 
-The application has a test suite consisting of unit tests and Behat features.
+The application has a test suite consisting of unit tests.
 
 To run the unit tests located in `/tests` you can run:
 
 ```shell
 docker compose exec phpfpm composer install
 docker compose exec phpfpm ./vendor/bin/phpunit
-```
-
-To run the Behat features in `/feature` you can run:
-
-```shell
-docker compose exec phpfpm composer install
-docker compose exec phpfpm ./vendor/bin/behat
 ```
 
 Both bugfixes and added features should be supported by matching tests.
