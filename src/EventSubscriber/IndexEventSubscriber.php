@@ -134,7 +134,7 @@ class IndexEventSubscriber implements EventSubscriberInterface
             $this->logger->error('Database Connection Exception', [
                 'service' => 'IndexEventSubscriber',
                 'message' => $exception->getMessage(),
-                'identifiers' => $material->getIdentifiers(),
+                'identifiers' => $event->getMaterial()->getIdentifiers(),
             ]);
         } catch (\Exception $exception) {
             $this->logger->error('Index Exception', [
