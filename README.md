@@ -219,7 +219,7 @@ This command runs a search into the open platform datawell. The last parameter
 if set will by-pass the cache. The command will output the search result.
 
 ```sh
-bin/console app:openplatform:search 9788702173277 isbn
+bin/console app:openplatform:search --type=isbn --identifier=9788702173277
 ```
 
 #### Cover Store

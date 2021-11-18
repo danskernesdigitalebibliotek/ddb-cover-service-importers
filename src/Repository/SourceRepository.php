@@ -48,7 +48,7 @@ class SourceRepository extends ServiceEntityRepository
             ->andWhere('s.vendor = (:vendor)')
             ->setParameter('type', $matchType)
             ->setParameter('ids', $idList)
-            ->setParameter('vendor', $vendor, Types::OBJECT)
+            ->setParameter('vendor', $vendor)
             ->orderBy('s.matchId', 'ASC')
             ->indexBy('s', 's.matchId')
             ->getQuery()
@@ -70,7 +70,7 @@ class SourceRepository extends ServiceEntityRepository
             ->andWhere('s.matchId NOT IN (:ids)')
             ->andWhere('s.vendor = (:vendor)')
             ->setParameter('ids', $matchIdList)
-            ->setParameter('vendor', $vendor, Vendor::class)
+            ->setParameter('vendor', $vendor)
             ->getQuery()
             ->getResult();
     }
@@ -111,7 +111,7 @@ class SourceRepository extends ServiceEntityRepository
      *   Limit the fetched records by last indexed time
      * @param int $vendorId
      *   The vendor to fetch sources for
-     * @param string $identifier
+     * @param string|null $identifier
      *   Limit to single identifier
      *
      * @return IterableResult
@@ -134,7 +134,7 @@ class SourceRepository extends ServiceEntityRepository
 
         if (!is_null($lastIndexedDate)) {
             $queryBuilder->andWhere('s.lastIndexed < :lastIndexedDate OR s.lastIndexed is null')
-                ->setParameter('lastIndexedDate', $lastIndexedDate);
+                ->setParameter('lastIndexedDate', $lastIndexedDate, Types::DATETIME_MUTABLE);
         }
 
         // Order by date to ensure the newest is fetched first during reindex as they maybe the most wanted.

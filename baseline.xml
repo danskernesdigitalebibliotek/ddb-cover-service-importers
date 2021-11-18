@@ -171,8 +171,9 @@
     </PossiblyNullReference>
   </file>
   <file src="src/Repository/SourceRepository.php">
-    <QueryBuilderSetParameter occurrences="1">
+    <QueryBuilderSetParameter occurrences="2">
       <code>$lastIndexedDate</code>
+      <code>$vendor</code>
     </QueryBuilderSetParameter>
   </file>
   <file src="src/Repository/VendorRepository.php">
