@@ -25,7 +25,7 @@ class AuthenticationService
     // Used to give the token some grace-period so it will not expire will
     // being used. Currently, the token is valid for 30 days. So we set the
     // limit to be 1 day, so it will be refreshed before it expires.
-    const TOKEN_EXPIRE_LIMIT = 86400;
+    public const TOKEN_EXPIRE_LIMIT = 86400;
 
     private ParameterBagInterface $params;
     private AdapterInterface $cache;

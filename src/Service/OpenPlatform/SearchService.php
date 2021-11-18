@@ -30,7 +30,7 @@ class SearchService
     private AuthenticationService $authenticationService;
     private ClientInterface $client;
 
-    const SEARCH_LIMIT = 50;
+    public const SEARCH_LIMIT = 50;
 
     private array $fields = [
         'title',

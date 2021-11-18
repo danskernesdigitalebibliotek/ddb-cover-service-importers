@@ -27,7 +27,7 @@ class VendorLoadCommand extends Command
     protected static $defaultName = 'app:vendor:load';
 
     // The default fallback date for the --with-updates-date parameter to the command.
-    const DEFAULT_DATE = '1970-01-01';
+    public const DEFAULT_DATE = '1970-01-01';
 
     private VendorServiceFactory $vendorFactory;
     private MetricsService $metricsService;

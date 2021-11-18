@@ -23,7 +23,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class AuthenticationServiceTest extends TestCase
 {
-    const TOKEN = 'fde1432d66d33e4cq66e5ad04757811e47864329';
+    public const TOKEN = 'fde1432d66d33e4cq66e5ad04757811e47864329';
 
     /**
      * Test that token is returned.

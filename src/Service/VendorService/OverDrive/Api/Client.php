@@ -131,7 +131,7 @@ class Client
                 // Check for the product and images keys.
                 $product = isset($json->products) && is_array($json->products) ? array_shift($json->products) : null;
                 $images = $product->images ?? null;
-            } catch (GuzzleException | \JsonException $exception) {
+            } catch (GuzzleException|\JsonException $exception) {
                 // Ignore
                 $images = null;
             }
@@ -167,7 +167,7 @@ class Client
 
             $content = $response->getBody()->getContents();
             $content = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
-        } catch (GuzzleException | \JsonException $exception) {
+        } catch (GuzzleException|\JsonException $exception) {
             // Ignore
         }
 
@@ -193,7 +193,7 @@ class Client
 
             $content = $response->getBody()->getContents();
             $content = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
-        } catch (GuzzleException | \JsonException $exception) {
+        } catch (GuzzleException|\JsonException $exception) {
             // Ignore
         }
 

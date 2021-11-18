@@ -21,7 +21,7 @@ class PopulateService
 {
     use ProgressBarTrait;
 
-    const BATCH_SIZE = 1000;
+    public const BATCH_SIZE = 1000;
 
     private SearchRepository $searchRepository;
     private string $elasticHost;

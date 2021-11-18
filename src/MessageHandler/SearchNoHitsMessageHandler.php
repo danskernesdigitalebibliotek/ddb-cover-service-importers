@@ -43,7 +43,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
     private VendorImageValidatorService $validatorService;
     private MetricsService $metricsService;
 
-    const VENDOR = 'Unknown';
+    public const VENDOR = 'Unknown';
 
     /**
      * SearchNoHitsMessageHandler constructor.

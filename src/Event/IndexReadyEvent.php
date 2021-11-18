@@ -11,7 +11,7 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 class IndexReadyEvent extends Event
 {
-    const NAME = 'app.index.ready';
+    public const NAME = 'app.index.ready';
 
     private $operation;
     private $is;

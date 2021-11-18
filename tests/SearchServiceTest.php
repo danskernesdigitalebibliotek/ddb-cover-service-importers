@@ -29,8 +29,8 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
  */
 class SearchServiceTest extends TestCase
 {
-    const TOKEN = 'fde1432d66d33e4cq66e5ad04757811e47864329';
-    const IDENTIFIER = '9788770531214';
+    public const TOKEN = 'fde1432d66d33e4cq66e5ad04757811e47864329';
+    public const IDENTIFIER = '9788770531214';
 
     /**
      * Test that a search response is parsed correctly.
