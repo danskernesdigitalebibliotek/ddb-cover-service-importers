@@ -60,7 +60,19 @@ class IndexEventSubscriber implements EventSubscriberInterface
         try {
             $material = $event->getMaterial();
             $image = $this->getImage($event->getImageId());
-            $source = $image->getSource();
+            $source = (null !== $image) ? $image->getSource() : null;
+
+            // If image or source are null something is broken in the data,
+            // so we can't proceed
+            if (null === $image || null === $source) {
+                $this->logger->error('Index Ready Event Error', [
+                    'service' => 'IndexEventSubscriber',
+                    'message' => 'Image and/or Source are null for material',
+                    'identifiers' => $material->getIdentifiers(),
+                ]);
+
+                return;
+            }
 
             $searchRepos = $this->em->getRepository(Search::class);
 
