@@ -13,4 +13,10 @@
             <directory name="vendor"/>
         </ignoreFiles>
     </projectFiles>
-<plugins><pluginClass class="Psalm\SymfonyPsalmPlugin\Plugin"/><pluginClass class="Weirdan\DoctrinePsalmPlugin\Plugin"/></plugins></psalm>
+    <plugins>
+        <pluginClass class="Psalm\SymfonyPsalmPlugin\Plugin">
+            <containerXml>var/cache/dev/App_KernelDevDebugContainer.xml</containerXml>
+        </pluginClass>
+        <pluginClass class="Weirdan\DoctrinePsalmPlugin\Plugin"/>
+    </plugins>
+</psalm>
