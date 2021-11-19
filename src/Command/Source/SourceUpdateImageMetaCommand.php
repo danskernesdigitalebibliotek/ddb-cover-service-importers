@@ -58,7 +58,12 @@ class SourceUpdateImageMetaCommand extends Command
         /** @var Source $source */
         foreach ($query->toIterable() as $source) {
             $item = new VendorImageItem();
-            $item->setOriginalFile($source->getOriginalFile());
+
+            $originalFile = $source->getOriginalFile();
+            if (null !== $originalFile) {
+                $item->setOriginalFile($originalFile);
+            }
+
             $this->validator->validateRemoteImage($item);
 
             if ($item->isFound()) {

@@ -95,8 +95,8 @@ class CoverStoreValidateImageCommand extends Command
         $i = 1;
 
         $found = [];
-        /** @var Source $source */
-        foreach ($queryBuilder->toIterable() as $row) {
+        /* @var Source $source */
+        foreach ($queryBuilder->getQuery()->toIterable() as $source) {
             $image = new VendorImageItem();
             $image->setOriginalFile($source->getImage()->getCoverStoreURL());
             $this->imageValidatorService->validateRemoteImage($image);

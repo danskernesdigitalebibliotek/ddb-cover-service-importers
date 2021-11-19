@@ -22,14 +22,6 @@
     </ImplicitToStringCast>
   </file>
   <file src="src/Command/CoverStore/CoverStoreValidateImageCommand.php">
-    <PossiblyNullArgument occurrences="2">
-      <code>$source-&gt;getImage()</code>
-      <code>$source-&gt;getImage()-&gt;getCoverStoreURL()</code>
-    </PossiblyNullArgument>
-    <PossiblyNullReference occurrences="2">
-      <code>getCoverStoreURL</code>
-      <code>getCoverStoreURL</code>
-    </PossiblyNullReference>
     <UndefinedMagicMethod occurrences="1">
       <code>findOneById</code>
     </UndefinedMagicMethod>
@@ -172,7 +164,7 @@
   </file>
   <file src="src/Repository/SourceRepository.php">
     <QueryBuilderSetParameter occurrences="2">
-      <code>$lastIndexedDate</code>
+      <code>$vendor</code>
       <code>$vendor</code>
     </QueryBuilderSetParameter>
   </file>
