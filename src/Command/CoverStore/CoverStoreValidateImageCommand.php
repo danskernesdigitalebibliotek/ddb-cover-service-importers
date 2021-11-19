@@ -81,13 +81,13 @@ class CoverStoreValidateImageCommand extends Command
             $output->writeln('<error>Unknown vendor id!</error>');
         }
 
-        $query = $this->sourceRepository->createQueryBuilder('s')
+        $queryBuilder = $this->sourceRepository->createQueryBuilder('s')
             ->andWhere('s.vendor = (:vendor)')
             ->andWhere('s.image IS NOT NULL')
             ->setParameter('vendor', $vendor);
 
         if (!is_null($identifier)) {
-            $query->andWhere('s.matchId = (:identifier)')
+            $queryBuilder->andWhere('s.matchId = (:identifier)')
                 ->setParameter('identifier', $identifier);
         }
 
@@ -95,12 +95,8 @@ class CoverStoreValidateImageCommand extends Command
         $i = 1;
 
         $found = [];
-        $query = $query->getQuery();
-        $iterableResult = $query->iterate();
-        foreach ($iterableResult as $row) {
-            /** @var Source $source */
-            $source = $row[0];
-
+        /** @var Source $source */
+        foreach ($queryBuilder->toIterable() as $row) {
             $image = new VendorImageItem();
             $image->setOriginalFile($source->getImage()->getCoverStoreURL());
             $this->imageValidatorService->validateRemoteImage($image);

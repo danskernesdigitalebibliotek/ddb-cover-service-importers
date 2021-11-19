@@ -6,7 +6,7 @@ use App\Entity\Source;
 use App\Entity\Vendor;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Types\Types;
-use Doctrine\ORM\Internal\Hydration\IterableResult;
+use Doctrine\ORM\Query;
 use Doctrine\ORM\Query\QueryException;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -103,7 +103,7 @@ class SourceRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get a paginator for source that is limited by the parameters.
+     * Get a query for sources that is limited by the parameters.
      *
      * @param int $limit
      *   The number of records to fetch
@@ -114,15 +114,19 @@ class SourceRepository extends ServiceEntityRepository
      * @param string|null $identifier
      *   Limit to single identifier
      *
-     * @return IterableResult
+     * @return Query
      */
-    public function findReindexabledSources(int $limit = 0, ?\DateTime $lastIndexedDate = null, int $vendorId = 0, ?string $identifier = ''): IterableResult
+    public function findReindexabledSources(int $limit = 0, ?\DateTime $lastIndexedDate = null, int $vendorId = 0, ?string $identifier = ''): Query
     {
         $queryBuilder = $this->createQueryBuilder('s');
         $queryBuilder->select('s')
             ->where('s.image IS NOT NULL');
 
-        if (0 < ($vendorId)) {
+        if (0 < $limit) {
+            $queryBuilder->setMaxResults($limit);
+        }
+
+        if (0 < $vendorId) {
             $queryBuilder->andWhere('s.vendor = :vendorId')
                 ->setParameter('vendorId', $vendorId);
         }
@@ -140,8 +144,6 @@ class SourceRepository extends ServiceEntityRepository
         // Order by date to ensure the newest is fetched first during reindex as they maybe the most wanted.
         $queryBuilder->orderBy('s.date', 'DESC');
 
-        return $queryBuilder->getQuery()
-            ->setMaxResults($limit)
-            ->iterate();
+        return $queryBuilder->getQuery();
     }
 }

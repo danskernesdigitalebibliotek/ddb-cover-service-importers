@@ -107,14 +107,12 @@ class SearchReindexCommand extends Command
 
         /** @var SourceRepository $sourceRepos */
         $sourceRepos = $this->em->getRepository(Source::class);
-        $iterableResult = $sourceRepos->findReindexabledSources($limit, $inputDate, $vendorId, $identifier);
+        $query = $sourceRepos->findReindexabledSources($limit, $inputDate, $vendorId, $identifier);
         $batchSize = 200;
-        $i = 0;
+        $i = 1;
 
-        foreach ($iterableResult as $row) {
-            /* @var Source $source */
-            $source = reset($row);
-
+        /* @var Source $source */
+        foreach ($query->toIterable() as $source) {
             // Build and create new search job which will trigger index event.
             $message = new SearchMessage();
             $message->setIdentifier($source->getMatchId())
