@@ -85,7 +85,7 @@ services:
       - xpack.security.transport.ssl.certificate=/usr/share/elasticsearch/data/es01/es01.crt
       - xpack.security.transport.ssl.key=/usr/share/elasticsearch/data/es01/es01.key
     volumes:
-      - ${PWD}/.docker/es:/usr/share/elasticsearch/data:rw
+      - nfsElastic:/usr/share/elasticsearch/data:rw
     ports:
       - '9200'
       - '9300'
@@ -113,3 +113,9 @@ volumes:
       type: nfs
       o: addr=host.docker.internal,rw,nolock,hard,nointr,nfsvers=3
       device: ":$PWD"
+  nfsElastic:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=host.docker.internal,rw,nolock,hard,nointr,nfsvers=3
+      device: ":$PWD/.docker/es"
