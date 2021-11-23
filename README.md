@@ -274,8 +274,8 @@ bin/console app:vendor:event insert 9788702173277 ISBN 1
 The application defines a number of job queues for the various background tasks
 and is configured to use Redis as the persistence layer for queues/messages. To
 have a fully functioning development setup you will need to run consumers for
-all queues. See <https://symfony.com/doc/current/messenger.html> for more information
-about symfony messenger.
+all queues. See the [Symfony docs](https://symfony.com/doc/current/messenger.html) for more information
+about the Messenger Component.
 
 To run consumers for all queues do
 
@@ -293,9 +293,10 @@ bin/console messenger:consume --env=prod --quiet --time-limit=900 --failure-limi
 ```
 
 #### Message Queues and Doctrine
+
 If Doctrine throws an exception when interacting with the database the Consumers' Entity Manager will close and not re-open. This will cause subsequent message handling to fail. To handle this run the consumers with `--failure-limit=1`. This will cause the consumer to exit if an exception is thrown. The Consumer will then be restarted with a new Entity Manager assuming Supervisor or similar is used to run the consumers.
 
-See: https://github.com/symfony/symfony/pull/35453
+See: Symfony PR [#35453](https://github.com/symfony/symfony/pull/35453)
 
 ### Testing
 
