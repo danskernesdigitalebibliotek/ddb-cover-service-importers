@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0fe86c64d7d8ca8169023815f090e49a",
+    "content-hash": "6418d69208a49f5eea5cc3a7e0138fd5",
     "packages": [
         {
             "name": "box/spout",
@@ -2847,26 +2847,27 @@
         },
         {
             "name": "nicebooks/isbn",
-            "version": "0.2.93",
+            "version": "0.3.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nicebooks-com/isbn.git",
-                "reference": "09608fe05e842b63d282b07db1062fe17df3b4b7"
+                "reference": "e4914c113fb183bcd7efa9047463f5619432c3bc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nicebooks-com/isbn/zipball/09608fe05e842b63d282b07db1062fe17df3b4b7",
-                "reference": "09608fe05e842b63d282b07db1062fe17df3b4b7",
+                "url": "https://api.github.com/repos/nicebooks-com/isbn/zipball/e4914c113fb183bcd7efa9047463f5619432c3bc",
+                "reference": "e4914c113fb183bcd7efa9047463f5619432c3bc",
                 "shasum": ""
             },
             "require": {
-                "php": "^7.1 || ^8.0"
+                "php": "^7.4 || ^8.0"
             },
             "require-dev": {
-                "brick/varexporter": "~0.2.1",
+                "brick/varexporter": "~0.3.0",
                 "ext-dom": "*",
                 "php-coveralls/php-coveralls": "^2.0",
-                "phpunit/phpunit": "^7.0 || ^8.0 || ^9.0"
+                "phpunit/phpunit": "^9.0",
+                "vimeo/psalm": "^4.8"
             },
             "type": "library",
             "autoload": {
@@ -2889,9 +2890,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nicebooks-com/isbn/issues",
-                "source": "https://github.com/nicebooks-com/isbn/tree/0.2.93"
+                "source": "https://github.com/nicebooks-com/isbn/tree/0.3.7"
             },
-            "time": "2021-07-11T21:38:41+00:00"
+            "time": "2021-11-20T22:18:36+00:00"
         },
         {
             "name": "oneup/flysystem-bundle",
