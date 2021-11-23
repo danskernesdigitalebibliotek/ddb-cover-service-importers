@@ -56,7 +56,7 @@
         "friendsofphp/php-cs-fixer": "^3.0",
         "phpunit/phpunit": "^9.5",
         "psalm/plugin-symfony": "^3.0",
-        "symfony/css-selector": "^4.4",
+        "symfony/css-selector": "^5.3",
         "symfony/debug-bundle": "^5.3",
         "symfony/maker-bundle": "^1.9",
         "symfony/phpunit-bridge": "^5.3",
