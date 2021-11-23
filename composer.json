@@ -25,7 +25,6 @@
         "elasticsearch/elasticsearch": "^6.7",
         "friendsofsymfony/elastica-bundle": "^5.2",
         "itk-dev/metrics-bundle": "^0.0.1",
-        "karriere/json-decoder": "^2.1",
         "league/oauth2-client": "^2.6",
         "nicebooks/isbn": "^0.2.56",
         "oneup/flysystem-bundle": "^3.0",
