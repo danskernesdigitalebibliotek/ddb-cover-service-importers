@@ -280,17 +280,22 @@ about symfony messenger.
 To run consumers for all queues do
 
 ```shell
-bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_high
-bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_normal
-bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_low
-bin/console messenger:consume --env=prod --quiet --time-limit=900 async_no_hit
+bin/console messenger:consume --env=prod --quiet --time-limit=900 --failure-limit=1 async_priority_high
+bin/console messenger:consume --env=prod --quiet --time-limit=900 --failure-limit=1 async_priority_normal
+bin/console messenger:consume --env=prod --quiet --time-limit=900 --failure-limit=1 async_priority_low
+bin/console messenger:consume --env=prod --quiet --time-limit=900 --failure-limit=1 async_no_hit
 ```
 
 Or use all your works to run all queue in the order given (from high to no-hit).
 
 ```shell
-bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_high async_priority_normal async_priority_low async_no_hit
+bin/console messenger:consume --env=prod --quiet --time-limit=900 --failure-limit=1 async_priority_high async_priority_normal async_priority_low async_no_hit
 ```
+
+#### Message Queues and Doctrine
+If Doctrine throws an exception when interacting with the database the Consumers' Entity Manager will close and not re-open. This will cause subsequent message handling to fail. To handle this run the consumers with `--failure-limit=1`. This will cause the consumer to exit if an exception is thrown. The Consumer will then be restarted with a new Entity Manager assuming Supervisor or similar is used to run the consumers.
+
+See: https://github.com/symfony/symfony/pull/35453
 
 ### Testing
 

@@ -1,5 +1,5 @@
 [program:queues]
-command=/var/www/html/bin/console messenger:consume {{ getenv "APP_SUPERVISOR_QUEUES" "async_priority_high async_priority_normal async_priority_low" }} --env=prod --no-debug --time-limit={{ getenv "APP_SUPERVISOR_TIME_LIMIT" "900" }} --no-interaction --quiet
+command=/var/www/html/bin/console messenger:consume {{ getenv "APP_SUPERVISOR_QUEUES" "async_priority_high async_priority_normal async_priority_low" }} --env=prod --no-debug --time-limit={{ getenv "APP_SUPERVISOR_TIME_LIMIT" "900" }} --no-interaction --quiet --failure-limit=1
 process_name=%(program_name)s_%(process_num)02d
 numprocs={{ getenv "APP_SUPERVISOR_WORKERS" "8" }}
 autostart=true

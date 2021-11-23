@@ -112,7 +112,7 @@
             "./vendor/bin/phpunit"
         ],
         "queues": [
-            "bin/console messenger:consume async_priority_high async_priority_normal async_priority_low async_no_hit"
+            "bin/console messenger:consume async_priority_high async_priority_normal async_priority_low async_no_hit --failure-limit=1"
         ]
     },
     "conflict": {
