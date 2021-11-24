@@ -6,6 +6,7 @@
 
 namespace App\Command\Source;
 
+use App\Entity\Source;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
 use Doctrine\ORM\EntityManagerInterface;
@@ -53,12 +54,16 @@ class SourceUpdateImageMetaCommand extends Command
             $queryStr = 'SELECT s FROM App\Entity\Source s WHERE s.matchId='.$identifier;
         }
         $query = $this->em->createQuery($queryStr);
-        $iterableResult = $query->iterate();
-        foreach ($iterableResult as $row) {
-            $source = $row[0];
 
+        /** @var Source $source */
+        foreach ($query->toIterable() as $source) {
             $item = new VendorImageItem();
-            $item->setOriginalFile($source->getOriginalFile());
+
+            $originalFile = $source->getOriginalFile();
+            if (null !== $originalFile) {
+                $item->setOriginalFile($originalFile);
+            }
+
             $this->validator->validateRemoteImage($item);
 
             if ($item->isFound()) {

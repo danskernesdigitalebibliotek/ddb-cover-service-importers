@@ -84,11 +84,9 @@ class MissingImagesCommand extends Command
         }
 
         $query = $this->em->createQuery($query);
-        $iterableResult = $query->iterate();
-        foreach ($iterableResult as $row) {
-            /* @var Source $source */
-            $source = $row[0];
 
+        /* @var Source $source */
+        foreach ($query->toIterable() as $source) {
             // Ensure that ':' is escaped in the search query.
             $id = 'public_id:'.$vendor->getName().'/'.str_replace(':', '\:', $source->getMatchId());
             $items = $this->store->search($vendor->getName(), $id);

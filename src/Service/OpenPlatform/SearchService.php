@@ -15,7 +15,7 @@ use App\Utils\Types\IdentifierType;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
-use Nicebooks\Isbn\IsbnTools;
+use Nicebooks\Isbn\Isbn;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -30,7 +30,7 @@ class SearchService
     private AuthenticationService $authenticationService;
     private ClientInterface $client;
 
-    const SEARCH_LIMIT = 50;
+    public const SEARCH_LIMIT = 50;
 
     private array $fields = [
         'title',
@@ -330,28 +330,29 @@ class SearchService
     /**
      * Convert ISBN to matching ISBN10 or ISBN13.
      *
-     * Will convert the given isbn number to it's opposite format.
+     * Will convert the given ISBN to it's opposite format.
      * E.g. convert ISBN10 to 13, and ISBN13 to 10 when possible.
      *
      * @param string $isbn
      *   An ISBN10 or ISBN13 number
      *
      * @return string|null
-     *   The ISBN number converted to the opposite format or null if conversion not possible
+     *   The ISBN converted to the opposite format or null if conversion not possible
      */
     private function convertIsbn(string $isbn): ?string
     {
         $extraISBN = null;
-        $tools = new IsbnTools();
         try {
-            if ($tools->isValidIsbn13($isbn)) {
-                // Only ISBN-13 numbers starting with 978 can be converted to an ISBN-10.
-                $extraISBN = $tools->convertIsbn13to10($isbn);
-            } elseif ($tools->isValidIsbn10($isbn)) {
-                $extraISBN = $tools->convertIsbn10to13($isbn);
+            $isbn = Isbn::of($isbn);
+            // Only ISBN-13 numbers starting with 978 can be converted to an ISBN-10.
+            if ($isbn->is13() and $isbn->isConvertibleTo10()) {
+                $extraISBN = $isbn->to10()->format();
+            } elseif ($isbn->is10()) {
+                $extraISBN = $isbn->to13()->format();
             }
         } catch (\Exception $exception) {
             // Exception is thrown if the ISBN conversion fail. Fallback to setting extra ISBN to null.
+            $extraISBN = null;
         }
 
         return $extraISBN;

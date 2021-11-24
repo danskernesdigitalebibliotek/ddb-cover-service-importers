@@ -8,7 +8,7 @@ namespace App\Service\VendorService\HerningBib;
 
 use App\Service\VendorService\AbstractTsvVendorService;
 use App\Utils\Message\VendorImportResultMessage;
-use GuzzleHttp\Client;
+use GuzzleHttp\ClientInterface;
 use League\Flysystem\Filesystem;
 use League\Flysystem\UnreadableFileException;
 
@@ -26,17 +26,17 @@ class HerningBibVendorService extends AbstractTsvVendorService
     protected bool $sheetHasHeaderRow = false;
     protected array $sheetFields = ['ppid' => 0, 'url' => 1];
 
-    private Client $httpClient;
+    private ClientInterface $httpClient;
     private Filesystem $local;
     private string $location;
 
     /**
      * HerningBibVendorService constructor.
      *
-     * @param Client $httpClient
+     * @param ClientInterface $httpClient
      * @param Filesystem $local
      */
-    public function __construct(Client $httpClient, Filesystem $local)
+    public function __construct(ClientInterface $httpClient, Filesystem $local)
     {
         // Resource files is loaded from online location
         parent::__construct('');
