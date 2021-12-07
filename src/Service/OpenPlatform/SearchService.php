@@ -346,9 +346,9 @@ class SearchService
             $isbn = Isbn::of($isbn);
             // Only ISBN-13 numbers starting with 978 can be converted to an ISBN-10.
             if ($isbn->is13() and $isbn->isConvertibleTo10()) {
-                $extraISBN = $isbn->to10()->format();
+                $extraISBN = (string) $isbn->to10();
             } elseif ($isbn->is10()) {
-                $extraISBN = $isbn->to13()->format();
+                $extraISBN = (string) $isbn->to13();
             }
         } catch (\Exception $exception) {
             // Exception is thrown if the ISBN conversion fail. Fallback to setting extra ISBN to null.
