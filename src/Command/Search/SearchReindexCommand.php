@@ -86,16 +86,12 @@ class SearchReindexCommand extends Command
             }
 
             $format = 'd-m-Y';
-            $inputDate = \DateTime::createFromFormat($format, $lastIndexedDate);
+            $inputDate = \DateTimeImmutable::createFromFormat('!'.$format, $lastIndexedDate);
             if (!($inputDate && $inputDate->format($format) == $lastIndexedDate)) {
                 $output->writeln('<error>Lasted indexed date should have the format "m-d-Y"</error>');
 
                 return -1;
             }
-
-            // Set the time to last sec. of the day to ensure the time of command execution don't influence the date in
-            // the database, which is a timestamp.
-            $inputDate->setTime(23, 59, 59);
         }
 
         // Progress bar setup.
