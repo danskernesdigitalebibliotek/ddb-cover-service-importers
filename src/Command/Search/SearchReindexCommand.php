@@ -127,7 +127,7 @@ class SearchReindexCommand extends Command
 
             ++$i;
             $this->progressAdvance();
-            $this->progressMessage('Source rows found '.$i.' in DB');
+            $this->progressMessage('Source rows found '.($i - 1).' in DB');
         }
 
         $this->progressFinish();
