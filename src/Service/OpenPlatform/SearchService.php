@@ -124,6 +124,9 @@ class SearchService
             // for non-scoped search, the result we get will always be scoped to the agency credentials we search with.
             // Materials that are not part of that agency´s collection will not be searchable.
             if (!$material->hasIdentifier($type, $identifier)) {
+                if ('identifierISBN' === $type) {
+                    $identifier = $this->stripDashes($identifier);
+                }
                 $material->addIdentifier($type, $identifier);
             }
 

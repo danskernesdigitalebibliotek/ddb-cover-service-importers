@@ -14,7 +14,10 @@ use App\Entity\Source;
 use App\Event\IndexReadyEvent;
 use App\Utils\OpenPlatform\Material;
 use Doctrine\DBAL\ConnectionException;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use ItkDev\MetricsBundle\Service\MetricsService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -25,6 +28,8 @@ class IndexEventSubscriber implements EventSubscriberInterface
 {
     private EntityManagerInterface $em;
     private LoggerInterface $logger;
+    private ManagerRegistry $registry;
+    private MetricsService $metricsService;
 
     /**
      * IndexEventSubscriber constructor.
@@ -32,10 +37,12 @@ class IndexEventSubscriber implements EventSubscriberInterface
      * @param EntityManagerInterface $entityManager
      * @param LoggerInterface $informationLogger
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $informationLogger)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $informationLogger, ManagerRegistry $registry, MetricsService $metricsService)
     {
         $this->em = $entityManager;
         $this->logger = $informationLogger;
+        $this->registry = $registry;
+        $this->metricsService = $metricsService;
     }
 
     /**
@@ -75,12 +82,6 @@ class IndexEventSubscriber implements EventSubscriberInterface
             }
 
             $searchRepos = $this->em->getRepository(Search::class);
-
-            // There may exist a race condition when multiple queues are
-            // running. To ensure we don't insert duplicates we need to
-            // wrap our search/update/insert in a transaction.
-            $this->em->getConnection()->beginTransaction();
-
             try {
                 foreach ($material->getIdentifiers() as $identifier) {
                     /* @var Search $search */
@@ -113,13 +114,17 @@ class IndexEventSubscriber implements EventSubscriberInterface
                                 ->setSource($source);
                         }
                     }
-                }
 
-                // Make every thing stick.
-                $this->em->flush();
-                $this->em->getConnection()->commit();
+                    $this->em->flush();
+                }
+            } catch (UniqueConstraintViolationException $exception) {
+                // Some vendors have more than one unique identifier in the input data, so to queue processors can try
+                // to write the same row to the search table, which is not allowed. So we restart the entity manager to
+                // ensure that it can write the last index timestamp to the database. If we do not do this we may
+                // end up in a loop of the same records falling again and again.
+                $this->metricsService->counter('index_event_unique_violation', 'Index event unique constraint violation', 1, ['type' => 'index']);
+                $this->registry->resetManager();
             } catch (\Exception $exception) {
-                $this->em->getConnection()->rollBack();
                 $this->logger->error('Database exception: '.get_class($exception), [
                     'service' => 'IndexEventSubscriber',
                     'message' => $exception->getMessage(),
@@ -127,7 +132,7 @@ class IndexEventSubscriber implements EventSubscriberInterface
                 ]);
             }
 
-            // Set the lasted indexed out side the transaction, so it will always be set even at search entity errors.
+            // Set the lasted indexed outside the transaction, so it will always be set even at search entity errors.
             $source->setLastIndexed(new \DateTime());
             $this->em->flush();
         } catch (ConnectionException $exception) {
