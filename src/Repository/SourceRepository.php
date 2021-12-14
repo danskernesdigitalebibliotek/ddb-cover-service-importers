@@ -107,7 +107,7 @@ class SourceRepository extends ServiceEntityRepository
      *
      * @param int $limit
      *   The number of records to fetch
-     * @param \DateTime|null $lastIndexedDate
+     * @param \DateTimeImmutable|null $lastIndexedDate
      *   Limit the fetched records by last indexed time
      * @param int $vendorId
      *   The vendor to fetch sources for
@@ -116,7 +116,7 @@ class SourceRepository extends ServiceEntityRepository
      *
      * @return Query
      */
-    public function findReindexabledSources(int $limit = 0, ?\DateTime $lastIndexedDate = null, int $vendorId = 0, ?string $identifier = ''): Query
+    public function findReindexabledSources(int $limit = 0, ?\DateTimeImmutable $lastIndexedDate = null, int $vendorId = 0, ?string $identifier = ''): Query
     {
         $queryBuilder = $this->createQueryBuilder('s');
         $queryBuilder->select('s')
@@ -138,7 +138,7 @@ class SourceRepository extends ServiceEntityRepository
 
         if (!is_null($lastIndexedDate)) {
             $queryBuilder->andWhere('s.lastIndexed < :lastIndexedDate OR s.lastIndexed is null')
-                ->setParameter('lastIndexedDate', $lastIndexedDate, Types::DATETIME_MUTABLE);
+                ->setParameter('lastIndexedDate', $lastIndexedDate, Types::DATETIME_IMMUTABLE);
         }
 
         // Order by date to ensure the newest is fetched first during reindex as they maybe the most wanted.
