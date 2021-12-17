@@ -25,53 +25,58 @@ class Source
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
      */
-    private $id;
+    private int $id;
 
     /**
      * @ORM\Column(type="datetime")
      */
-    private $date;
+    private ?\DateTimeInterface $date;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Vendor", inversedBy="sources")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $vendor;
+    private ?Vendor $vendor;
 
     /**
      * @ORM\Column(type="string", length=50)
      */
-    private $matchId;
+    private ?string $matchId;
 
     /**
      * @ORM\Column(type="string", length=25)
      */
-    private $matchType;
+    private ?string $matchType;
 
     /**
      * @ORM\Column(type="text", nullable=true)
      */
-    private $originalFile;
+    private ?string $originalFile;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $originalLastModified;
+    private ?\DateTime $originalLastModified;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $originalContentLength;
+    private ?int $originalContentLength;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Image", inversedBy="source", cascade={"persist", "remove"})
      */
-    private $image;
+    private ?Image $image;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Search", mappedBy="source")
      */
-    private $searches;
+    private Collection $searches;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private \DateTime $lastIndexed;
 
     /**
      * @return Collection
@@ -231,6 +236,26 @@ class Source
                 $search->setSource(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getLastIndexed(): ?\DateTime
+    {
+        return $this->lastIndexed;
+    }
+
+    /**
+     * @param \DateTime $lastIndexed
+     *
+     * @return $this
+     */
+    public function setLastIndexed(\DateTime $lastIndexed): self
+    {
+        $this->lastIndexed = $lastIndexed;
 
         return $this;
     }

@@ -5,17 +5,19 @@ namespace App\Repository;
 use App\Entity\Source;
 use App\Entity\Vendor;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Types\Types;
+use Doctrine\ORM\Query;
 use Doctrine\ORM\Query\QueryException;
-use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\Persistence\ManagerRegistry;
 
 class SourceRepository extends ServiceEntityRepository
 {
     /**
      * SourceRepository constructor.
      *
-     * @param RegistryInterface $registry
+     * @param ManagerRegistry $registry
      */
-    public function __construct(RegistryInterface $registry)
+    public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Source::class);
     }
@@ -98,5 +100,50 @@ class SourceRepository extends ServiceEntityRepository
             ->getResult();
 
         return end($sources);
+    }
+
+    /**
+     * Get a query for sources that is limited by the parameters.
+     *
+     * @param int $limit
+     *   The number of records to fetch
+     * @param \DateTimeImmutable|null $lastIndexedDate
+     *   Limit the fetched records by last indexed time
+     * @param int $vendorId
+     *   The vendor to fetch sources for
+     * @param string|null $identifier
+     *   Limit to single identifier
+     *
+     * @return Query
+     */
+    public function findReindexabledSources(int $limit = 0, ?\DateTimeImmutable $lastIndexedDate = null, int $vendorId = 0, ?string $identifier = ''): Query
+    {
+        $queryBuilder = $this->createQueryBuilder('s');
+        $queryBuilder->select('s')
+            ->where('s.image IS NOT NULL');
+
+        if (0 < $limit) {
+            $queryBuilder->setMaxResults($limit);
+        }
+
+        if (0 < $vendorId) {
+            $queryBuilder->andWhere('s.vendor = :vendorId')
+                ->setParameter('vendorId', $vendorId);
+        }
+
+        if (!empty($identifier)) {
+            $queryBuilder->andWhere('s.matchId = :identifier')
+                ->setParameter('identifier', $identifier);
+        }
+
+        if (!is_null($lastIndexedDate)) {
+            $queryBuilder->andWhere('s.lastIndexed < :lastIndexedDate OR s.lastIndexed is null')
+                ->setParameter('lastIndexedDate', $lastIndexedDate, Types::DATETIME_IMMUTABLE);
+        }
+
+        // Order by date to ensure the newest is fetched first during reindex as they maybe the most wanted.
+        $queryBuilder->orderBy('s.date', 'DESC');
+
+        return $queryBuilder->getQuery();
     }
 }

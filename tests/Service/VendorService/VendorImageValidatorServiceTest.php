@@ -5,7 +5,7 @@
  * Test cases for the Vendor image validation service.
  */
 
-namespace Tests;
+namespace Tests\Service\VendorService;
 
 use App\Entity\Source;
 use App\Service\VendorService\VendorImageValidatorService;

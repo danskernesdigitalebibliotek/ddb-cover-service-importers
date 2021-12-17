@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Index event subscriber that updates the searches database table thereby ensuring that the material gets indexed into
+ * Index event subscriber that updates the "search" database table thereby ensuring that the material gets indexed into
  * the search engine.
  */
 
@@ -14,7 +14,10 @@ use App\Entity\Source;
 use App\Event\IndexReadyEvent;
 use App\Utils\OpenPlatform\Material;
 use Doctrine\DBAL\ConnectionException;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use ItkDev\MetricsBundle\Service\MetricsService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -25,6 +28,8 @@ class IndexEventSubscriber implements EventSubscriberInterface
 {
     private EntityManagerInterface $em;
     private LoggerInterface $logger;
+    private ManagerRegistry $registry;
+    private MetricsService $metricsService;
 
     /**
      * IndexEventSubscriber constructor.
@@ -32,10 +37,12 @@ class IndexEventSubscriber implements EventSubscriberInterface
      * @param EntityManagerInterface $entityManager
      * @param LoggerInterface $informationLogger
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $informationLogger)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $informationLogger, ManagerRegistry $registry, MetricsService $metricsService)
     {
         $this->em = $entityManager;
         $this->logger = $informationLogger;
+        $this->registry = $registry;
+        $this->metricsService = $metricsService;
     }
 
     /**
@@ -57,74 +64,93 @@ class IndexEventSubscriber implements EventSubscriberInterface
      */
     public function onIndexEvent(IndexReadyEvent $event): void
     {
-        $material = $event->getMaterial();
-        $image = $this->getImage($event->getImageId());
-        $source = $image->getSource();
-
-        $repos = $this->em->getRepository(Search::class);
-
         try {
-            // There may exists a race condition when multiple queues are
-            // running. To ensure we don't insert duplicates we need to
-            // wrap our search/update/insert in a transaction.
-            $this->em->getConnection()->beginTransaction();
+            $material = $event->getMaterial();
+            $image = $this->getImage($event->getImageId());
+            $source = (null !== $image) ? $image->getSource() : null;
 
+            // If image or source are null something is broken in the data,
+            // so we can't proceed
+            if (null === $image || null === $source) {
+                $this->logger->error('Index Ready Event Error', [
+                    'service' => 'IndexEventSubscriber',
+                    'message' => 'Image and/or Source are null for material',
+                    'identifiers' => $material->getIdentifiers(),
+                ]);
+
+                return;
+            }
+
+            $searchRepos = $this->em->getRepository(Search::class);
             try {
                 foreach ($material->getIdentifiers() as $identifier) {
                     /* @var Search $search */
-                    $search = $repos->findOneBy([
+                    $search = $searchRepos->findOneBy([
                         'isIdentifier' => $identifier->getId(),
                         'isType' => $identifier->getType(),
                     ]);
 
                     if (empty($search)) {
-                        // It did not exists, so create new record. Which will automatically update the search indexes
+                        // It did not exist, so create new record. Which will automatically update the search indexes
                         // on flush.
                         $search = new Search();
                         $search->setIsType($identifier->getType())
                             ->setIsIdentifier($identifier->getId())
-                            ->setImageUrl($image->getCoverStoreURL())
-                            ->setImageFormat($image->getImageFormat())
-                            ->setWidth($image->getWidth())
-                            ->setHeight($image->getHeight())
+                            ->setImageUrl((string) $image->getCoverStoreURL())
+                            ->setImageFormat((string) $image->getImageFormat())
+                            ->setWidth((int) $image->getWidth())
+                            ->setHeight((int) $image->getHeight())
                             ->setCollection($material->isCollection())
                             ->setSource($source);
 
                         $this->em->persist($search);
                     } else {
                         if ($this->shouldOverride($material, $source, $search)) {
-                            $search->setImageUrl($image->getCoverStoreURL())
-                                ->setImageFormat($image->getImageFormat())
-                                ->setWidth($image->getWidth())
-                                ->setHeight($image->getHeight())
+                            $search->setImageUrl((string) $image->getCoverStoreURL())
+                                ->setImageFormat((string) $image->getImageFormat())
+                                ->setWidth((int) $image->getWidth())
+                                ->setHeight((int) $image->getHeight())
                                 ->setCollection($material->isCollection())
                                 ->setSource($source);
                         }
                     }
-                }
 
-                // Make every thing stick.
-                $this->em->flush();
-                $this->em->getConnection()->commit();
+                    $this->em->flush();
+                }
+            } catch (UniqueConstraintViolationException $exception) {
+                // Some vendors have more than one unique identifier in the input data, so to queue processors can try
+                // to write the same row to the search table, which is not allowed. So we restart the entity manager to
+                // ensure that it can write the last index timestamp to the database. If we do not do this we may
+                // end up in a loop of the same records falling again and again.
+                $this->metricsService->counter('index_event_unique_violation', 'Index event unique constraint violation', 1, ['type' => 'index']);
+                $this->registry->resetManager();
             } catch (\Exception $exception) {
-                $this->em->getConnection()->rollBack();
                 $this->logger->error('Database exception: '.get_class($exception), [
                     'service' => 'IndexEventSubscriber',
                     'message' => $exception->getMessage(),
                     'identifiers' => $material->getIdentifiers(),
                 ]);
             }
+
+            // Set the lasted indexed outside the transaction, so it will always be set even at search entity errors.
+            $source->setLastIndexed(new \DateTime());
+            $this->em->flush();
         } catch (ConnectionException $exception) {
             $this->logger->error('Database Connection Exception', [
                 'service' => 'IndexEventSubscriber',
                 'message' => $exception->getMessage(),
-                'identifiers' => $material->getIdentifiers(),
+                'identifiers' => $event->getMaterial()->getIdentifiers(),
+            ]);
+        } catch (\Exception $exception) {
+            $this->logger->error('Index Exception', [
+                'service' => 'IndexEventSubscriber',
+                'message' => $exception->getMessage(),
             ]);
         }
     }
 
     /**
-     * Determind if the search record should be overridden.
+     * Determine if the search record should be overridden.
      *
      * @param Material $material
      *   Material from search result
@@ -144,7 +170,7 @@ class IndexEventSubscriber implements EventSubscriberInterface
         if ($sourceRank <= $searchRank) {
             // Collection should not override covers on items that already have unique cover.
             if ($material->isCollection()) {
-                // Unless it is marked as an collection search entity then this may be an image update.
+                // Unless it is marked as a collection search entity then this may be an image update.
                 if ($search->isCollection()) {
                     return true;
                 }

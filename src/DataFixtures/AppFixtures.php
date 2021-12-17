@@ -12,7 +12,7 @@ use App\Entity\Source;
 use App\Entity\Vendor;
 use App\Utils\Types\IdentifierType;
 use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
 use Faker\Provider\Barcode;
 use Faker\Provider\Internet;

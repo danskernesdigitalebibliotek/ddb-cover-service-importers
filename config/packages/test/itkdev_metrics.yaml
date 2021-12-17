@@ -1,0 +1,4 @@
+---
+itkdev_metrics:
+    adapter:
+        type: memory

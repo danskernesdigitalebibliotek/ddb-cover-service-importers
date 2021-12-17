@@ -14,10 +14,10 @@ use App\Message\CoverUserUploadMessage;
 use App\Message\DeleteMessage;
 use App\Message\VendorImageMessage;
 use App\Repository\SourceRepository;
-use App\Service\MetricsService;
 use App\Service\VendorService\UserUpload\UserUploadVendorService;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
+use ItkDev\MetricsBundle\Service\MetricsService;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 

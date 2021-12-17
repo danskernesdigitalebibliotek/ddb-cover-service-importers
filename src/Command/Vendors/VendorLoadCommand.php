@@ -6,9 +6,9 @@
 
 namespace App\Command\Vendors;
 
-use App\Service\MetricsService;
 use App\Service\VendorService\VendorServiceFactory;
 use App\Service\VendorService\VendorServiceInterface;
+use ItkDev\MetricsBundle\Service\MetricsService;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -27,7 +27,7 @@ class VendorLoadCommand extends Command
     protected static $defaultName = 'app:vendor:load';
 
     // The default fallback date for the --with-updates-date parameter to the command.
-    const DEFAULT_DATE = '1970-01-01';
+    public const DEFAULT_DATE = '1970-01-01';
 
     private VendorServiceFactory $vendorFactory;
     private MetricsService $metricsService;
@@ -64,9 +64,9 @@ class VendorLoadCommand extends Command
     {
         $limit = (int) $input->getOption('limit');
         $dispatchToQueue = !$input->getOption('without-queue');
-        $force = (bool) $input->getOption('force');
+        $force = $input->getOption('force');
 
-        $date = $input->getOption('with-updates-date');
+        $date = (string) $input->getOption('with-updates-date');
         $withUpdatesDate = \DateTime::createFromFormat('Y-m-d', $date);
         if (false === $withUpdatesDate) {
             $output->writeln('<error>Unknown date format in --with-updates</error>');

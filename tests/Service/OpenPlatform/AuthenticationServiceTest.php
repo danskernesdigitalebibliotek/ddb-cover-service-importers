@@ -5,9 +5,9 @@
  * Test cases for the Open Platform authentication service.
  */
 
-namespace Tests;
+namespace Tests\Service\OpenPlatform;
 
-use App\Exception\PlatformAuthException;
+use App\Exception\OpenPlatformAuthException;
 use App\Service\OpenPlatform\AuthenticationService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
@@ -23,12 +23,12 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class AuthenticationServiceTest extends TestCase
 {
-    const TOKEN = 'fde1432d66d33e4cq66e5ad04757811e47864329';
+    public const TOKEN = 'fde1432d66d33e4cq66e5ad04757811e47864329';
 
     /**
      * Test that token is returned.
      *
-     * @throws \App\Exception\PlatformAuthException
+     * @throws \App\Exception\OpenPlatformAuthException
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Psr\Cache\InvalidArgumentException
      */
@@ -42,7 +42,7 @@ class AuthenticationServiceTest extends TestCase
     /**
      * Test that a token is return if cache is enabled.
      *
-     * @throws \App\Exception\PlatformAuthException
+     * @throws \App\Exception\OpenPlatformAuthException
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Psr\Cache\InvalidArgumentException
      */
@@ -55,13 +55,13 @@ class AuthenticationServiceTest extends TestCase
     /**
      * Test that PlatformAuthException is throw on client error.
      *
-     * @throws PlatformAuthException
+     * @throws OpenPlatformAuthException
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Psr\Cache\InvalidArgumentException
      */
     public function testErrorHandling()
     {
-        $this->expectException(PlatformAuthException::class);
+        $this->expectException(OpenPlatformAuthException::class);
         $service = $this->getAuthenticationService(false, '');
         $service->getAccessToken();
     }
@@ -80,6 +80,9 @@ class AuthenticationServiceTest extends TestCase
     private function getAuthenticationService(bool $cacheHit, string $body): AuthenticationService
     {
         $parameters = $this->createMock(ParameterBagInterface::class);
+        $parameters->expects($this->any())
+            ->method('get')
+            ->willReturn('test');
 
         // Setup basic cache.
         $cacheItem = $this->createMock(CacheItemInterface::class);
@@ -106,10 +109,10 @@ class AuthenticationServiceTest extends TestCase
      * @param $body
      *   The response to the authentication request
      *
-     * @return client
+     * @return Client
      *   Http mock client
      */
-    private function mockHttpClient($body)
+    private function mockHttpClient($body): Client
     {
         $mock = new MockHandler();
 

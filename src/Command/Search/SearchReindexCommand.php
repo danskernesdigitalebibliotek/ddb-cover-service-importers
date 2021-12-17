@@ -9,6 +9,7 @@ namespace App\Command\Search;
 
 use App\Entity\Source;
 use App\Message\SearchMessage;
+use App\Repository\SourceRepository;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
@@ -51,7 +52,9 @@ class SearchReindexCommand extends Command
             ->addOption('vendor-id', null, InputOption::VALUE_OPTIONAL, 'Limit the re-index to vendor with this id number')
             ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'If set only this identifier will be re-index (requires that you set vendor id)')
             ->addOption('clean-up', null, InputOption::VALUE_NONE, 'Remove all rows from the search table related to a given source before insert')
-            ->addOption('without-search-cache', null, InputOption::VALUE_NONE, 'If set do not use search cache during re-index');
+            ->addOption('without-search-cache', null, InputOption::VALUE_NONE, 'If set do not use search cache during re-index')
+            ->addOption('last-indexed-date', null, InputOption::VALUE_OPTIONAL, 'The date used when re-indexing in batches to have keeps track index by date (24-10-2021)')
+            ->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit the number of sources rows to index, requires last-indexed-date is given');
     }
 
     /**
@@ -59,27 +62,36 @@ class SearchReindexCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $vendorId = $input->getOption('vendor-id');
-        $cleanUp = $input->getOption('clean-up');
+        $vendorId = (int) $input->getOption('vendor-id');
+        $cleanUp = (bool) $input->getOption('clean-up');
         $identifier = $input->getOption('identifier');
-        $withOutSearchCache = $input->getOption('without-search-cache');
+        $withOutSearchCache = (bool) $input->getOption('without-search-cache');
+        $lastIndexedDate = $input->getOption('last-indexed-date');
+        $limit = (int) $input->getOption('limit');
 
-        $batchSize = 200;
-        $i = 0;
-
-        // @TODO: Move into repository and use query builder.
-        $query = 'SELECT s FROM App\Entity\Source s WHERE s.image IS NOT NULL';
+        $inputDate = null;
         if (!is_null($identifier)) {
-            if (!is_null($vendorId)) {
-                $query .= ' AND s.matchId = \''.$identifier.'\'';
-            } else {
+            if (0 > $vendorId) {
                 $output->writeln('<error>Missing vendor id required in combination with identifier</error>');
 
                 return 1;
             }
         }
-        if (!is_null($vendorId)) {
-            $query .= ' AND s.vendor = '.$vendorId;
+
+        if (0 < $limit) {
+            if (is_null($lastIndexedDate)) {
+                $output->writeln('<error>Batch size can not be given without last-indexed-date</error>');
+
+                return -1;
+            }
+
+            $format = 'd-m-Y';
+            $inputDate = \DateTimeImmutable::createFromFormat('!'.$format, $lastIndexedDate);
+            if (!($inputDate && $inputDate->format($format) == $lastIndexedDate)) {
+                $output->writeln('<error>Lasted indexed date should have the format "m-d-Y"</error>');
+
+                return -1;
+            }
         }
 
         // Progress bar setup.
@@ -87,14 +99,16 @@ class SearchReindexCommand extends Command
         $progressBarSheet = new ProgressBar($section);
         $progressBarSheet->setFormat('[%bar%] %elapsed% (%memory%) - %message%');
         $this->setProgressBar($progressBarSheet);
-        $this->progressStart('Loading database source table in batches of '.$batchSize.' records');
+        $this->progressStart('Loading database source');
 
-        $query = $this->em->createQuery($query);
-        $iterableResult = $query->iterate();
-        foreach ($iterableResult as $row) {
-            /* @var Source $source */
-            $source = $row[0];
+        /** @var SourceRepository $sourceRepos */
+        $sourceRepos = $this->em->getRepository(Source::class);
+        $query = $sourceRepos->findReindexabledSources($limit, $inputDate, $vendorId, $identifier);
+        $batchSize = 200;
+        $i = 1;
 
+        /* @var Source $source */
+        foreach ($query->toIterable() as $source) {
             // Build and create new search job which will trigger index event.
             $message = new SearchMessage();
             $message->setIdentifier($source->getMatchId())
@@ -112,9 +126,8 @@ class SearchReindexCommand extends Command
             }
 
             ++$i;
-
             $this->progressAdvance();
-            $this->progressMessage('Source rows found '.$i.' in DB');
+            $this->progressMessage('Source rows found '.($i - 1).' in DB');
         }
 
         $this->progressFinish();

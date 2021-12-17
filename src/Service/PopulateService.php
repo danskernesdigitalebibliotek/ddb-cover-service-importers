@@ -21,7 +21,7 @@ class PopulateService
 {
     use ProgressBarTrait;
 
-    const BATCH_SIZE = 1000;
+    public const BATCH_SIZE = 1000;
 
     private SearchRepository $searchRepository;
     private string $elasticHost;
@@ -43,9 +43,6 @@ class PopulateService
         $this->entityManager = $entityManager;
 
         $this->elasticHost = $bindElasticSearchUrl;
-
-        // Make sure that the sql logger is not enabled to avoid memory issues.
-        $entityManager->getConnection()->getConfiguration()->setSQLLogger(null);
     }
 
     /**
