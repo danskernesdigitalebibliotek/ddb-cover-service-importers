@@ -5,9 +5,11 @@
  * Test cases for the Open Platform authentication service.
  */
 
-namespace Tests;
+namespace Tests\Service\OpenPlatform;
 
-use App\Exception\PlatformAuthException;
+use App\Exception\MaterialTypeException;
+use App\Exception\OpenPlatformAuthException;
+use App\Exception\OpenPlatformSearchException;
 use App\Service\OpenPlatform\AuthenticationService;
 use App\Service\OpenPlatform\SearchService;
 use GuzzleHttp\Client;
@@ -27,16 +29,15 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
  */
 class SearchServiceTest extends TestCase
 {
-    const TOKEN = 'fde1432d66d33e4cq66e5ad04757811e47864329';
-    const IDENTIFIER = '9788770531214';
+    public const TOKEN = 'fde1432d66d33e4cq66e5ad04757811e47864329';
+    public const IDENTIFIER = '9788770531214';
 
     /**
-     * Test that an search reponse is parsed correctly.
+     * Test that a search response is parsed correctly.
      *
-     * @throws PlatformAuthException
-     * @throws \App\Exception\MaterialTypeException
-     * @throws \App\Exception\PlatformSearchException
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws MaterialTypeException
+     * @throws OpenPlatformSearchException
+     * @throws OpenPlatformAuthException
      */
     public function testSearch()
     {
@@ -111,7 +112,7 @@ class SearchServiceTest extends TestCase
             ->method('getAccessToken')
             ->willReturn($this::TOKEN);
 
-        return new SearchService($parameters, $cache, $logger, $authentication, $this->mockHttpClient($body));
+        return new SearchService($parameters, $cache, $authentication, $this->mockHttpClient($body));
     }
 
     /**
@@ -123,7 +124,7 @@ class SearchServiceTest extends TestCase
      * @return client
      *   Http mock client
      */
-    private function mockHttpClient($body)
+    private function mockHttpClient($body): Client
     {
         $mock = new MockHandler();
 

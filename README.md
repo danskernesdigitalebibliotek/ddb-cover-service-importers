@@ -19,10 +19,10 @@ Other repositories:
 
 ## Tech Stack
 
-This is a Symfony 4 (flex) project.
+This is a Symfony 5 (flex) project.
 
-Server/hosting reference requirements: _PHP 7.3, Nginx 1.14, MariaDB 10.3,
-ElasticSearch 6.5, Redis Server 3.2.
+Server/hosting reference requirements: PHP 7.4, Nginx 1.14, MariaDB 10.3,
+ElasticSearch 6.8, Redis Server 6, RabbitMQ 3.9.
 
 The application is currently developed and hosted on this stack. However, the
 individual components can be swapped for relevant alternatives. Apache can be
@@ -33,7 +33,7 @@ respectively, and can be changed as needed.
 
 Application components:
 
-* [Symfony 4 (flex)](https://symfony.com/) - underlying Web Application
+* [Symfony 5 (flex)](https://symfony.com/) - underlying Web Application
   framework
 * [Doctrine 2](https://www.doctrine-project.org/) - database DBAL/ORM layer
 * [RabbitMq](https://www.rabbitmq.com/) - RabbitMQ is used for async jobs
@@ -219,7 +219,7 @@ This command runs a search into the open platform datawell. The last parameter
 if set will by-pass the cache. The command will output the search result.
 
 ```sh
-bin/console app:openplatform:search 9788702173277 isbn
+bin/console app:openplatform:search --type=isbn --identifier=9788702173277
 ```
 
 #### Cover Store
@@ -274,40 +274,39 @@ bin/console app:vendor:event insert 9788702173277 ISBN 1
 The application defines a number of job queues for the various background tasks
 and is configured to use Redis as the persistence layer for queues/messages. To
 have a fully functioning development setup you will need to run consumers for
-all queues. See <https://symfony.com/doc/current/messenger.html> for more information
-about symfony messenger.
+all queues. See the [Symfony docs](https://symfony.com/doc/current/messenger.html) for more information
+about the Messenger Component.
 
 To run consumers for all queues do
 
 ```shell
-bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_high
-bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_normal
-bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_low
-bin/console messenger:consume --env=prod --quiet --time-limit=900 async_no_hit
+bin/console messenger:consume --env=prod --quiet --time-limit=900 --failure-limit=1 async_priority_high
+bin/console messenger:consume --env=prod --quiet --time-limit=900 --failure-limit=1 async_priority_normal
+bin/console messenger:consume --env=prod --quiet --time-limit=900 --failure-limit=1 async_priority_low
+bin/console messenger:consume --env=prod --quiet --time-limit=900 --failure-limit=1 async_no_hit
 ```
 
 Or use all your works to run all queue in the order given (from high to no-hit).
 
 ```shell
-bin/console messenger:consume --env=prod --quiet --time-limit=900 async_priority_high async_priority_normal async_priority_low async_no_hit
+bin/console messenger:consume --env=prod --quiet --time-limit=900 --failure-limit=1 async_priority_high async_priority_normal async_priority_low async_no_hit
 ```
+
+#### Message Queues and Doctrine
+
+If Doctrine throws an exception when interacting with the database the Consumers' Entity Manager will close and not re-open. This will cause subsequent message handling to fail. To handle this run the consumers with `--failure-limit=1`. This will cause the consumer to exit if an exception is thrown. The Consumer will then be restarted with a new Entity Manager assuming Supervisor or similar is used to run the consumers.
+
+See: Symfony PR [#35453](https://github.com/symfony/symfony/pull/35453)
 
 ### Testing
 
-The application has a test suite consisting of unit tests and Behat features.
+The application has a test suite consisting of unit tests.
 
 To run the unit tests located in `/tests` you can run:
 
 ```shell
 docker compose exec phpfpm composer install
 docker compose exec phpfpm ./vendor/bin/phpunit
-```
-
-To run the Behat features in `/feature` you can run:
-
-```shell
-docker compose exec phpfpm composer install
-docker compose exec phpfpm ./vendor/bin/behat
 ```
 
 Both bugfixes and added features should be supported by matching tests.

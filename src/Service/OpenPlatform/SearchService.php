@@ -8,17 +8,15 @@
 namespace App\Service\OpenPlatform;
 
 use App\Exception\MaterialTypeException;
+use App\Exception\OpenPlatformAuthException;
 use App\Exception\OpenPlatformSearchException;
-use App\Exception\PlatformAuthException;
-use App\Exception\PlatformSearchException;
 use App\Utils\OpenPlatform\Material;
 use App\Utils\Types\IdentifierType;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
-use Nicebooks\Isbn\IsbnTools;
+use Nicebooks\Isbn\Isbn;
 use Psr\Cache\InvalidArgumentException;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
@@ -29,11 +27,10 @@ class SearchService
 {
     private ParameterBagInterface $params;
     private AdapterInterface $cache;
-    private LoggerInterface $logger;
     private AuthenticationService $authenticationService;
     private ClientInterface $client;
 
-    const SEARCH_LIMIT = 50;
+    public const SEARCH_LIMIT = 50;
 
     private array $fields = [
         'title',
@@ -59,24 +56,21 @@ class SearchService
      *   Access to environment variables
      * @param AdapterInterface $cache
      *   Cache object to store results
-     * @param LoggerInterface $informationLogger
-     *   Logger object to send stats to ES
      * @param AuthenticationService $authenticationService
      *   The Open Platform authentication service
      * @param ClientInterface $httpClient
      *   Guzzle Client
      */
-    public function __construct(ParameterBagInterface $params, AdapterInterface $cache, LoggerInterface $informationLogger, AuthenticationService $authenticationService, ClientInterface $httpClient)
+    public function __construct(ParameterBagInterface $params, AdapterInterface $cache, AuthenticationService $authenticationService, ClientInterface $httpClient)
     {
         $this->params = $params;
         $this->cache = $cache;
-        $this->logger = $informationLogger;
         $this->authenticationService = $authenticationService;
         $this->client = $httpClient;
 
         $this->searchURL = $this->params->get('openPlatform.search.url');
         $this->searchCacheTTL = (int) $this->params->get('openPlatform.search.ttl');
-        $this->searchProfile = (string) $this->params->get('openPlatform.search.profile');
+        $this->searchProfile = $this->params->get('openPlatform.search.profile');
         $this->searchLimit = (int) $this->params->get('openPlatform.search.limit');
     }
 
@@ -95,16 +89,18 @@ class SearchService
      * @return Material
      *   Material object with the result
      *
-     * @throws InvalidArgumentException
      * @throws MaterialTypeException
      * @throws OpenPlatformSearchException
-     * @throws PlatformAuthException
-     * @throws PlatformSearchException
+     * @throws OpenPlatformAuthException
      */
     public function search(string $identifier, string $type, bool $refresh = false): Material
     {
-        // Try getting item from cache.
-        $item = $this->cache->getItem('openplatform.search_query'.str_replace(':', '', $identifier));
+        try {
+            // Try getting item from cache.
+            $item = $this->cache->getItem('openplatform.search_query'.str_replace(':', '', $identifier));
+        } catch (InvalidArgumentException $exception) {
+            throw new OpenPlatformSearchException('Invalid cache argument');
+        }
 
         // We return the material object and not the $item->get() as that
         // prevents proper testing of the service.
@@ -116,7 +112,7 @@ class SearchService
                 $token = $this->authenticationService->getAccessToken();
                 $res = $this->recursiveSearch($token, $identifier, $type);
             } catch (GuzzleException $exception) {
-                throw new PlatformSearchException($exception->getMessage(), $exception->getCode());
+                throw new OpenPlatformSearchException($exception->getMessage(), $exception->getCode());
             }
 
             $material = $this->parseResult($res);
@@ -128,15 +124,10 @@ class SearchService
             // for non-scoped search, the result we get will always be scoped to the agency credentials we search with.
             // Materials that are not part of that agency´s collection will not be searchable.
             if (!$material->hasIdentifier($type, $identifier)) {
-                $material->addIdentifier($type, $identifier);
-            }
-
-            // If the vendor provided type is PID, then we should be able to get the faust number as well.
-            if (IdentifierType::PID === $type) {
-                $faust = Material::translatePidToFaust($identifier);
-                if (!$material->hasIdentifier(IdentifierType::FAUST, $faust)) {
-                    $material->addIdentifier(IdentifierType::FAUST, $faust);
+                if ('identifierISBN' === $type) {
+                    $identifier = $this->stripDashes($identifier);
                 }
+                $material->addIdentifier($type, $identifier);
             }
 
             $item->expiresAfter($this->searchCacheTTL);
@@ -168,13 +159,6 @@ class SearchService
                 case 'pid':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::PID, $item);
-
-                        // We know that the last part of the PID is the material faust
-                        // so we extract that here and add that as a identifier as
-                        // well.
-                        if (preg_match('/:(1?\d{8}$)/', $item, $matches)) {
-                            $material->addIdentifier(IdentifierType::FAUST, $matches[1]);
-                        }
                     }
                     break;
 
@@ -217,7 +201,7 @@ class SearchService
             }
         }
 
-        // Try to detect if this is an collection (used later on to not override existing covers).
+        // Try to detect if this is a collection (used later on to not override existing covers).
         $material->setCollection((!empty($result['title']) && count($result['title']) > 1));
 
         return $material;
@@ -349,28 +333,29 @@ class SearchService
     /**
      * Convert ISBN to matching ISBN10 or ISBN13.
      *
-     * Will convert the given isbn number to it's opposite format.
+     * Will convert the given ISBN to it's opposite format.
      * E.g. convert ISBN10 to 13, and ISBN13 to 10 when possible.
      *
      * @param string $isbn
      *   An ISBN10 or ISBN13 number
      *
      * @return string|null
-     *   The ISBN number converted to the opposite format or null if conversion not possible
+     *   The ISBN converted to the opposite format or null if conversion not possible
      */
     private function convertIsbn(string $isbn): ?string
     {
         $extraISBN = null;
-        $tools = new IsbnTools();
         try {
-            if ($tools->isValidIsbn13($isbn)) {
-                // Only ISBN-13 numbers starting with 978 can be converted to an ISBN-10.
-                $extraISBN = $tools->convertIsbn13to10($isbn);
-            } elseif ($tools->isValidIsbn10($isbn)) {
-                $extraISBN = $tools->convertIsbn10to13($isbn);
+            $isbn = Isbn::of($isbn);
+            // Only ISBN-13 numbers starting with 978 can be converted to an ISBN-10.
+            if ($isbn->is13() and $isbn->isConvertibleTo10()) {
+                $extraISBN = (string) $isbn->to10();
+            } elseif ($isbn->is10()) {
+                $extraISBN = (string) $isbn->to13();
             }
         } catch (\Exception $exception) {
             // Exception is thrown if the ISBN conversion fail. Fallback to setting extra ISBN to null.
+            $extraISBN = null;
         }
 
         return $extraISBN;

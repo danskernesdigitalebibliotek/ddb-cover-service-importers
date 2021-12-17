@@ -7,7 +7,7 @@
 
 namespace App\Service\VendorService\Publizon;
 
-use App\Exception\XmlreaderException;
+use App\Exception\XmlReaderException;
 
 /**
  * Class PublizonXmlReaderService.
@@ -26,7 +26,7 @@ class PublizonXmlReaderService
      *
      * @return true
      *
-     * @throws XmlreaderException
+     * @throws XmlReaderException
      */
     public function open(string $apiServiceKey, string $apiEndpoint): bool
     {
@@ -41,7 +41,7 @@ class PublizonXmlReaderService
             return true;
         }
 
-        throw new XmlreaderException('Unknown error when opening '.$apiEndpoint);
+        throw new XmlReaderException('Unknown error when opening '.$apiEndpoint);
     }
 
     /**
@@ -49,7 +49,7 @@ class PublizonXmlReaderService
      *
      * @return bool
      *
-     * @throws XmlreaderException
+     * @throws XmlReaderException
      */
     public function read(): bool
     {
@@ -57,7 +57,7 @@ class PublizonXmlReaderService
             return $this->reader->read();
         }
 
-        throw new XmlreaderException();
+        throw new XmlReaderException();
     }
 
     /**
@@ -87,7 +87,7 @@ class PublizonXmlReaderService
      *
      * @return bool
      *
-     * @throws XmlreaderException
+     * @throws XmlReaderException
      */
     public function readUntilElementEnd(string $element): bool
     {
@@ -97,7 +97,7 @@ class PublizonXmlReaderService
             return $this->notAtElementEnd($element);
         }
 
-        throw new XmlreaderException();
+        throw new XmlReaderException();
     }
 
     /**
@@ -105,7 +105,7 @@ class PublizonXmlReaderService
      *
      * @return string
      *
-     * @throws XmlreaderException
+     * @throws XmlReaderException
      */
     public function getNextElementValue(): string
     {
@@ -115,7 +115,7 @@ class PublizonXmlReaderService
             return $this->reader->value;
         }
 
-        throw new XmlreaderException();
+        throw new XmlReaderException();
     }
 
     /**
@@ -125,7 +125,7 @@ class PublizonXmlReaderService
      *
      * @return bool
      *
-     * @throws XmlreaderException
+     * @throws XmlReaderException
      */
     public function isAtElementStart(string $elementName): bool
     {
@@ -133,7 +133,7 @@ class PublizonXmlReaderService
             return \XMLReader::ELEMENT === $this->reader->nodeType && $this->reader->name === $elementName;
         }
 
-        throw new XmlreaderException();
+        throw new XmlReaderException();
     }
 
     /**
@@ -143,7 +143,7 @@ class PublizonXmlReaderService
      *
      * @return bool
      *
-     * @throws XmlreaderException
+     * @throws XmlReaderException
      */
     public function notAtElementEnd(string $elementName): bool
     {
@@ -151,6 +151,6 @@ class PublizonXmlReaderService
             return !(\XMLReader::END_ELEMENT === $this->reader->nodeType && $this->reader->name === $elementName);
         }
 
-        throw new XmlreaderException();
+        throw new XmlReaderException();
     }
 }

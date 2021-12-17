@@ -29,7 +29,7 @@ final class VendorProvider extends BaseProvider
         return self::randomElement(self::IMAGE_SERVER_URL_PROVIDER);
     }
 
-    public function dataServerUser()
+    public function dataServerUser(): string
     {
         return $this->generator->username();
     }

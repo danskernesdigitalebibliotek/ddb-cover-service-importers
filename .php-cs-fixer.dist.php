@@ -1,10 +1,11 @@
 <?php
 
-$finder = PhpCsFixer\Finder::create()
-    ->in(__DIR__.'/{src,tests}')
+$finder = (new PhpCsFixer\Finder())
+    ->in(__DIR__)
+    ->exclude('var')
 ;
 
-return PhpCsFixer\Config::create()
+return (new PhpCsFixer\Config())
     ->setRules([
         '@Symfony' => true,
         '@Symfony:risky' => false,
@@ -12,4 +13,6 @@ return PhpCsFixer\Config::create()
         'no_superfluous_phpdoc_tags' => false,
         'array_syntax' => ['syntax' => 'short'],
     ])
-    ->setFinder($finder);
+    ->setFinder($finder)
+    ->setCacheFile('.php-cs-fixer.cache') // forward compatibility with 3.x line
+;

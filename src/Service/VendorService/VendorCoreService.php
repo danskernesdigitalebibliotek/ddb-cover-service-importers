@@ -71,11 +71,11 @@ final class VendorCoreService
      * @param int $vendorId
      *   The identifier for the vendor
      *
-     * @return string|null
+     * @return string
      *
      * @throws UnknownVendorServiceException
      */
-    public function getVendorName(int $vendorId): ?string
+    public function getVendorName(int $vendorId): string
     {
         return $this->getVendor($vendorId)->getName();
     }
@@ -113,18 +113,18 @@ final class VendorCoreService
      *
      * @param int $vendorId
      *   Using the vendor ID to identify the lock
-     * @param bool $ingnore
+     * @param bool $ignore
      *   Ignore the lock if not acquired
      *
      * @return bool
-     *   Whether or not the lock had been acquired
+     *   Whether the lock had been acquired
      */
-    public function acquireLock(int $vendorId, bool $ingnore = false): bool
+    public function acquireLock(int $vendorId, bool $ignore = false): bool
     {
         $this->locks[$vendorId] = $this->lockFactory->createLock('app-vendor-service-load-'.$vendorId, 1800, false);
         $acquired = $this->locks[$vendorId]->acquire();
 
-        return $ingnore ? true : $acquired;
+        return $ignore ? true : $acquired;
     }
 
     /**
@@ -215,12 +215,11 @@ final class VendorCoreService
      * @param \DateTime $withUpdatesDate
      *   Process updates (default: false)
      *
-     * @return (int|string)[][] Array containing two arrays with identifiers for updated and inserted sources
+     * @return array (int|string)[][]
+     *   Array containing two arrays with identifiers for updated and inserted sources
      *
      * @throws QueryException
      * @throws UnknownVendorServiceException
-     *
-     * @psalm-return array{0: list<array-key>, 1: list<array-key>}
      */
     public function processBatch(array $batch, SourceRepository $sourceRepo, string $identifierType, int $vendorId, \DateTime $withUpdatesDate): array
     {

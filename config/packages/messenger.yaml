@@ -1,9 +1,10 @@
 framework:
     messenger:
         # Uncomment this (and the failed transport below) to send failed messages to this transport for later handling.
-        # failure_transport: failed
+        failure_transport: failed
 
         transports:
+            # https://symfony.com/doc/current/messenger.html#transport-configuration
             async_priority_high:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
                 options:
@@ -38,9 +39,13 @@ framework:
                             arguments:
                                 x-message-ttl: '%env(int:APP_NO_HITS_TTL)%'
 
-            #failed: 'doctrine://default?queue_name=failed'
+            failed:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN_FAILED)%'
+                options:
+                    auto_setup: 'false'
 
         routing:
+            # Route your messages to the transports
             'App\Message\SearchMessage': async_priority_high
             'App\Message\VendorImageMessage': async_priority_high
             'App\Message\CoverStoreMessage': async_priority_high
@@ -48,3 +53,8 @@ framework:
             'App\Message\CoverStoreAutoMessage': async_priority_low
             'App\Message\DeleteMessage': async_priority_low
             'App\Message\SearchNoHitsMessage': async_no_hit
+
+        buses:
+            messenger.bus.default:
+                middleware:
+                    - 'messenger.middleware.reject_redelivered_message_middleware'

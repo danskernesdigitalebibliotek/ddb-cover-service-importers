@@ -4,7 +4,7 @@
     "type": "project",
     "license": "AGPL-3.0-only",
     "require": {
-        "php": "^7.4 | 8.0",
+        "php": "^7.4 | ^8.0",
         "ext-amqp": "*",
         "ext-ctype": "*",
         "ext-curl": "*",
@@ -17,46 +17,53 @@
         "ext-zip": "*",
         "box/spout": "^3.0",
         "cloudinary/cloudinary_php": "^1.12",
-        "doctrine/doctrine-migrations-bundle": "^1.0",
-        "eightpoints/guzzle-bundle": "^7.4",
+        "composer/package-versions-deprecated": "^1.11.99",
+        "doctrine/doctrine-bundle": "^2.4",
+        "doctrine/doctrine-migrations-bundle": "^3.0",
+        "doctrine/orm": "^2.10",
+        "eightpoints/guzzle-bundle": "^8.0",
         "elasticsearch/elasticsearch": "^6.7",
-        "friendsofsymfony/elastica-bundle": "^5.0",
-        "guzzlehttp/guzzle": "^6.3",
+        "friendsofsymfony/elastica-bundle": "^5.2",
         "itk-dev/metrics-bundle": "^0.0.1",
-        "karriere/json-decoder": "^2.1",
         "league/oauth2-client": "^2.6",
-        "nicebooks/isbn": "^0.2.56",
+        "nicebooks/isbn": "^0.3",
         "oneup/flysystem-bundle": "^3.0",
         "predis/predis": "^1.1",
         "ruflin/elastica": "^6.0",
         "scriptotek/marc": "^2.1",
-        "symfony/browser-kit": "^4.0",
-        "symfony/cache": "^4.0",
-        "symfony/console": "^4.0",
-        "symfony/dotenv": "^4.0",
-        "symfony/event-dispatcher": "^4.0",
+        "symfony/browser-kit": "^5.3",
+        "symfony/cache": "^5.3",
+        "symfony/console": "^5.3",
+        "symfony/doctrine-messenger": "^5.4",
+        "symfony/dotenv": "^5.3",
+        "symfony/event-dispatcher": "^5.3",
         "symfony/flex": "^1.0",
-        "symfony/framework-bundle": "^4.0",
-        "symfony/lock": "^4.0",
-        "symfony/messenger": "4.4.*",
+        "symfony/framework-bundle": "^5.3",
+        "symfony/lock": "^5.3",
+        "symfony/messenger": "^5.3",
         "symfony/monolog-bundle": "^3.3",
-        "symfony/orm-pack": "^1.0",
-        "symfony/process": "^4.0",
-        "symfony/serializer": "4.4.*",
-        "symfony/translation": "4.4.*",
-        "symfony/yaml": "^4.0"
+        "symfony/process": "^5.3",
+        "symfony/proxy-manager-bridge": "^5.3",
+        "symfony/runtime": "^5.3",
+        "symfony/serializer": "^5.3",
+        "symfony/translation": "^5.3",
+        "symfony/yaml": "^5.3"
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.0",
         "escapestudios/symfony2-coding-standard": "^3.10",
         "fakerphp/faker": "^1.14",
-        "friendsofphp/php-cs-fixer": "^2.13",
+        "friendsofphp/php-cs-fixer": "^3.0",
         "phpunit/phpunit": "^9.5",
-        "symfony/css-selector": "^4.4",
-        "symfony/debug-pack": "^1.0",
+        "psalm/plugin-symfony": "^3.0",
+        "symfony/css-selector": "^5.3",
+        "symfony/debug-bundle": "^5.3",
         "symfony/maker-bundle": "^1.9",
         "symfony/phpunit-bridge": "^5.3",
-        "vimeo/psalm": "^4.8"
+        "symfony/stopwatch": "^5.3",
+        "symfony/web-profiler-bundle": "^5.3",
+        "vimeo/psalm": "^4.12",
+        "weirdan/doctrine-psalm-plugin": "^2.0"
     },
     "config": {
         "preferred-install": {
@@ -97,16 +104,16 @@
             "@auto-scripts"
         ],
         "coding-standards-check": [
-            "./vendor/bin/php-cs-fixer --config=.php_cs.dist fix --dry-run --format=checkstyle"
+            "./vendor/bin/php-cs-fixer fix --dry-run --format=checkstyle"
         ],
         "coding-standards-apply": [
-            "php-cs-fixer --config=.php_cs.dist fix"
+            "php-cs-fixer fix"
         ],
         "phpunit": [
             "./vendor/bin/phpunit"
         ],
         "queues": [
-            "bin/console messenger:consume --quiet --time-limit=900 async_priority_high async_priority_normal async_priority_low async_no_hit"
+            "bin/console messenger:consume async_priority_high async_priority_normal async_priority_low async_no_hit --failure-limit=1"
         ]
     },
     "conflict": {
@@ -115,7 +122,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "4.4.*"
+            "require": "^5.4"
         }
     }
 }

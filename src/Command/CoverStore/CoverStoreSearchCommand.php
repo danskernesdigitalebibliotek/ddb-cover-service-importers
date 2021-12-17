@@ -50,7 +50,7 @@ class CoverStoreSearchCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $items = $this->store->search(
-            $input->getOption('folder'),
+            (string) $input->getOption('folder'),
             $input->getOption('query')
         );
 

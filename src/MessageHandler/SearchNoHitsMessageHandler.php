@@ -10,9 +10,8 @@ namespace App\MessageHandler;
 use App\Entity\Search;
 use App\Entity\Source;
 use App\Exception\MaterialTypeException;
+use App\Exception\OpenPlatformAuthException;
 use App\Exception\OpenPlatformSearchException;
-use App\Exception\PlatformAuthException;
-use App\Exception\PlatformSearchException;
 use App\Message\SearchMessage;
 use App\Message\SearchNoHitsMessage;
 use App\Message\VendorImageMessage;
@@ -44,7 +43,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
     private VendorImageValidatorService $validatorService;
     private MetricsService $metricsService;
 
-    const VENDOR = 'Unknown';
+    public const VENDOR = 'Unknown';
 
     /**
      * SearchNoHitsMessageHandler constructor.
@@ -64,8 +63,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
      *
      * @throws InvalidArgumentException
      * @throws MaterialTypeException
-     * @throws PlatformAuthException
-     * @throws PlatformSearchException
+     * @throws OpenPlatformAuthException
      * @throws OpenPlatformSearchException
      */
     public function __invoke(SearchNoHitsMessage $message)
@@ -76,11 +74,11 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
         // "basic" identifier exits and create the mapping.
         if (strpos($identifier, '-katalog:')) {
             $searchRepos = $this->em->getRepository(Search::class);
-            $basicPid = null;
+            $faust = null;
 
             try {
                 // Try to get basic pid.
-                $basicPid = Material::translatePidToFaust($identifier);
+                $faust = Material::translatePidToFaust($identifier);
 
                 // There may exist a race condition when multiple queues are
                 // running. To ensure we don't insert duplicates we need to
@@ -88,15 +86,19 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                 $this->em->getConnection()->beginTransaction();
 
                 try {
-                    $search = $searchRepos->findOneByisIdentifier($basicPid);
+                    /* @var Search $search */
+                    $search = $searchRepos->findOneBy([
+                        'isIdentifier' => $faust,
+                        'isType' => IdentifierType::FAUST,
+                    ]);
 
                     if (!empty($search)) {
                         $newSearch = new Search();
                         $newSearch->setIsType(IdentifierType::PID)
                             ->setIsIdentifier($identifier)
                             ->setSource($search->getSource())
-                            ->setImageUrl($search->getImageUrl())
-                            ->setImageFormat($search->getImageFormat())
+                            ->setImageUrl((string) $search->getImageUrl())
+                            ->setImageFormat((string) $search->getImageFormat())
                             ->setWidth($search->getWidth())
                             ->setHeight($search->getHeight());
                         $this->em->persist($newSearch);
@@ -110,7 +112,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                             'service' => 'SearchNoHitsProcessor',
                             'message' => 'New katalog search record have been generated',
                             'identifier' => $identifier,
-                            'source' => $basicPid,
+                            'source' => $faust,
                         ]);
 
                         return;
@@ -125,7 +127,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                         'service' => 'SearchNoHitsProcessor',
                         'message' => $exception->getMessage(),
                         'identifier' => $identifier,
-                        'source' => $basicPid,
+                        'source' => $faust,
                     ]);
                 }
             } catch (ConnectionException $exception) {
@@ -134,7 +136,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                     'service' => 'SearchNoHitsProcessor',
                     'message' => $exception->getMessage(),
                     'identifier' => $identifier,
-                    'source' => $basicPid ?: 'unknown',
+                    'source' => $faust ?: 'unknown',
                 ]);
             }
         } else {
@@ -149,7 +151,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
 
                 // Found matches in source table based on the data well search, so create jobs to re-index the source
                 // entities.
-                if (false !== $source) {
+                if ($source instanceof Source) {
                     // Also check that the source record has an image from the vendor as not all do.
                     if (!is_null($source->getImage())) {
                         $message = new SearchMessage();
