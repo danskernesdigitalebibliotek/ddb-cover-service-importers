@@ -1,5 +1,10 @@
-monolog:
+monolog:channels: ["information"]
     handlers:
+        information:
+            type: stream
+            path: php://stdout
+            formatter: monolog.formatter.json
+            channels: ["information"]
         main:
             type: stream
             path: "%kernel.logs_dir%/%kernel.environment%.log"
