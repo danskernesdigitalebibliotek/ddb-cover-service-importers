@@ -120,14 +120,12 @@ class VendorImageMessageHandler implements MessageHandlerInterface
             $source->setOriginalContentLength(null);
             $this->em->flush();
 
-            // Log that the image did not exists.
+            // Log that the image did not exist.
             $this->logger->error('Vendor image error - not found', [
                 'service' => 'VendorImageProcessor',
                 'identifier' => $message->getIdentifier(),
                 'url' => $item->getOriginalFile(),
             ]);
-
-            throw new UnrecoverableMessageHandlingException('Vendor image error - not found');
         }
     }
 
@@ -158,7 +156,11 @@ class VendorImageMessageHandler implements MessageHandlerInterface
                 ->setVendorId($message->getVendorId());
             $this->bus->dispatch($coverStoreMessage);
         } else {
-            throw new UnrecoverableMessageHandlingException('Remote image is not updated');
+            $this->logger->info('Remote image is not updated', [
+                'service' => 'VendorImageProcessor',
+                'identifier' => $message->getIdentifier(),
+                'url' => $item->getOriginalFile(),
+            ]);
         }
     }
 }
