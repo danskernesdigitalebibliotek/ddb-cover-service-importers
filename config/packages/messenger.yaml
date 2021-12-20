@@ -10,6 +10,7 @@ framework:
                 options:
                     exchange:
                         name: high
+                        type: fanout
                     queues:
                         cs_high: ~
 
@@ -34,6 +35,7 @@ framework:
                 options:
                     exchange:
                         name: no-hit
+                        type: fanout
                     queues:
                         cs_no_hit:
                             arguments:
