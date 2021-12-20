@@ -1,5 +1,11 @@
 monolog:
+    channels: ["information"]
     handlers:
+        information:
+            type: stream
+            path: php://stdout
+            formatter: monolog.formatter.json
+            channels: ["information"]
         main:
             type: fingers_crossed
             action_level: error
