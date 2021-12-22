@@ -42,6 +42,7 @@ class SearchService
         'identifierISSN',
         'identifierISMN',
         'identifierISRC',
+        'acIdentifier',
     ];
 
     private int $searchCacheTTL;
@@ -156,6 +157,19 @@ class SearchService
         $material = new Material();
         foreach ($result as $key => $items) {
             switch ($key) {
+                case 'acIdentifier':
+                    foreach ($items as $item) {
+                        $faust = false;
+                        $parts = explode('|', $item);
+                        if (2 === count($parts)) {
+                            $faust = reset($parts);
+                        }
+                        if (false !== $faust && is_numeric($faust)) {
+                            $material->addIdentifier(IdentifierType::FAUST, $faust);
+                        }
+                    }
+                    break;
+
                 case 'pid':
                     foreach ($items as $item) {
                         $material->addIdentifier(IdentifierType::PID, $item);
