@@ -40,7 +40,7 @@ class SearchPopulateCommand extends Command
     {
         $this
             ->setDescription('Populate the search index with data from the search table.')
-            ->addOption('index', null, InputOption::VALUE_REQUIRED, 'The index to populate.')
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Force execution ignoring locks')
             ->addOption('id', null, InputOption::VALUE_OPTIONAL, 'Single search table record id (try populate single record)', -1);
     }
 
@@ -49,18 +49,14 @@ class SearchPopulateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $index = (string) $input->getOption('index');
         $id = (int) $input->getOption('id');
-
-        if (!$index) {
-            throw new \RuntimeException('Index must be specified.');
-        }
+        $force = $input->getOption('force');
 
         $progressBar = new ProgressBar($output);
         $progressBar->setFormat('[%bar%] %elapsed% (%memory%) - %message%');
-
         $this->populateService->setProgressBar($progressBar);
-        $this->populateService->populate($index, $id);
+
+        $this->populateService->populate($id, $force);
 
         // Start the command line on a new line.
         $output->writeln('');
