@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Elasticsearch\ClientBuilder;
+use FOS\ElasticaBundle\Exception\AliasIsIndexException;
 use FOS\ElasticaBundle\Index\IndexManager;
 use FOS\ElasticaBundle\Index\Resetter;
 
@@ -147,7 +148,13 @@ class PopulateService
             $index->refresh();
 
             $this->progressMessage(sprintf('<info>Switching alias</info> <comment>%s -> %s</comment>', $index->getOriginalName(), $index->getName()));
-            $this->resetter->switchIndexAlias($indexName, true);
+
+            // Switching the alias and deleting the old index.
+            try {
+                $this->resetter->switchIndexAlias($indexName, true);
+            } catch (AliasIsIndexException $exception) {
+                $this->progressMessage('<info>Failed to switch alias, please to it by hand</info>');
+            }
         }
 
         $this->progressFinish();
