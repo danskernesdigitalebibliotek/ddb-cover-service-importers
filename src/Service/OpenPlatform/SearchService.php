@@ -210,7 +210,9 @@ class SearchService
 
                 default:
                     $method = 'set'.ucfirst($key);
-                    call_user_func([$material, $method], reset($items));
+                    if (method_exists($material, $method)) {
+                        call_user_func([$material, $method], reset($items));
+                    }
                     break;
             }
         }
@@ -261,7 +263,7 @@ class SearchService
      * @throws GuzzleException
      * @throws OpenPlatformSearchException
      */
-    private function recursiveSearch(string $token, string $identifier, string $type, string $query = '', int $offset = 0, array $results = []): array
+    private function recursiveSearch(string $token, string $identifier, string $type, string $query = '', int $offset = 0, array &$results = []): array
     {
         // HACK HACK HACK.
         // Temporary protection against non-real identifiers and search on library only ids.
@@ -288,8 +290,8 @@ class SearchService
                     break;
 
                 case IdentifierType::FAUST:
-                    // Search after rec.id on basis posts only. This is to prevent match in rec.id between non
-                    // related posts.
+                    // Search after rec.id on basis posts only. This is to prevent match in rec.id between non-related
+                    // posts.
                     $query = 'rec.id=870970-basis:'.$identifier;
                     break;
 
@@ -336,9 +338,19 @@ class SearchService
             }
         }
 
-        // If there are more results get the next chunk and results are smaller then the limit.
+        // If there are more results get the next chunk and results are smaller than the limit.
         if (isset($json['hitCount']) && false !== $json['more'] && count($results['pid']) < $this->searchLimit) {
             $this->recursiveSearch($token, $identifier, $type, $query, $offset + $this::SEARCH_LIMIT, $results);
+        } elseif (!isset($results['basicSearchPerformed']) && !$this->isBasicInArray($results['pid'])) {
+            // As we are using a library's open platform access it may have a "påhængsposter/lokaleposter" which
+            // prevents os from getting the basic post. This can only be fixed by asking the open platform for the same
+            // search without the katelog post (which than will return the basic post).
+            $query = $query.' not rec.id=katalog';
+
+            // To ensure that we don't end in a loop, if no basic post is found this extra stopgab is added.
+            $results['basicSearchPerformed'] = true;
+
+            $this->recursiveSearch($token, $identifier, $type, $query, $offset, $results);
         }
 
         return $results;
@@ -373,5 +385,25 @@ class SearchService
         }
 
         return $extraISBN;
+    }
+
+    /**
+     * Helper function to check if basic post id exists in an array.
+     *
+     * @param array $pids
+     *   Array with data well post ids
+     *
+     * @return bool
+     *   True if basic post id exists else false
+     */
+    private function isBasicInArray(array $pids): bool
+    {
+        foreach ($pids as $pid) {
+            if (false !== mb_strpos($pid, '870970-basis')) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
