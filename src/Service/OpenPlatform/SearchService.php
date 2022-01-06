@@ -341,7 +341,7 @@ class SearchService
         // If there are more results get the next chunk and results are smaller than the limit.
         if (isset($json['hitCount']) && false !== $json['more'] && count($results['pid']) < $this->searchLimit) {
             $this->recursiveSearch($token, $identifier, $type, $query, $offset + $this::SEARCH_LIMIT, $results);
-        } elseif (!isset($results['basicSearchPerformed']) && !$this->isBasicInArray($results['pid'])) {
+        } elseif (!isset($results['basicSearchPerformed']) && isset($results['pid']) && !$this->isBasicInArray($results['pid'])) {
             // As we are using a library's open platform access it may have a "påhængsposter/lokaleposter" which
             // prevents os from getting the basic post. This can only be fixed by asking the open platform for the same
             // search without the katelog post (which than will return the basic post).
