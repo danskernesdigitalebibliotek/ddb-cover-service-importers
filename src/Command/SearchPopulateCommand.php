@@ -12,7 +12,6 @@ use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Lock\LockFactory;
 
 /**
  * Class SearchPopulateCommand.
@@ -20,7 +19,6 @@ use Symfony\Component\Lock\LockFactory;
 class SearchPopulateCommand extends Command
 {
     private PopulateService $populateService;
-    private LockFactory $lockFactory;
 
     protected static $defaultName = 'app:search:populate';
 
@@ -28,13 +26,11 @@ class SearchPopulateCommand extends Command
      * SearchPopulateCommand constructor.
      *
      * @param PopulateService $populateService
-     * @param LockFactory $lockFactory
      */
-    public function __construct(PopulateService $populateService, LockFactory $lockFactory)
+    public function __construct(PopulateService $populateService)
     {
         $this->populateService = $populateService;
         parent::__construct();
-        $this->lockFactory = $lockFactory;
     }
 
     /**
@@ -60,15 +56,7 @@ class SearchPopulateCommand extends Command
         $progressBar->setFormat('[%bar%] %elapsed% (%memory%) - %message%');
         $this->populateService->setProgressBar($progressBar);
 
-        // Get lock with an TTL of 1 hour, which should be more than enough to populate ES.
-        $lock = $this->lockFactory->createLock('app:search:populate:lock', 3600, false);
-
-        if ($lock->acquire() || $force) {
-            $this->populateService->populate($id);
-            $lock->release();
-        } else {
-            $output->write('<error>Process is already running use "--force" to run command</error>');
-        }
+        $this->populateService->populate($id, $force);
 
         // Start the command line on a new line.
         $output->writeln('');
