@@ -12,7 +12,7 @@ use GuzzleHttp\Exception\GuzzleException;
  */
 class VendorImageValidatorService
 {
-    private $httpClient;
+    private ClientInterface $httpClient;
 
     /**
      * VendorImageValidatorService constructor.
@@ -25,7 +25,7 @@ class VendorImageValidatorService
     }
 
     /**
-     * Validate that remote image exists by sending a HTTP HEAD request.
+     * Validate that remote image exists by sending an HTTP HEAD request.
      *
      * @param VendorImageItem $item
      */
@@ -52,7 +52,7 @@ class VendorImageValidatorService
             $item->setOriginalContentLength(array_shift($contentLengthArray));
             $item->setOriginalLastModified($lastModified);
 
-            // Some images exists (return 200) but have no content
+            // Some images exist (return 200) but have no content
             $found = $item->getOriginalContentLength() > 0;
             $item->setFound($found);
         } catch (\Throwable $e) {

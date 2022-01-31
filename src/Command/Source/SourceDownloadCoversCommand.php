@@ -83,7 +83,7 @@ class SourceDownloadCoversCommand extends Command
 
         $queryStr = 'SELECT s FROM App\Entity\Source s WHERE s.image IS NULL AND s.originalFile IS NOT NULL';
         if (!is_null($identifier)) {
-            $queryStr .= ' AND s.matchId = '.$identifier;
+            $queryStr .= ' AND s.matchId = \''.$identifier.'\'';
         }
         if (!is_null($vendorId)) {
             $queryStr .= ' AND s.vendor = '.$vendorId;
@@ -104,6 +104,13 @@ class SourceDownloadCoversCommand extends Command
                     ->setIdentifier($source->getMatchId())
                     ->setVendorId($source->getVendor()->getId())
                     ->setIdentifierType($source->getMatchType());
+
+                // Check that the image is set on the source record if not, this needs to be an insert. This can happen
+                // if cover store have failed to download the image in earlier attempts.
+                if (is_null($source->getImage())) {
+                    $message->setOperation(VendorState::INSERT);
+                }
+
                 $this->bus->dispatch($message);
             }
 
