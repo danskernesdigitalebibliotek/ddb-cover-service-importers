@@ -76,12 +76,11 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
         switch ($UserUploadMessage->getOperation()) {
             case VendorState::UPDATE:
             case VendorState::INSERT:
-                $message->setOperation(VendorState::UPDATE);
-
                 if ($this->createUpdateSource($identifier, $sources, $UserUploadMessage)) {
                     $message->setOperation(VendorState::INSERT);
                     $this->metricsService->counter('vendor_inserted_total', 'Number of inserted records', 1, $labels);
                 } else {
+                    $message->setOperation(VendorState::UPDATE);
                     $this->metricsService->counter('vendor_updated_total', 'Number of updated records', 1, $labels);
                 }
                 break;
@@ -93,9 +92,9 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
                 break;
         }
 
-        $message->setIdentifier($identifier)
-            ->setVendorId($this->vendor->getId())
-            ->setIdentifierType($UserUploadMessage->getIdentifierType());
+        $message->setIdentifier($UserUploadMessage->getIdentifier())
+            ->setIdentifierType($UserUploadMessage->getIdentifierType())
+            ->setVendorId($this->vendor->getId());
 
         $this->bus->dispatch($message);
     }
