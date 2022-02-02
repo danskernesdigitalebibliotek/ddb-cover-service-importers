@@ -142,7 +142,7 @@ class PopulateService
                     $client->bulk($params);
 
                     // Update progress message.
-                    $this->progressMessage(sprintf('%s of %s added. Current id: %d. Last id: %d.', number_format($entriesAdded,0,',','.'), number_format($numberOfRecords,0,',','.'), $currentId, $lastId));
+                    $this->progressMessage(sprintf('%s of %s added. Current id: %d. Last id: %d.', number_format($entriesAdded, 0, ',', '.'), number_format($numberOfRecords, 0, ',', '.'), $currentId, $lastId));
 
                     // Free up memory usages.
                     $this->entityManager->clear();
