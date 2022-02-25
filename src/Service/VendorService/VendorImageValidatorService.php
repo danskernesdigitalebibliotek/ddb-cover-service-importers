@@ -6,6 +6,7 @@ use App\Entity\Source;
 use App\Utils\CoverVendor\VendorImageItem;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class VendorImageValidatorService.
@@ -29,10 +30,10 @@ class VendorImageValidatorService
      *
      * @param VendorImageItem $item
      */
-    public function validateRemoteImage(VendorImageItem $item): void
+    public function validateRemoteImage(VendorImageItem $item, string $httpRequestMethod = Request::METHOD_HEAD): void
     {
         try {
-            $head = $this->httpClient->request('HEAD', $item->getOriginalFile(), [
+            $head = $this->httpClient->request($httpRequestMethod, $item->getOriginalFile(), [
                 'allow_redirects' => [
                     'strict' => true,   // use "strict" RFC compliant redirects to avoid 30x redirects resulting in GET calls
                 ],
@@ -56,7 +57,13 @@ class VendorImageValidatorService
             $found = $item->getOriginalContentLength() > 0;
             $item->setFound($found);
         } catch (\Throwable $e) {
-            $item->setFound(false);
+            // Some providers (i.e. Google Drive) disallows HEAD requests. Fall back
+            // to GET request and try to validate image.
+            if (405 === $e->getCode() && Request::METHOD_HEAD === $httpRequestMethod) {
+                $this->validateRemoteImage($item, Request::METHOD_GET);
+            } else {
+                $item->setFound(false);
+            }
         }
     }
 
