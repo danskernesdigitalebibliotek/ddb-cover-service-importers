@@ -31,6 +31,6 @@ app:
   php:
     memory_limit: "512M"
   db:
-    server: "cover-service-prod.mariadb.database.azure.com"
+    server: "k8s-ddf-prod.mariadb.database.azure.com"
     port: "3306"
     database: "cover-service"
