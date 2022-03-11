@@ -14,17 +14,6 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR ${APP_PATH}
 
-# Install imagemagick.
-RUN apk --update add --no-cache \
-        imagemagick \
-        imagemagick-libs \
-        imagemagick-dev
-
-RUN apk --update add --no-cache --virtual .build-deps autoconf g++ make \
-    && pecl install imagick \
-    && docker-php-ext-enable imagick \
-    && apk del .build-deps
-
 ## Install assets, which requires a HACK as redis is not available (should be removed later on).
 RUN APP_ENV=github_actions composer install --no-dev -o --no-scripts --classmap-authoritative \
     && APP_ENV=github_actions composer docker-build \
