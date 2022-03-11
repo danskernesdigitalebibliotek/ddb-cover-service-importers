@@ -55,17 +55,12 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
     }
 
     /**
-     * @param CoverUserUploadMessage $UserUploadMessage
+     * @param CoverUserUploadMessage $userUploadMessage
      *
      * @throws \Doctrine\ORM\Query\QueryException
      */
-    public function __invoke(CoverUserUploadMessage $UserUploadMessage)
+    public function __invoke(CoverUserUploadMessage $userUploadMessage)
     {
-        $identifier = $UserUploadMessage->getIdentifier();
-
-        /** @var Source[] $sources */
-        $sources = $this->sourceRepo->findByMatchIdList($UserUploadMessage->getIdentifierType(), [$identifier => ''], $this->vendor);
-
         $labels = [
             'type' => 'vendor',
             'vendorName' => $this->vendor->getName(),
@@ -73,10 +68,10 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
         ];
 
         $message = new VendorImageMessage();
-        switch ($UserUploadMessage->getOperation()) {
+        switch ($userUploadMessage->getOperation()) {
             case VendorState::UPDATE:
             case VendorState::INSERT:
-                if ($this->createUpdateSource($identifier, $sources, $UserUploadMessage)) {
+                if ($this->createUpdateSource($userUploadMessage)) {
                     $message->setOperation(VendorState::INSERT);
                     $this->metricsService->counter('vendor_inserted_total', 'Number of inserted records', 1, $labels);
                 } else {
@@ -92,8 +87,8 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
                 break;
         }
 
-        $message->setIdentifier($UserUploadMessage->getIdentifier())
-            ->setIdentifierType($UserUploadMessage->getIdentifierType())
+        $message->setIdentifier($userUploadMessage->getIdentifier())
+            ->setIdentifierType($userUploadMessage->getIdentifierType())
             ->setVendorId($this->vendor->getId());
 
         $this->bus->dispatch($message);
@@ -102,40 +97,42 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
     /**
      * Create or update existing source entity in the database.
      *
-     * @param string $identifier
-     *   Material identifier (matchId)
-     * @param Source[] $sources
-     *   The sources found based on the identifier in the database
-     * @param CoverUserUploadMessage $uploadProcessMessage
+     * @param CoverUserUploadMessage $userUploadMessage
      *   The process message to build for the event producer
      *
      * @return bool
-     *   true on insert and false on update
+     *   True on insert and false on update
+     *
+     * @throws \Doctrine\ORM\Query\QueryException
      */
-    private function createUpdateSource(string $identifier, array $sources, CoverUserUploadMessage $uploadProcessMessage): bool
+    private function createUpdateSource(CoverUserUploadMessage $userUploadMessage): bool
     {
+        $identifier = $userUploadMessage->getIdentifier();
+
+        /** @var Source[] $sources */
+        $sources = $this->sourceRepo->findByMatchIdList($userUploadMessage->getIdentifierType(), [$identifier => ''], $this->vendor);
+
         $isNew = true;
         if (array_key_exists($identifier, $sources)) {
             $source = $sources[$identifier];
-            $source->setMatchType($uploadProcessMessage->getIdentifierType())
+            $source->setMatchType($userUploadMessage->getIdentifierType())
                 ->setMatchId($identifier)
                 ->setVendor($this->vendor)
                 ->setDate(new \DateTime())
-                ->setOriginalFile($uploadProcessMessage->getImageUrl());
+                ->setOriginalFile($userUploadMessage->getImageUrl());
             $isNew = false;
         } else {
             $source = new Source();
-            $source->setMatchType($uploadProcessMessage->getIdentifierType())
+            $source->setMatchType($userUploadMessage->getIdentifierType())
                 ->setMatchId($identifier)
                 ->setVendor($this->vendor)
                 ->setDate(new \DateTime())
-                ->setOriginalFile($uploadProcessMessage->getImageUrl());
+                ->setOriginalFile($userUploadMessage->getImageUrl());
             $this->em->persist($source);
         }
 
         // Make it stick.
         $this->em->flush();
-        $this->em->clear(Source::class);
 
         // Clean up memory (as this class lives in the queue system and may process more than one queue element).
         gc_collect_cycles();
