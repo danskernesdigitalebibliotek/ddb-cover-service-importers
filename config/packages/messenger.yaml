@@ -54,6 +54,7 @@ framework:
             'App\Message\IndexMessage': async_priority_high
             'App\Message\CoverUserUploadMessage': async_priority_high
             'App\Message\DeleteMessage': async_priority_low
+            'App\Message\HasCoverMessage': async_priority_low
             'App\Message\SearchNoHitsMessage': async_no_hit
 
         buses:
