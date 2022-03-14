@@ -73,7 +73,8 @@ class SearchRepository extends ServiceEntityRepository
     {
         $queryBuilder = $this->createQueryBuilder('s');
         $queryBuilder->select('s')
-            ->where('s.isType = \''.$type.'\'');
+            ->where('s.isType = :type')
+            ->setParameter('type', $type);
 
         if (!is_null($identifier)) {
             $queryBuilder->andWhere('s.isIdentifier = :identifier')
