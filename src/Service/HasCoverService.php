@@ -71,7 +71,7 @@ class HasCoverService
                 throw new HasCoverException('Bad request to the service', 400);
             case 401:
                 $this->metricsService->counter('has_cover_auth_error_total', 'Not authorized request', 1, $labels);
-                throw new HasCoverException('Not authorized', 400);
+                throw new HasCoverException('Not authorized', 401);
             case 200:
                 $this->metricsService->counter('has_cover_success_requests_total', 'Successful request sent', 1, $labels);
                 break;
