@@ -13,7 +13,9 @@ use App\Entity\Source;
 use App\Message\IndexMessage;
 use App\Service\Indexing\IndexingServiceInterface;
 use App\Service\Indexing\IndexItem;
+use App\Message\HasCoverMessage;
 use App\Utils\OpenPlatform\Material;
+use App\Utils\Types\IdentifierType;
 use Doctrine\DBAL\ConnectionException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,6 +23,7 @@ use Doctrine\Persistence\ManagerRegistry;
 use ItkDev\MetricsBundle\Service\MetricsService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class IndexMessageHandler.
@@ -35,13 +38,15 @@ class IndexMessageHandler implements MessageHandlerInterface
      * @param ManagerRegistry $registry
      * @param MetricsService $metricsService
      * @param IndexingServiceInterface $indexingService
+     * @param MessageBusInterface $bus
      */
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly LoggerInterface $logger,
         private readonly ManagerRegistry $registry,
         private readonly MetricsService $metricsService,
-        private readonly IndexingServiceInterface $indexingService
+        private readonly IndexingServiceInterface $indexingService,
+        private readonly MessageBusInterface $bus,
     ) {
     }
 
@@ -111,6 +116,13 @@ class IndexMessageHandler implements MessageHandlerInterface
                         ->setWidth($search->getWidth())
                         ->setHeight($search->getHeight());
                     $this->indexingService->add($item);
+
+                    // Add hasCover message to queue system after flushing data to ensure no errors.
+                    if (IdentifierType::PID === $identifier->getType()) {
+                        $hasCoverMessage = new HasCoverMessage();
+                        $hasCoverMessage->setPid($identifier->getId())->setCoverExists(true);
+                        $this->bus->dispatch($hasCoverMessage);
+                    }
                 }
             } catch (UniqueConstraintViolationException $exception) {
                 // Some vendors have more than one unique identifier in the input data, so to queue processors can try
@@ -156,8 +168,8 @@ class IndexMessageHandler implements MessageHandlerInterface
      */
     private function shouldOverride(Material $material, Source $source, Search $search): bool
     {
-        // Rank is unique so can never be identical for two different vendors
-        // but we need to update search if update image from same vendor.
+        // Rank is unique so can never be identical for two different vendors, but we need to update search if update
+        // image from same vendor.
         $sourceRank = $source->getVendor()->getRank();
         $searchRank = $search->getSource()->getVendor()->getRank();
         if ($sourceRank <= $searchRank) {
@@ -181,7 +193,7 @@ class IndexMessageHandler implements MessageHandlerInterface
     /**
      * Find image entity in the database.
      *
-     * @param int $imageId
+     * @param int|null $imageId
      *   Database ID for the image
      *
      *   Image entity if found else null

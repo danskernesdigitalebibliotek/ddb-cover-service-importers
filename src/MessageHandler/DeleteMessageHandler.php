@@ -12,13 +12,16 @@ use App\Entity\Vendor;
 use App\Exception\CoverStoreException;
 use App\Exception\CoverStoreNotFoundException;
 use App\Message\DeleteMessage;
+use App\Message\HasCoverMessage;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\Indexing\IndexingServiceInterface;
+use App\Utils\Types\IdentifierType;
 use Doctrine\DBAL\ConnectionException;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class DeleteMessageHandler.
@@ -32,12 +35,14 @@ class DeleteMessageHandler implements MessageHandlerInterface
      * @param LoggerInterface $logger
      * @param CoverStoreInterface $coverStore
      * @param IndexingServiceInterface $indexingService
+     * @param MessageBusInterface $bus
      */
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly LoggerInterface $logger,
         private readonly CoverStoreInterface $coverStore,
-        private readonly IndexingServiceInterface $indexingService
+        private readonly IndexingServiceInterface $indexingService,
+        private readonly MessageBusInterface $bus,
     ) {
     }
 
@@ -57,9 +62,8 @@ class DeleteMessageHandler implements MessageHandlerInterface
         }
 
         try {
-            // There may exist a race condition when multiple queues are
-            // running. To ensure we delete consistently we need to
-            // wrap our search/update/insert in a transaction.
+            // There may exist a race condition when multiple queues are running. To ensure we delete consistently we
+            // need to wrap our search/update/insert in a transaction.
             $this->em->getConnection()->beginTransaction();
 
             try {
@@ -115,6 +119,13 @@ class DeleteMessageHandler implements MessageHandlerInterface
                 'message' => $exception->getMessage(),
                 'identifier' => $message->getIdentifier(),
             ]);
+        }
+
+        // Add hasCover message to queue system after removing data from the database.
+        if (IdentifierType::PID === $message->getIdentifierType()) {
+            $hasCoverMessage = new HasCoverMessage();
+            $hasCoverMessage->setPid($message->getIdentifier())->setCoverExists(false);
+            $this->bus->dispatch($hasCoverMessage);
         }
 
         // Delete image in cover store.

@@ -30,6 +30,8 @@ services:
             $projectDir: '%kernel.project_dir%'
             $resourcesDir: '%kernel.project_dir%/resources'
 
+            $bindHasCoverServiceUrl: '%env(string:HAS_COVER_SERVICE_URL)%'
+
     _instanceof:
         App\Service\VendorService\VendorServiceInterface:
             tags: [app.vendor.service]

@@ -51,5 +51,4 @@ class HasCoverMessage
 
         return $this;
     }
-
 }

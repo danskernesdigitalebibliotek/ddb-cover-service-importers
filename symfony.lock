@@ -501,6 +501,15 @@
             "src/Kernel.php"
         ]
     },
+<<<<<<< HEAD
+=======
+    "symfony/http-client": {
+        "version": "v5.4.5"
+    },
+    "symfony/http-client-contracts": {
+        "version": "v2.4.0"
+    },
+>>>>>>> f23efc7 (DDBTEAM-830: Added hasCover service)
     "symfony/http-foundation": {
         "version": "v5.3.10"
     },
