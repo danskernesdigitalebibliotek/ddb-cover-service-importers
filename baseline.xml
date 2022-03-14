@@ -111,6 +111,7 @@
       <code>Throwable</code>
     </UndefinedClass>
   </file>
+<<<<<<< HEAD
   <file src="src/MessageHandler/IndexMessageHandler.php">
     <ArgumentTypeCoercion occurrences="1">
       <code>$search</code>
@@ -119,6 +120,29 @@
       <code>getVendor</code>
     </PossiblyNullReference>
   </file>
+=======
+<<<<<<< HEAD
+=======
+  <file src="src/MessageHandler/CoverStoreMessageHandler.php">
+    <PossiblyNullArgument occurrences="1">
+      <code>$message-&gt;useSearchCache()</code>
+    </PossiblyNullArgument>
+    <PossiblyNullReference occurrences="1">
+      <code>getName</code>
+    </PossiblyNullReference>
+  </file>
+  <file src="src/MessageHandler/DeleteMessageHandler.php">
+    <PossiblyNullReference occurrences="1">
+      <code>getName</code>
+    </PossiblyNullReference>
+  </file>
+  <file src="src/MessageHandler/HasCoverMessageHandler.php">
+    <InvalidThrow occurrences="1">
+      <code>\Psr\Cache\InvalidArgumentException</code>
+    </InvalidThrow>
+  </file>
+>>>>>>> 6652374 (DDBTEAM-833: Added hasCover message handler)
+>>>>>>> daa4642 (DDBTEAM-833: Added hasCover message handler)
   <file src="src/MessageHandler/SearchNoHitsMessageHandler.php">
     <PossiblyNullReference occurrences="1">
       <code>getId</code>
@@ -157,9 +181,7 @@
     </RedundantPropertyInitializationCheck>
 =======
   <file src="src/Service/HasCoverService.php">
-    <InvalidThrow occurrences="3">
-      <code>\Psr\Cache\InvalidArgumentException</code>
-      <code>\Psr\Cache\InvalidArgumentException</code>
+    <InvalidThrow occurrences="1">
       <code>\Psr\Cache\InvalidArgumentException</code>
     </InvalidThrow>
   </file>

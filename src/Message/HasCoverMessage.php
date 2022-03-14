@@ -35,7 +35,7 @@ class HasCoverMessage
     /**
      * @return bool
      */
-    public function isCoverExists(): bool
+    public function getCoverExists(): bool
     {
         return $this->coverExists;
     }

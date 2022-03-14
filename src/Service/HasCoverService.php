@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Exception\HasCoverException;
 use App\Service\OpenPlatform\AuthenticationService;
 use ItkDev\MetricsBundle\Service\MetricsService;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -38,13 +39,11 @@ class HasCoverService
      * @param bool $coverExists
      *   The cover state for the PID given
      *
-     * @return bool
-     *   True if request was successful else false
-     *
+     * @throws HasCoverException
      * @throws \Psr\Cache\InvalidArgumentException
      * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
      */
-    private function post(string $pid, bool $coverExists): bool
+    public function post(string $pid, bool $coverExists)
     {
         $labels = [
             'type' => 'hasCover',
@@ -63,66 +62,25 @@ class HasCoverService
             ]);
         } catch (\Throwable $throwable) {
             $this->metricsService->counter('has_cover_error_total', 'Error with the request', 1, $labels);
-
-            return false;
+            throw new HasCoverException('Unknown error communicating with the service');
         }
 
-        $status = false;
         switch ($response->getStatusCode()) {
             case 400:
                 $this->metricsService->counter('has_cover_bad_requests_total', 'Bad request response', 1, $labels);
-                break;
-
+                throw new HasCoverException('Bad request to the service', 400);
             case 401:
                 $this->metricsService->counter('has_cover_auth_error_total', 'Not authorized request', 1, $labels);
-                break;
-
+                throw new HasCoverException('Not authorized', 400);
             case 200:
-                $status = true;
                 $this->metricsService->counter('has_cover_success_requests_total', 'Successful request sent', 1, $labels);
                 break;
 
             default:
                 $this->metricsService->counter('has_cover_unknown_total', 'Unknown response from service', 1, $labels);
-                break;
+                throw new HasCoverException('Unknown response from service', $response->getStatusCode());
         }
 
         $this->metricsService->counter('has_cover_requests_total', 'Successful request sent', 1, $labels);
-
-        return $status;
-    }
-
-    /**
-     * Set PID to have a cover at the service.
-     *
-     * @param string $pid
-     *   The PID to set to have a cover
-     *
-     * @return bool
-     *   True if request was successful else false
-     *
-     * @throws \Psr\Cache\InvalidArgumentException
-     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
-     */
-    public function link(string $pid): bool
-    {
-        return $this->post($pid, true);
-    }
-
-    /**
-     * Set PID to not having a cover at the service.
-     *
-     * @param string $pid
-     *   The PID to set not having a cover
-     *
-     * @return bool
-     *   True if request was successful else false
-     *
-     * @throws \Psr\Cache\InvalidArgumentException
-     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
-     */
-    public function unlink(string $pid): bool
-    {
-        return $this->post($pid, false);
     }
 }
