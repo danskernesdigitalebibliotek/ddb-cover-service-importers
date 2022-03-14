@@ -1,5 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<<<<<<< HEAD
 <files psalm-version="4.24.0@06dd975cb55d36af80f242561738f16c5f58264f">
+=======
+<files psalm-version="v4.15.0@a1b5e489e6fcebe40cb804793d964e99fc347820">
+<<<<<<< HEAD
+=======
+  <file src="src/.bootstrap.php">
+    <InvalidArgument occurrences="1">
+      <code>false</code>
+    </InvalidArgument>
+    <PossiblyUndefinedGlobalVariable occurrences="1">
+      <code>$p</code>
+    </PossiblyUndefinedGlobalVariable>
+    <RedundantCondition occurrences="1">
+      <code>method_exists($dotenv, 'loadEnv')</code>
+    </RedundantCondition>
+  </file>
+  <file src="src/Command/CoverStore/CoverStoreMoveCommand.php">
+    <ImplicitToStringCast occurrences="1">
+      <code>$item</code>
+    </ImplicitToStringCast>
+  </file>
+  <file src="src/Command/CoverStore/CoverStoreUploadCommand.php">
+    <ImplicitToStringCast occurrences="1">
+      <code>$item</code>
+    </ImplicitToStringCast>
+  </file>
+  <file src="src/Command/CoverStore/CoverStoreValidateImageCommand.php">
+    <UndefinedMagicMethod occurrences="1">
+      <code>findOneById</code>
+    </UndefinedMagicMethod>
+  </file>
+  <file src="src/Command/HasCoverCommand.php">
+    <UndefinedInterfaceMethod occurrences="1">
+      <code>section</code>
+    </UndefinedInterfaceMethod>
+  </file>
+  <file src="src/Command/OpenPlatform/OpenPlatformSearchCommand.php">
+    <ImplicitToStringCast occurrences="1">
+      <code>$material</code>
+    </ImplicitToStringCast>
+  </file>
+  <file src="src/Command/QueueInsertCommand.php">
+    <PossiblyInvalidArgument occurrences="1">
+      <code>$message</code>
+    </PossiblyInvalidArgument>
+  </file>
+>>>>>>> 9e1dbaf (DDBTEAM-830: Updated psalm baseline)
+>>>>>>> dfa7401 (DDBTEAM-830: Updated psalm baseline)
   <file src="src/Command/Search/SearchReindexCommand.php">
     <PossiblyFalseArgument occurrences="1">
       <code>$inputDate</code>
@@ -87,6 +135,7 @@
       <code>$error-&gt;getCode()</code>
     </InvalidScalarArgument>
   </file>
+<<<<<<< HEAD
   <file src="src/Service/Indexing/IndexingElasticService.php">
     <MethodSignatureMismatch occurrences="1">
       <code>$items</code>
@@ -106,6 +155,20 @@
       <code>isset($this-&gt;newIndexName)</code>
       <code>isset($this-&gt;newIndexName)</code>
     </RedundantPropertyInitializationCheck>
+=======
+  <file src="src/Service/HasCoverService.php">
+    <InvalidThrow occurrences="3">
+      <code>\Psr\Cache\InvalidArgumentException</code>
+      <code>\Psr\Cache\InvalidArgumentException</code>
+      <code>\Psr\Cache\InvalidArgumentException</code>
+    </InvalidThrow>
+  </file>
+  <file src="src/Service/OpenPlatform/AuthenticationService.php">
+    <InvalidThrow occurrences="2">
+      <code>\Psr\Cache\InvalidArgumentException</code>
+      <code>\Psr\Cache\InvalidArgumentException</code>
+    </InvalidThrow>
+>>>>>>> dfa7401 (DDBTEAM-830: Updated psalm baseline)
   </file>
   <file src="src/Service/PopulateService.php">
     <InvalidReturnStatement occurrences="1">
