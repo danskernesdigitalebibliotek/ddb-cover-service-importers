@@ -40,9 +40,9 @@ framework:
                     multiplier: 4
                 options:
                     exchange:
-                        name: hasCover
+                        name: has_cover
                     queues:
-                        cs_low: ~
+                        cs_has_cover: ~
 
             async_no_hit:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
