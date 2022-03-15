@@ -9,7 +9,6 @@ namespace App\MessageHandler;
 
 use App\Entity\Source;
 use App\Entity\Vendor;
-use App\Exception\UnknownVendorServiceException;
 use App\Message\CoverUserUploadMessage;
 use App\Message\DeleteMessage;
 use App\Message\VendorImageMessage;
@@ -28,9 +27,9 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
 {
     private EntityManagerInterface $em;
     private MessageBusInterface $bus;
-    private Vendor $vendor;
     private SourceRepository $sourceRepo;
     private MetricsService $metricsService;
+    private UserUploadVendorService $userUploadVendorService;
 
     /**
      * CoverUserUploadMessageHandler constructor.
@@ -40,8 +39,6 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
      * @param SourceRepository $sourceRepo
      * @param UserUploadVendorService $userUploadVendorService
      * @param MetricsService $metricsService
-     *
-     * @throws UnknownVendorServiceException
      */
     public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, SourceRepository $sourceRepo, UserUploadVendorService $userUploadVendorService, MetricsService $metricsService)
     {
@@ -49,9 +46,7 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
         $this->bus = $bus;
         $this->sourceRepo = $sourceRepo;
         $this->metricsService = $metricsService;
-
-        // Load vendor here to ensure that it's only load once.
-        $this->vendor = $userUploadVendorService->getVendorEntity();
+        $this->userUploadVendorService = $userUploadVendorService;
     }
 
     /**
@@ -61,17 +56,18 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
      */
     public function __invoke(CoverUserUploadMessage $userUploadMessage)
     {
+        $vendor = $this->userUploadVendorService->getVendorEntity();
         $labels = [
             'type' => 'vendor',
-            'vendorName' => $this->vendor->getName(),
-            'vendorId' => $this->vendor->getId(),
+            'vendorName' => $vendor->getName(),
+            'vendorId' => $vendor->getId(),
         ];
 
         $message = new VendorImageMessage();
         switch ($userUploadMessage->getOperation()) {
             case VendorState::UPDATE:
             case VendorState::INSERT:
-                if ($this->createUpdateSource($userUploadMessage)) {
+                if ($this->createUpdateSource($userUploadMessage, $vendor)) {
                     $message->setOperation(VendorState::INSERT);
                     $this->metricsService->counter('vendor_inserted_total', 'Number of inserted records', 1, $labels);
                 } else {
@@ -89,7 +85,7 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
 
         $message->setIdentifier($userUploadMessage->getIdentifier())
             ->setIdentifierType($userUploadMessage->getIdentifierType())
-            ->setVendorId($this->vendor->getId());
+            ->setVendorId($vendor->getId());
 
         $this->bus->dispatch($message);
     }
@@ -99,25 +95,27 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
      *
      * @param CoverUserUploadMessage $userUploadMessage
      *   The process message to build for the event producer
+     * @param Vendor $vendor
+     *   The vendor (user upload vendor)
      *
      * @return bool
      *   True on insert and false on update
      *
      * @throws \Doctrine\ORM\Query\QueryException
      */
-    private function createUpdateSource(CoverUserUploadMessage $userUploadMessage): bool
+    private function createUpdateSource(CoverUserUploadMessage $userUploadMessage, Vendor $vendor): bool
     {
         $identifier = $userUploadMessage->getIdentifier();
 
         /** @var Source[] $sources */
-        $sources = $this->sourceRepo->findByMatchIdList($userUploadMessage->getIdentifierType(), [$identifier => ''], $this->vendor);
+        $sources = $this->sourceRepo->findByMatchIdList($userUploadMessage->getIdentifierType(), [$identifier => ''], $vendor);
 
         $isNew = true;
         if (array_key_exists($identifier, $sources)) {
             $source = $sources[$identifier];
             $source->setMatchType($userUploadMessage->getIdentifierType())
                 ->setMatchId($identifier)
-                ->setVendor($this->vendor)
+                ->setVendor($vendor)
                 ->setDate(new \DateTime())
                 ->setOriginalFile($userUploadMessage->getImageUrl());
             $isNew = false;
@@ -125,7 +123,7 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
             $source = new Source();
             $source->setMatchType($userUploadMessage->getIdentifierType())
                 ->setMatchId($identifier)
-                ->setVendor($this->vendor)
+                ->setVendor($vendor)
                 ->setDate(new \DateTime())
                 ->setOriginalFile($userUploadMessage->getImageUrl());
             $this->em->persist($source);
@@ -133,9 +131,6 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
 
         // Make it stick.
         $this->em->flush();
-
-        // Clean up memory (as this class lives in the queue system and may process more than one queue element).
-        gc_collect_cycles();
 
         return $isNew;
     }
