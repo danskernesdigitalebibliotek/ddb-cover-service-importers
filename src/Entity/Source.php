@@ -36,17 +36,17 @@ class Source
      * @ORM\ManyToOne(targetEntity="App\Entity\Vendor", inversedBy="sources")
      * @ORM\JoinColumn(nullable=false)
      */
-    private ?Vendor $vendor;
+    private Vendor $vendor;
 
     /**
      * @ORM\Column(type="string", length=50)
      */
-    private ?string $matchId;
+    private string $matchId;
 
     /**
      * @ORM\Column(type="string", length=25)
      */
-    private ?string $matchType;
+    private string $matchType;
 
     /**
      * @ORM\Column(type="text", nullable=true)
@@ -106,7 +106,10 @@ class Source
         return $this;
     }
 
-    public function getVendor(): ?Vendor
+    /**
+     * @return Vendor
+     */
+    public function getVendor(): Vendor
     {
         return $this->vendor;
     }
@@ -121,7 +124,10 @@ class Source
         return $this;
     }
 
-    public function getMatchId(): ?string
+    /**
+     * @return string
+     */
+    public function getMatchId(): string
     {
         return $this->matchId;
     }
@@ -136,7 +142,10 @@ class Source
         return $this;
     }
 
-    public function getMatchType(): ?string
+    /**
+     * @return string
+     */
+    public function getMatchType(): string
     {
         return $this->matchType;
     }
@@ -151,6 +160,9 @@ class Source
         return $this;
     }
 
+    /**
+     * @return Image|null
+     */
     public function getImage(): ?Image
     {
         return $this->image;
@@ -166,6 +178,9 @@ class Source
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getOriginalFile(): ?string
     {
         return $this->originalFile;
@@ -181,6 +196,9 @@ class Source
         return $this;
     }
 
+    /**
+     * @return \DateTime|null
+     */
     public function getOriginalLastModified(): ?\DateTime
     {
         return $this->originalLastModified;
@@ -196,6 +214,9 @@ class Source
         return $this;
     }
 
+    /**
+     * @return int|null
+     */
     public function getOriginalContentLength(): ?int
     {
         return $this->originalContentLength;

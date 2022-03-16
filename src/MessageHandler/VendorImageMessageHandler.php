@@ -72,6 +72,10 @@ class VendorImageMessageHandler implements MessageHandlerInterface
                     break;
 
                 case VendorState::UPDATE:
+                    // Validate source have image data before trying to update it.
+                    if (is_null($source->getOriginalFile())) {
+                        throw new UnrecoverableMessageHandlingException('Source do not have image attached');
+                    }
                     $this->processUpdate($message, $source);
                     break;
 
