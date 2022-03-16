@@ -11,28 +11,28 @@ namespace App\Message;
  */
 abstract class AbstractBaseMessage
 {
-    private $operation;
-    private $identifierType;
-    private $identifier;
-    private $vendorId;
-    private $imageId;
-    private $useSearchCache = true;
-    private $traceId;
+    private string $operation;
+    private string $identifierType;
+    private string $identifier;
+    private int $vendorId;
+    private ?int $imageId;
+    private bool $useSearchCache = true;
+    private string $traceId;
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getOperation()
+    public function getOperation(): string
     {
         return $this->operation;
     }
 
     /**
-     * @param mixed $operation
+     * @param string $operation
      *
-     * @return static
+     * @return $this
      */
-    public function setOperation($operation): self
+    public function setOperation(string $operation): self
     {
         $this->operation = $operation;
 
@@ -40,19 +40,19 @@ abstract class AbstractBaseMessage
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getIdentifierType()
+    public function getIdentifierType(): string
     {
         return $this->identifierType;
     }
 
     /**
-     * @param mixed $type
+     * @param string $type
      *
      * @return static
      */
-    public function setIdentifierType($type): self
+    public function setIdentifierType(string $type): self
     {
         $this->identifierType = $type;
 
@@ -60,19 +60,19 @@ abstract class AbstractBaseMessage
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getIdentifier()
+    public function getIdentifier(): string
     {
         return $this->identifier;
     }
 
     /**
-     * @param mixed $identifier
+     * @param string $identifier
      *
      * @return static
      */
-    public function setIdentifier($identifier): self
+    public function setIdentifier(string $identifier): self
     {
         $this->identifier = $identifier;
 
@@ -80,19 +80,19 @@ abstract class AbstractBaseMessage
     }
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getVendorId()
+    public function getVendorId(): int
     {
         return $this->vendorId;
     }
 
     /**
-     * @param mixed $vendorId
+     * @param int $vendorId
      *
      * @return static
      */
-    public function setVendorId($vendorId): self
+    public function setVendorId(int $vendorId): self
     {
         $this->vendorId = $vendorId;
 
@@ -100,19 +100,19 @@ abstract class AbstractBaseMessage
     }
 
     /**
-     * @return mixed
+     * @return int|null
      */
-    public function getImageId()
+    public function getImageId(): ?int
     {
         return $this->imageId;
     }
 
     /**
-     * @param mixed $imageId
+     * @param int|null $imageId
      *
      * @return static
      */
-    public function setImageId($imageId): self
+    public function setImageId(?int $imageId): self
     {
         $this->imageId = $imageId;
 
@@ -122,10 +122,10 @@ abstract class AbstractBaseMessage
     /**
      * Use search cache.
      *
-     * @return bool|null
+     * @return bool
      *   Defaults to true if not set
      */
-    public function useSearchCache(): ?bool
+    public function useSearchCache(): bool
     {
         return $this->useSearchCache;
     }
@@ -148,10 +148,10 @@ abstract class AbstractBaseMessage
     /**
      * Get request id (which is unique for the whole request).
      *
-     * @return string
+     * @return string|null
      *   The request id
      */
-    public function getTraceId(): string
+    public function getTraceId(): ?string
     {
         return $this->traceId;
     }

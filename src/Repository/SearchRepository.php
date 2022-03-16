@@ -12,12 +12,6 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
-/**
- * @method Search|null find($id, $lockMode = null, $lockVersion = null)
- * @method Search|null findOneBy(array $criteria, array $orderBy = null)
- * @method Search[]    findAll()
- * @method Search[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
- */
 class SearchRepository extends ServiceEntityRepository
 {
     /**

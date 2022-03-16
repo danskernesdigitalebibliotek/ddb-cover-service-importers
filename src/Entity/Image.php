@@ -46,7 +46,7 @@ class Image
      */
     private ?Source $source;
 
-    public function getId(): ?int
+    public function getId(): int
     {
         return $this->id;
     }
