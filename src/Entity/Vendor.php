@@ -70,7 +70,7 @@ class Vendor
         $this->sources = new ArrayCollection();
     }
 
-    public function getId(): ?int
+    public function getId(): int
     {
         return $this->id;
     }
@@ -91,6 +91,9 @@ class Vendor
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getClass(): string
     {
         return $this->class;
@@ -106,6 +109,9 @@ class Vendor
         return $this;
     }
 
+    /**
+     * @return int
+     */
     public function getRank(): int
     {
         return $this->rank;
@@ -121,6 +127,9 @@ class Vendor
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getName(): string
     {
         return $this->name;
@@ -136,6 +145,9 @@ class Vendor
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getImageServerURI(): ?string
     {
         return $this->imageServerURI;
@@ -151,6 +163,9 @@ class Vendor
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getDataServerURI(): ?string
     {
         return $this->dataServerURI;
@@ -166,6 +181,9 @@ class Vendor
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getDataServerUser(): ?string
     {
         return $this->dataServerUser;
@@ -181,6 +199,9 @@ class Vendor
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getDataServerPassword(): ?string
     {
         return $this->dataServerPassword;
