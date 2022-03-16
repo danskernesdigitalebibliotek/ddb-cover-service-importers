@@ -25,10 +25,10 @@ class PublizonVendorService implements VendorServiceInterface
 
     protected const VENDOR_ID = 5;
 
-    private $xmlReader;
+    private PublizonXmlReaderService $xmlReader;
 
-    private $apiEndpoint;
-    private $apiServiceKey;
+    private string $apiEndpoint;
+    private string $apiServiceKey;
 
     /**
      * PublizonVendorService constructor.

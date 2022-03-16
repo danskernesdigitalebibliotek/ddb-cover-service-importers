@@ -15,7 +15,7 @@ abstract class AbstractBaseMessage
     private string $identifierType;
     private string $identifier;
     private int $vendorId;
-    private int $imageId;
+    private ?int $imageId;
     private bool $useSearchCache = true;
     private string $traceId;
 
@@ -80,9 +80,9 @@ abstract class AbstractBaseMessage
     }
 
     /**
-     * @return int|null
+     * @return int
      */
-    public function getVendorId(): ?int
+    public function getVendorId(): int
     {
         return $this->vendorId;
     }
@@ -108,11 +108,11 @@ abstract class AbstractBaseMessage
     }
 
     /**
-     * @param int $imageId
+     * @param int|null $imageId
      *
      * @return static
      */
-    public function setImageId(int $imageId): self
+    public function setImageId(?int $imageId): self
     {
         $this->imageId = $imageId;
 
