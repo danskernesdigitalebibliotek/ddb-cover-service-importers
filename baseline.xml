@@ -21,11 +21,6 @@
       <code>$item</code>
     </ImplicitToStringCast>
   </file>
-  <file src="src/Command/CoverStore/CoverStoreValidateImageCommand.php">
-    <UndefinedMagicMethod occurrences="1">
-      <code>findOneById</code>
-    </UndefinedMagicMethod>
-  </file>
   <file src="src/Command/OpenPlatform/OpenPlatformSearchCommand.php">
     <ImplicitToStringCast occurrences="1">
       <code>$material</code>
@@ -109,31 +104,17 @@
     <PossiblyNullReference occurrences="1">
       <code>getVendor</code>
     </PossiblyNullReference>
-    <UndefinedMagicMethod occurrences="1">
-      <code>findOneById</code>
-    </UndefinedMagicMethod>
   </file>
   <file src="src/Exception/XmlReaderException.php">
     <UndefinedClass occurrences="1">
       <code>Throwable</code>
     </UndefinedClass>
   </file>
-  <file src="src/MessageHandler/CoverStoreMessageHandler.php">
-    <PossiblyNullReference occurrences="1">
-      <code>getName</code>
-    </PossiblyNullReference>
-  </file>
-  <file src="src/MessageHandler/DeleteMessageHandler.php">
-    <PossiblyNullReference occurrences="1">
-      <code>getName</code>
-    </PossiblyNullReference>
-  </file>
   <file src="src/MessageHandler/SearchNoHitsMessageHandler.php">
     <InvalidThrow occurrences="1">
       <code>InvalidArgumentException</code>
     </InvalidThrow>
-    <PossiblyNullArgument occurrences="2">
-      <code>$search-&gt;getHeight()</code>
+    <PossiblyNullArgument occurrences="1">
       <code>$source-&gt;getOriginalFile()</code>
     </PossiblyNullArgument>
     <PossiblyNullReference occurrences="1">
@@ -145,11 +126,6 @@
       <code>$source-&gt;getOriginalFile()</code>
       <code>$source-&gt;getOriginalFile()</code>
     </PossiblyNullArgument>
-  </file>
-  <file src="src/Repository/SearchRepository.php">
-    <PossiblyNullReference occurrences="1">
-      <code>getId</code>
-    </PossiblyNullReference>
   </file>
   <file src="src/Repository/SourceRepository.php">
     <QueryBuilderSetParameter occurrences="2">
@@ -189,12 +165,6 @@
     <InvalidScalarArgument occurrences="1">
       <code>$exception-&gt;getCode()</code>
     </InvalidScalarArgument>
-  </file>
-  <file src="src/Service/PopulateService.php">
-    <PossiblyNullArgument occurrences="2">
-      <code>$currentId</code>
-      <code>$currentId</code>
-    </PossiblyNullArgument>
   </file>
   <file src="src/Service/VendorService/AarhusKommuneMbu/AarhusKommuneMbuVendorService.php">
     <UndefinedInterfaceMethod occurrences="2">
@@ -353,9 +323,6 @@
     <TypeDoesNotContainType occurrences="1">
       <code>empty($this-&gt;vendors[$vendorId])</code>
     </TypeDoesNotContainType>
-    <UndefinedMagicMethod occurrences="1">
-      <code>findOneById</code>
-    </UndefinedMagicMethod>
   </file>
   <file src="src/Service/VendorService/VendorServiceFactory.php">
     <PossiblyFalseOperand occurrences="1">
