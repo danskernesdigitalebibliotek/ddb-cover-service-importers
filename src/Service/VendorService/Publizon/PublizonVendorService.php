@@ -33,7 +33,7 @@ class PublizonVendorService implements VendorServiceInterface
     /**
      * PublizonVendorService constructor.
      *
-     * @param publizonXmlReaderService $xmlReader
+     * @param PublizonXmlReaderService $xmlReader
      *   XML reader service to Publizon API
      */
     public function __construct(PublizonXmlReaderService $xmlReader)
