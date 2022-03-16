@@ -106,7 +106,7 @@ class SearchService
                 $more = false;
             }
         } catch (GuzzleException $exception) {
-            throw new DataWellVendorException($exception->getMessage(), $exception->getCode());
+            throw new DataWellVendorException($exception->getMessage(), (int) $exception->getCode());
         }
 
         return [$pidArray, $more, $offset + self::SEARCH_LIMIT];

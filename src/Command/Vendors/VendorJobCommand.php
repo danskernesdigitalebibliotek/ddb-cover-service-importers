@@ -73,7 +73,7 @@ class VendorJobCommand extends Command
             default:
                 $output->writeln('Unknown event type given as input.');
 
-                return 1;
+                return Command::FAILURE;
         }
 
         $message->setOperation($operation)
@@ -82,6 +82,6 @@ class VendorJobCommand extends Command
             ->setIdentifierType($type);
         $this->bus->dispatch($message);
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

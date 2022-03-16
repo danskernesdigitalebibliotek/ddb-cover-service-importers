@@ -46,6 +46,9 @@ class SearchPopulateCommand extends Command
 
     /**
      * {@inheritdoc}
+     *
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -61,6 +64,6 @@ class SearchPopulateCommand extends Command
         // Start the command line on a new line.
         $output->writeln('');
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

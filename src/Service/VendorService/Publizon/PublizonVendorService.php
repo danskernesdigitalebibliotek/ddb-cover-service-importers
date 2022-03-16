@@ -43,6 +43,8 @@ class PublizonVendorService implements VendorServiceInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @throws \App\Exception\XmlReaderException
      */
     public function load(): VendorImportResultMessage
     {
@@ -138,9 +140,10 @@ class PublizonVendorService implements VendorServiceInterface
                         }
                     }
 
-                    // Check if the we have found an ISBN number and a matching front cover
+                    // Check if we have found an ISBN and a matching front cover.
                     if (OnixOutputDefinition::ISBN_13 === $productIDType && OnixOutputDefinition::FRONT_COVER === $resourceContentType
-                        && OnixOutputDefinition::LINKABLE_RESOURCE === $resourceForm && OnixOutputDefinition::IMAGE === $resourceMode) {
+                        && OnixOutputDefinition::LINKABLE_RESOURCE === $resourceForm && OnixOutputDefinition::IMAGE === $resourceMode
+                        && !is_null($idValue)) {
                         $isbnArray[$idValue] = $resourceLink;
                     }
                     ++$totalProducts;
@@ -179,7 +182,11 @@ class PublizonVendorService implements VendorServiceInterface
     {
         $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
 
-        $this->apiServiceKey = $vendor->getDataServerPassword();
-        $this->apiEndpoint = $vendor->getDataServerURI();
+        if (!empty($vendor->getDataServerPassword()) && !empty($vendor->getDataServerURI())) {
+            $this->apiServiceKey = $vendor->getDataServerPassword();
+            $this->apiEndpoint = $vendor->getDataServerURI();
+        } else {
+            throw new \InvalidArgumentException('Vendor api keu and end-point need to be set');
+        }
     }
 }

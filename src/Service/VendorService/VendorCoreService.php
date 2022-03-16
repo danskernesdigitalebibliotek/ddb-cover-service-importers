@@ -100,7 +100,7 @@ final class VendorCoreService
             $this->vendors[$vendorId] = $vendorRepos->findOneById($vendorId);
         }
 
-        if (!$this->vendors[$vendorId] || empty($this->vendors[$vendorId])) {
+        if (empty($this->vendors[$vendorId])) {
             throw new UnknownVendorServiceException('Vendor with ID: '.$vendorId.' not found in DB');
         }
 

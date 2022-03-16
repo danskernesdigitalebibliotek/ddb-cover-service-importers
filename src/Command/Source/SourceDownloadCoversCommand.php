@@ -130,6 +130,6 @@ class SourceDownloadCoversCommand extends Command
         $this->progressFinish();
         $output->writeln('');
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

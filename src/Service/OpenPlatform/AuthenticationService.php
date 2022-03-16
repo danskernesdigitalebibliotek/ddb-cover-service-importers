@@ -125,14 +125,14 @@ class AuthenticationService
                     'message' => $exception->getMessage(),
                 ]);
 
-                throw new OpenPlatformAuthException($exception->getMessage(), $exception->getCode());
+                throw new OpenPlatformAuthException($exception->getMessage(), (int) $exception->getCode());
             } catch (\Exception $exception) {
                 $this->logger->error('Unknown error in acquiring access token', [
                     'service' => 'AuthenticationService',
                     'message' => $exception->getMessage(),
                 ]);
 
-                throw new OpenPlatformAuthException($exception->getMessage(), $exception->getCode());
+                throw new OpenPlatformAuthException($exception->getMessage(), (int) $exception->getCode());
             }
 
             // Get the content and parse json object as an array.

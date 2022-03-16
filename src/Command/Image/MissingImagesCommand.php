@@ -76,7 +76,7 @@ class MissingImagesCommand extends Command
             } else {
                 $output->writeln('<error>Missing vendor id required in combination with identifier</error>');
 
-                return 1;
+                return Command::FAILURE;
             }
         }
         if (!is_null($vendorId)) {
@@ -104,6 +104,6 @@ class MissingImagesCommand extends Command
             }
         }
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

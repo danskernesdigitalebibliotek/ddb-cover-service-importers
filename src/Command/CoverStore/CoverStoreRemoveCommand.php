@@ -60,6 +60,6 @@ class CoverStoreRemoveCommand extends Command
 
         $output->writeln('Item have been removed');
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

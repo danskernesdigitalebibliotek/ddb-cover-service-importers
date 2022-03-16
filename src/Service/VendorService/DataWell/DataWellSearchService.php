@@ -91,9 +91,7 @@ class DataWellSearchService
             throw new DataWellVendorException('Missing data well access configuration');
         }
 
-        $more = false;
         $pidArray = [];
-
         try {
             $response = $this->client->request('POST', $this->searchURL, [
                 RequestOptions::BODY => '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/opensearch">
@@ -128,13 +126,13 @@ class DataWellSearchService
                     $pidArray = $this->extractData($jsonResponse);
                 }
 
-                // It seams that the "more" in the search result is always "false".
+                // It seems that the "more" in the search result is always "false".
                 $more = true;
             } else {
                 $more = false;
             }
         } catch (GuzzleException $exception) {
-            throw new DataWellVendorException($exception->getMessage(), $exception->getCode());
+            throw new DataWellVendorException($exception->getMessage(), (int) $exception->getCode());
         }
 
         return [$pidArray, $more, $offset + $this::SEARCH_LIMIT];

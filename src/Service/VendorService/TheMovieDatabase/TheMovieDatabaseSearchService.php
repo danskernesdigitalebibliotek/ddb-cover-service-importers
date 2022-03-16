@@ -22,20 +22,20 @@ class TheMovieDatabaseSearchService
 {
     private const SEARCH_LIMIT = 50;
 
-    private $client;
+    private ClientInterface $client;
 
-    private $agency;
-    private $profile;
-    private $searchURL;
-    private $password;
-    private $user;
+    private string $agency;
+    private string $profile;
+    private string $searchURL;
+    private string $password;
+    private string $user;
 
     /**
      * TheMovieDatabaseSearchService constructor.
      *
      * @param ParameterBagInterface $params
      *   The parameter bag
-     * @param ClientInterface       $httpClient
+     * @param ClientInterface $httpClient
      *   The http client
      */
     public function __construct(ParameterBagInterface $params, ClientInterface $httpClient)
@@ -100,7 +100,6 @@ class TheMovieDatabaseSearchService
             throw new DataWellVendorException('Missing data well access configuration');
         }
 
-        $more = false;
         $pidArray = [];
 
         try {
@@ -147,13 +146,13 @@ class TheMovieDatabaseSearchService
                 $more = false;
             }
         } catch (GuzzleException $exception) {
-            throw new DataWellVendorException($exception->getMessage(), $exception->getCode());
+            throw new DataWellVendorException($exception->getMessage(), (int) $exception->getCode());
         }
 
         return [$pidArray, $more, $offset + self::SEARCH_LIMIT];
     }
 
-    /**$$
+    /**
      * Extract data from response.
      *
      * @param array $result
@@ -161,12 +160,6 @@ class TheMovieDatabaseSearchService
      *
      * @return array
      *   Array of all pid => url pairs found in response
-     */
-
-    /**
-     * @return (false|mixed|null|string)[][]
-     *
-     * @psalm-return array<array{title?: mixed, date?: mixed, originalYear?: false|string, director?: null|string}>
      */
     private function extractData(array $result): array
     {

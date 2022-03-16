@@ -54,8 +54,10 @@ class CoverStoreSearchCommand extends Command
             $input->getOption('query')
         );
 
-        $output->writeln($items);
+        foreach ($items as $item) {
+            $output->writeln((string) $item);
+        }
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

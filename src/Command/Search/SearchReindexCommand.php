@@ -63,9 +63,9 @@ class SearchReindexCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $vendorId = (int) $input->getOption('vendor-id');
-        $cleanUp = (bool) $input->getOption('clean-up');
+        $cleanUp = $input->getOption('clean-up');
         $identifier = $input->getOption('identifier');
-        $withOutSearchCache = (bool) $input->getOption('without-search-cache');
+        $withOutSearchCache = $input->getOption('without-search-cache');
         $lastIndexedDate = $input->getOption('last-indexed-date');
         $limit = (int) $input->getOption('limit');
 
@@ -132,6 +132,6 @@ class SearchReindexCommand extends Command
 
         $this->progressFinish();
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

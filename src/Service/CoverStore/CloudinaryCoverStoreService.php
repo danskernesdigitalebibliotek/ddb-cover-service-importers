@@ -96,10 +96,10 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
             $message = $error->getMessage();
 
             if (preg_match('/^Invalid.*/', $message)) {
-                throw new CoverStoreCredentialException($message, $error->getCode());
+                throw new CoverStoreCredentialException($message, (int) $error->getCode());
             }
 
-            throw new CoverStoreException($message, $error->getCode());
+            throw new CoverStoreException($message, (int) $error->getCode());
         }
 
         $status = $result['result'];
@@ -187,34 +187,33 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
      */
     private function createCloudinaryException(Error $error)
     {
-        $exception = null;
         $message = $error->getMessage();
 
         // Try to convert to cover store exception.
         if (preg_match('/^to_public_id(.+)already exists$/', $message)) {
-            return new CoverStoreAlreadyExistsException($message, $error->getCode());
+            return new CoverStoreAlreadyExistsException($message, (int) $error->getCode());
         }
 
         if (preg_match('/^Invalid.*/', $message)) {
-            return new CoverStoreCredentialException($message, $error->getCode());
+            return new CoverStoreCredentialException($message, (int) $error->getCode());
         }
 
         if (preg_match('/^Resource not found.*/', $message)) {
-            return new CoverStoreNotFoundException($message, $error->getCode());
+            return new CoverStoreNotFoundException($message, (int) $error->getCode());
         }
 
         if (preg_match('/^File size too large.*/', $message)) {
-            return new CoverStoreTooLargeFileException($message, $error->getCode());
+            return new CoverStoreTooLargeFileException($message, (int) $error->getCode());
         }
 
         if (preg_match('/^Resource is invalid.*/', $message)) {
-            return new CoverStoreInvalidResourceException($message, $error->getCode());
+            return new CoverStoreInvalidResourceException($message, (int) $error->getCode());
         }
 
-        if (520 === $error->getCode()) {
+        if (520 === (int) $error->getCode()) {
             return new CoverStoreUnexpectedException($error->getMessage(), $error->getCode());
         }
 
-        return new CoverStoreException($message, $error->getCode());
+        return new CoverStoreException($message, (int) $error->getCode());
     }
 }

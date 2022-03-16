@@ -41,6 +41,8 @@ class VendorPopulateCommand extends Command
 
     /**
      * {@inheritdoc}
+     *
+     * @throws \Doctrine\ORM\NonUniqueResultException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -53,9 +55,9 @@ class VendorPopulateCommand extends Command
         } catch (Exception $exception) {
             $io->error('👎 '.$exception->getMessage());
 
-            return -1;
+            return Command::FAILURE;
         }
 
-        return 0;
+        return Command::SUCCESS;
     }
 }
