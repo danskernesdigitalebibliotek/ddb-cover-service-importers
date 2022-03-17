@@ -3,9 +3,6 @@ doctrine:
         logging: false
         profiling: false
 
-        options:
-            !php/const:PDO::MYSQL_ATTR_SSL_CA: '%kernel.project_dir%/%env(DATABASE_SSL_CA)%'
-            !php/const:PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT: true
     orm:
         auto_generate_proxy_classes: false
         query_cache_driver:
