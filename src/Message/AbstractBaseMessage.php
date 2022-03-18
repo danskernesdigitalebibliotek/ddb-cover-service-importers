@@ -15,9 +15,9 @@ abstract class AbstractBaseMessage
     private string $identifierType;
     private string $identifier;
     private int $vendorId;
-    private ?int $imageId;
+    private ?int $imageId = null;
     private bool $useSearchCache = true;
-    private string $traceId;
+    private ?string $traceId = null;
 
     /**
      * @return string
