@@ -13,7 +13,9 @@ use App\Utils\Types\VendorStatus;
 use Box\Spout\Common\Exception\IOException;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Reader\CSV\Reader;
+use phpDocumentor\Reflection\Utils;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class AbstractTsvVendorService.
@@ -32,6 +34,8 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
     private string $resourcesDir;
 
     private int $tsvBatchSize = 100;
+    private HttpClientInterface $client;
+    private string $projectDir;
 
     /**
      * AbstractTsvVendorService constructor.
@@ -39,15 +43,30 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(string $resourcesDir)
+    public function __construct(string $resourcesDir, string $projectDir, HttpClientInterface $client)
     {
         $this->resourcesDir = $resourcesDir;
+        $this->projectDir = $projectDir;
+        $this->client = $client;
     }
 
     /**
      * {@inheritdoc}
      */
     public function load(): VendorImportResultMessage
+    {
+        return $this->tsvLoad();
+    }
+
+    /**
+     * Load data from TSV file.
+     *
+     * @param bool $download
+     *   Download files locally to allow upload form local.
+     *
+     * @return VendorImportResultMessage
+     */
+    public function tsvLoad(bool $download = false): VendorImportResultMessage
     {
         if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
             return VendorImportResultMessage::error(self::ERROR_RUNNING);
@@ -76,6 +95,10 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
                         if (!empty($fields)) {
                             $basisPid = $cellsArray[$fields['ppid']]->getValue();
                             $imageUrl = $cellsArray[$fields['url']]->getValue();
+                            if ($download) {
+                                // Some stores (CDNs) have issue with oure cover store and need to be uploaded directly.
+                                $imageUrl = $this->downloadLocally($imageUrl, $basisPid.'.'.'jpg');
+                            }
                             if (!empty($basisPid) && !empty($imageUrl) && filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                                 $pidArray[$basisPid] = $imageUrl;
                             }
@@ -151,5 +174,36 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
         }, $cellsArray);
 
         return array_flip($fields);
+    }
+
+    /**
+     * Download cover to local storage.
+     *
+     * @param string $url
+     *   URL of cover to download.
+     * @param string $filename
+     *   Filename to store cover under.
+     *
+     * @return string|null
+     *   Path and filename.
+     *
+     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+     */
+    private function downloadLocally(string $url, string $filename): ?string
+    {
+        $response = $this->client->request('GET', $url);
+
+        if (200 !== $response->getStatusCode()) {
+            // We ignore this...
+            return null;
+        }
+
+        $fileHandler = fopen($this->projectDir.'/public/covers/'.$filename, 'w');
+        foreach ($this->client->stream($response) as $chunk) {
+            fwrite($fileHandler, $chunk->getContent());
+        }
+        fclose($fileHandler);
+
+        return '/covers/'.$filename;
     }
 }

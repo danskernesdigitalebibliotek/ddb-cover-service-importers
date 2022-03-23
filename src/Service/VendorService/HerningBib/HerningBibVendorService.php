@@ -11,6 +11,8 @@ use App\Utils\Message\VendorImportResultMessage;
 use GuzzleHttp\ClientInterface;
 use League\Flysystem\Filesystem;
 use League\Flysystem\UnreadableFileException;
+use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class HerningBibVendorService.
@@ -25,26 +27,25 @@ class HerningBibVendorService extends AbstractTsvVendorService
     protected string $fieldDelimiter = ' ';
     protected bool $sheetHasHeaderRow = false;
     protected array $sheetFields = ['ppid' => 0, 'url' => 1];
-
-    private ClientInterface $httpClient;
-    private Filesystem $local;
-    private string $location;
+    private string $resourcesDir;
+    private string $projectDir;
+    private HttpClientInterface $client;
 
     /**
      * HerningBibVendorService constructor.
      *
-     * @param ClientInterface $httpClient
-     * @param Filesystem $local
+     * @param string $resourcesDir
+     * @param string $projectDir
+     * @param HttpClientInterface $client
      */
-    public function __construct(ClientInterface $httpClient, Filesystem $local)
+    public function __construct(string $resourcesDir, string $projectDir, HttpClientInterface $client)
     {
         // Resource files is loaded from online location
-        parent::__construct('');
+        parent::__construct($resourcesDir, $projectDir, $client);
 
-        $this->location = $this->vendorArchiveDir.'/'.$this->vendorArchiveName;
-
-        $this->httpClient = $httpClient;
-        $this->local = $local;
+        $this->resourcesDir = $resourcesDir;
+        $this->projectDir = $projectDir;
+        $this->client = $client;
     }
 
     /**
@@ -54,24 +55,32 @@ class HerningBibVendorService extends AbstractTsvVendorService
      */
     public function load(): VendorImportResultMessage
     {
-        $tsv = $this->getTsv($this->location, self::TSV_URL);
-
-        if (!$tsv) {
+        try {
+            $this->downloadTsv();
+        } catch (ExceptionInterface $exception) {
             throw new UnreadableFileException('Failed to get TSV file from CDN');
         }
-
-        $this->vendorArchiveDir = $this->local->getAdapter()->getPathPrefix().$this->vendorArchiveDir;
 
         return parent::load();
     }
 
     /**
      * Download the TSV file to local filesystem.
+     *
+     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
      */
-    private function getTsv(string $location, string $url): bool
+    private function downloadTsv()
     {
-        $response = $this->httpClient->get($url);
+        $location = $this->resourcesDir.'/'.$this->vendorArchiveDir;
+        if (!file_exists($location)) {
+            mkdir($location);
+        }
 
-        return $this->local->putStream($location, $response->getBody()->detach());
+        $response = $this->client->request('GET', $this::TSV_URL);
+        $fileHandler = fopen($location.'/'.$this->vendorArchiveName, 'w');
+        foreach ($this->client->stream($response) as $chunk) {
+            fwrite($fileHandler, $chunk->getContent());
+        }
+        fclose($fileHandler);
     }
 }
