@@ -92,11 +92,11 @@ class VendorImageValidatorService
      * Fetch remote image header.
      *
      * @param string $header
-     *   The header to fetch.
+     *   The header to fetch
      * @param string $url
-     *   The image URL to query.
+     *   The image URL to query
      * @param string $httpRequestMethod
-     *   The request method to use.
+     *   The request method to use
      *
      * @return array
      */
