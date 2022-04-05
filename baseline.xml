@@ -109,11 +109,6 @@
       <code>getPathPrefix</code>
     </UndefinedInterfaceMethod>
   </file>
-  <file src="src/Service/VendorService/AbstractTsvVendorService.php">
-    <InvalidArgument occurrences="1">
-      <code>true</code>
-    </InvalidArgument>
-  </file>
   <file src="src/Service/VendorService/BogPortalen/BogPortalenVendorService.php">
     <PossiblyFalseArgument occurrences="1">
       <code>$this-&gt;ftp-&gt;readStream($archive)</code>
@@ -131,11 +126,6 @@
       <code>$vendor-&gt;getDataServerURI()</code>
       <code>$vendor-&gt;getDataServerUser()</code>
     </PossiblyNullArgument>
-  </file>
-  <file src="src/Service/VendorService/EbookCentral/EbookCentralVendorService.php">
-    <InvalidArgument occurrences="1">
-      <code>true</code>
-    </InvalidArgument>
   </file>
   <file src="src/Service/VendorService/HerningBib/HerningBibVendorService.php">
     <UndefinedInterfaceMethod occurrences="2">
@@ -174,6 +164,13 @@
       <code>$pidTitleUrlArray</code>
     </PossiblyNullArgument>
   </file>
+  <file src="src/Service/VendorService/PressReader/PressReaderVendorService.php">
+    <PossiblyNullArgument occurrences="3">
+      <code>$vendor-&gt;getDataServerPassword()</code>
+      <code>$vendor-&gt;getDataServerURI()</code>
+      <code>$vendor-&gt;getDataServerUser()</code>
+    </PossiblyNullArgument>
+  </file>
   <file src="src/Service/VendorService/Publizon/PublizonVendorService.php">
     <PossiblyNullPropertyAssignmentValue occurrences="2">
       <code>$vendor-&gt;getDataServerPassword()</code>
@@ -199,11 +196,6 @@
       <code>setPassword</code>
       <code>setUsername</code>
     </UndefinedInterfaceMethod>
-  </file>
-  <file src="src/Service/VendorService/Saxo/SaxoVendorService.php">
-    <InvalidArgument occurrences="1">
-      <code>true</code>
-    </InvalidArgument>
   </file>
   <file src="src/Service/VendorService/UploadService/UploadServiceVendorService.php">
     <PossiblyNullReference occurrences="1">
