@@ -27,7 +27,7 @@ class PressReaderVendorService implements VendorServiceInterface
     protected const VENDOR_ID = 19;
     private const VENDOR_ARCHIVE_NAME = 'pressreader';
     private const URL_PATTERN = 'https://i.prcdn.co/img?cid=%s&page=1&width=1200';
-    private const MIN_IMAGE_SIZE = 30000;
+    private const MIN_IMAGE_SIZE = 40000;
 
     private DataWellSearchService $datawell;
     private VendorImageValidatorService $imageValidatorService;
@@ -68,7 +68,7 @@ class PressReaderVendorService implements VendorServiceInterface
                 $this->transformUrls($pidArray);
 
                 // The press reader CDN insert at special image saying that the content is not updated for newest news
-                // cover. See https://i.prcdn.co/img?cid=9L09&page=1&width=1200, but the size will be under 30Kb, so we have
+                // cover. See https://i.prcdn.co/img?cid=9L09&page=1&width=1200, but the size will be under 40Kb, so we have
                 // this extra test.
                 $pidArray = array_filter($pidArray, function ($url) {
                     $header = $this->imageValidatorService->remoteImageHeader('cf-polished', $url);
