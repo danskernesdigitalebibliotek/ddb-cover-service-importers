@@ -128,7 +128,7 @@ class DataWellSearchService
                     $pidArray = $this->extractData($jsonResponse);
                 }
 
-                // It seams that the "more" in the search result is always "false".
+                // It seems that the "more" in the search result is always "false".
                 $more = true;
             } else {
                 $more = false;
@@ -157,6 +157,7 @@ class DataWellSearchService
             foreach ($item['collection']['object'] as $object) {
                 if (isset($object['identifier'])) {
                     $pid = $object['identifier']['$'];
+                    $data[$pid] = null;
                     foreach ($object['relations']['relation'] as $relation) {
                         if ('dbcaddi:hasCover' === $relation['relationType']['$']) {
                             $coverUrl = $relation['relationUri']['$'];
