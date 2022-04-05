@@ -155,6 +155,7 @@ class DataWellSearchService
             foreach ($item['collection']['object'] as $object) {
                 if (isset($object['identifier'])) {
                     $pid = $object['identifier']['$'];
+                    $data[$pid] = null;
                     foreach ($object['relations']['relation'] as $relation) {
                         if ('dbcaddi:hasCover' === $relation['relationType']['$']) {
                             $coverUrl = $relation['relationUri']['$'];

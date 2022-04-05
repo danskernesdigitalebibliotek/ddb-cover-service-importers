@@ -87,4 +87,38 @@ class VendorImageValidatorService
             }
         }
     }
+
+    /**
+     * Fetch remote image header.
+     *
+     * @param string $header
+     *   The header to fetch
+     * @param string $url
+     *   The image URL to query
+     * @param string $httpRequestMethod
+     *   The request method to use
+     *
+     * @return array
+     */
+    public function remoteImageHeader(string $header, string $url, string $httpRequestMethod = Request::METHOD_HEAD): array
+    {
+        $headerContent = [];
+        try {
+            $head = $this->httpClient->request($httpRequestMethod, $url, [
+                'allow_redirects' => [
+                    'strict' => true,   // use "strict" RFC compliant redirects to avoid 30x redirects resulting in GET calls
+                ],
+            ]);
+
+            $headerContent = $head->getHeader($header);
+        } catch (\Throwable $e) {
+            // Some providers (i.e. Google Drive) disallows HEAD requests. Fall back
+            // to GET request and try to validate image.
+            if (405 === $e->getCode() && Request::METHOD_HEAD === $httpRequestMethod) {
+                $this->remoteImageHeader($header, Request::METHOD_GET);
+            }
+        }
+
+        return $headerContent;
+    }
 }

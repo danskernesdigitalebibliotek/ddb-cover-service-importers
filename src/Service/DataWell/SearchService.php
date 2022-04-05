@@ -100,7 +100,7 @@ class SearchService
                     $pidArray = $this->mergeData($jsonResponse);
                 }
 
-                // It seams that the "more" in the search result is always "false".
+                // It seems that the "more" in the search result is always "false".
                 $more = true;
             } else {
                 $more = false;

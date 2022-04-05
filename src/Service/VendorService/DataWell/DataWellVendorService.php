@@ -61,6 +61,9 @@ class DataWellVendorService implements VendorServiceInterface
                 // Search the data well for material with acSource set to "comics plus".
                 [$pidArray, $more, $offset] = $this->datawell->search('comics plus', $offset);
 
+                // Remove empty elements.
+                $pidArray = array_filter($pidArray);
+
                 // Convert images url from 'medium' to 'large'
                 IversePublicUrlConverter::convertArrayValues($pidArray);
 
