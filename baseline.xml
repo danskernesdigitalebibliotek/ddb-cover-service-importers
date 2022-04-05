@@ -3,39 +3,12 @@
 <files psalm-version="4.24.0@06dd975cb55d36af80f242561738f16c5f58264f">
 =======
 <files psalm-version="v4.15.0@a1b5e489e6fcebe40cb804793d964e99fc347820">
-<<<<<<< HEAD
-=======
-  <file src="src/.bootstrap.php">
-    <InvalidArgument occurrences="1">
-      <code>false</code>
-    </InvalidArgument>
-    <PossiblyUndefinedGlobalVariable occurrences="1">
-      <code>$p</code>
-    </PossiblyUndefinedGlobalVariable>
-    <RedundantCondition occurrences="1">
-      <code>method_exists($dotenv, 'loadEnv')</code>
-    </RedundantCondition>
-  </file>
-  <file src="src/Command/CoverStore/CoverStoreMoveCommand.php">
-    <ImplicitToStringCast occurrences="1">
-      <code>$item</code>
-    </ImplicitToStringCast>
-  </file>
-  <file src="src/Command/CoverStore/CoverStoreUploadCommand.php">
-    <ImplicitToStringCast occurrences="1">
-      <code>$item</code>
-    </ImplicitToStringCast>
-  </file>
-  <file src="src/Command/CoverStore/CoverStoreValidateImageCommand.php">
-    <UndefinedMagicMethod occurrences="1">
-      <code>findOneById</code>
-    </UndefinedMagicMethod>
-  </file>
   <file src="src/Command/HasCoverCommand.php">
     <UndefinedInterfaceMethod occurrences="1">
       <code>section</code>
     </UndefinedInterfaceMethod>
   </file>
+<<<<<<< HEAD
   <file src="src/Command/OpenPlatform/OpenPlatformSearchCommand.php">
     <ImplicitToStringCast occurrences="1">
       <code>$material</code>
@@ -48,6 +21,8 @@
   </file>
 >>>>>>> 9e1dbaf (DDBTEAM-830: Updated psalm baseline)
 >>>>>>> dfa7401 (DDBTEAM-830: Updated psalm baseline)
+=======
+>>>>>>> df61d09 (DDBTEAM-990: Fixed baseline conflict)
   <file src="src/Command/Search/SearchReindexCommand.php">
     <PossiblyFalseArgument occurrences="1">
       <code>$inputDate</code>
@@ -112,6 +87,7 @@
     </UndefinedClass>
   </file>
 <<<<<<< HEAD
+<<<<<<< HEAD
   <file src="src/MessageHandler/IndexMessageHandler.php">
     <ArgumentTypeCoercion occurrences="1">
       <code>$search</code>
@@ -136,13 +112,18 @@
       <code>getName</code>
     </PossiblyNullReference>
   </file>
+=======
+>>>>>>> df61d09 (DDBTEAM-990: Fixed baseline conflict)
   <file src="src/MessageHandler/HasCoverMessageHandler.php">
     <InvalidThrow occurrences="1">
       <code>\Psr\Cache\InvalidArgumentException</code>
     </InvalidThrow>
   </file>
+<<<<<<< HEAD
 >>>>>>> 6652374 (DDBTEAM-833: Added hasCover message handler)
 >>>>>>> daa4642 (DDBTEAM-833: Added hasCover message handler)
+=======
+>>>>>>> df61d09 (DDBTEAM-990: Fixed baseline conflict)
   <file src="src/MessageHandler/SearchNoHitsMessageHandler.php">
     <PossiblyNullReference occurrences="1">
       <code>getId</code>
