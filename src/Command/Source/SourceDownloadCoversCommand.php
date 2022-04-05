@@ -60,7 +60,8 @@ class SourceDownloadCoversCommand extends Command
     {
         $this->setDescription('Try to (re-)download source records that have not been downloaded into Cover store')
             ->addOption('vendor-id', null, InputOption::VALUE_OPTIONAL, 'Limit to this vendor')
-            ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'Only for this identifier');
+            ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'Only for this identifier')
+            ->addOption('size', null, InputOption::VALUE_OPTIONAL, 'Limit to files bigger than this size i bytes (content-length from the database)');
     }
 
     /**
@@ -70,6 +71,7 @@ class SourceDownloadCoversCommand extends Command
     {
         $vendorId = $input->getOption('vendor-id');
         $identifier = $input->getOption('identifier');
+        $size = $input->getOption('size');
 
         $batchSize = 50;
         $i = 0;
@@ -87,6 +89,9 @@ class SourceDownloadCoversCommand extends Command
         }
         if (!is_null($vendorId)) {
             $queryStr .= ' AND s.vendor = '.$vendorId;
+        }
+        if (!is_null($size)) {
+            $queryStr .= ' AND s.originalContentLength > '.$size;
         }
 
         $query = $this->em->createQuery($queryStr);

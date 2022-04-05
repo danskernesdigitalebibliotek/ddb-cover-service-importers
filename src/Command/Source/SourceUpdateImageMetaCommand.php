@@ -36,6 +36,7 @@ class SourceUpdateImageMetaCommand extends Command
     protected function configure(): void
     {
         $this->setDescription('Update image metadata information')
+            ->addOption('vendor-id', null, InputOption::VALUE_OPTIONAL, 'Limit to this vendor')
             ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'Only for this identifier');
     }
 
@@ -44,6 +45,7 @@ class SourceUpdateImageMetaCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $vendorId = $input->getOption('vendor-id');
         $identifier = $input->getOption('identifier');
         $batchSize = 50;
         $i = 0;
@@ -52,6 +54,9 @@ class SourceUpdateImageMetaCommand extends Command
         $queryStr = 'SELECT s FROM App\Entity\Source s WHERE s.originalFile IS NOT NULL AND s.originalContentLength IS NULL AND s.originalLastModified IS NULL';
         if (!is_null($identifier)) {
             $queryStr = 'SELECT s FROM App\Entity\Source s WHERE s.matchId='.$identifier;
+        }
+        if (!is_null($vendorId)) {
+            $queryStr .= ' AND s.vendor = '.$vendorId;
         }
         $query = $this->em->createQuery($queryStr);
 
