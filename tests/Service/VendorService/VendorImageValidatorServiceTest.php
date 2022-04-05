@@ -128,6 +128,23 @@ class VendorImageValidatorServiceTest extends TestCase
     }
 
     /**
+     * Test remoteImageHeader parser.
+     *
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function testRemoteImageHeader()
+    {
+        $client = $this->mockHttpClient(200, [
+            'cf-polished' => 'origFmt=png, origSize=25272',
+        ], '');
+
+        $service = new VendorImageValidatorService($client);
+        $headers = $service->remoteImageHeader('cf-polished', $this->url);
+
+        $this->assertEquals(['origFmt=png, origSize=25272'], $headers);
+    }
+
+    /**
      * Helper function to mock http client.
      *
      * @param $status
