@@ -215,10 +215,11 @@ class UploadServiceVendorService implements VendorServiceInterface
                             'type' => $type,
                             'identifier' => $identifier,
                         ]);
-                        $this->vendorCoreService->getMetricsService()->counter('coverstore_loading_image_total', 'Cover store error loading image', 1, $labels);
+                        $this->vendorCoreService->getMetricsService()->counter('coverstore_loading_image_total', 'Cover store total loading image', 1, $labels);
                         $this->vendorCoreService->getMetricsService()->counter('coverstore_error_total', 'Cover store error', 1, $labels);
                         continue;
                     }
+                    $this->vendorCoreService->getMetricsService()->counter('coverstore_loading_image_total', 'Cover store total loading image', 1, $labels);
                 } else {
                     // Something un-expected happen here.
                     $this->logger->error($this->getVendorName().' error loading source', [
@@ -226,10 +227,11 @@ class UploadServiceVendorService implements VendorServiceInterface
                         'type' => $type,
                         'identifier' => $identifier,
                     ]);
-                    $this->vendorCoreService->getMetricsService()->counter('coverstore_loading_source_total', 'Cover store error loading source', 1, $labels);
+                    $this->vendorCoreService->getMetricsService()->counter('coverstore_loading_source_total', 'Cover store total loading source', 1, $labels);
                     $this->vendorCoreService->getMetricsService()->counter('coverstore_error_total', 'Cover store error', 1, $labels);
                     continue;
                 }
+                $this->vendorCoreService->getMetricsService()->counter('coverstore_loading_source_total', 'Cover store total loading source', 1, $labels);
             }
 
             // Set image information.
