@@ -117,7 +117,7 @@ class Source
     /**
      * @return static
      */
-    public function setVendor(?Vendor $vendor): self
+    public function setVendor(Vendor $vendor): self
     {
         $this->vendor = $vendor;
 

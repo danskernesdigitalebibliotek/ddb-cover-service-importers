@@ -28,26 +28,13 @@ class Client
     private const OAUTH_URL_BASE = 'https://oauth.overdrive.com';
     private const USER_AGENT = 'cover.dandigbib.org';
 
-    /** @var string */
-    private $libraryAccountEndpoint;
-
-    /** @var string */
-    private $clientId;
-
-    /** @var string */
-    private $clientSecret;
-
-    /** @var AdapterInterface */
-    private $cache;
-
-    /** @var ClientInterface */
-    private $httpClient;
-
-    /** @var AccessTokenInterface */
-    private $accessToken;
-
-    /** @var string */
-    private $productsEndpoint;
+    private string $libraryAccountEndpoint;
+    private string $clientId;
+    private string $clientSecret;
+    private AdapterInterface $cache;
+    private ClientInterface $httpClient;
+    private AccessTokenInterface $accessToken;
+    private string $productsEndpoint;
 
     /**
      * Client constructor.
@@ -153,8 +140,9 @@ class Client
      * @return array
      *   Array of 'products' serialized as stdClass
      *
+     * @throws AccountException
      * @throws AuthException
-     * @throws GuzzleException
+     * @throws IdentityProviderException
      * @throws InvalidArgumentException
      */
     public function getProducts(int $limit, int $offset): array
@@ -167,11 +155,13 @@ class Client
 
             $content = $response->getBody()->getContents();
             $content = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
+
+            return $content->products ?? [];
         } catch (GuzzleException|\JsonException $exception) {
             // Ignore
         }
 
-        return $content->products ?? [];
+        return [];
     }
 
     /**
@@ -180,9 +170,10 @@ class Client
      * @return int
      *   The total number of products
      *
+     * @throws AccountException
      * @throws AuthException
-     * @throws InvalidArgumentException
      * @throws IdentityProviderException
+     * @throws InvalidArgumentException
      */
     public function getTotalProducts(): int
     {
@@ -193,11 +184,13 @@ class Client
 
             $content = $response->getBody()->getContents();
             $content = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
+
+            return $content->totalItems ?? 0;
         } catch (GuzzleException|\JsonException $exception) {
             // Ignore
         }
 
-        return $content->totalItems ?? 0;
+        return 0;
     }
 
     /**
@@ -210,7 +203,7 @@ class Client
      * @throws IdentityProviderException
      * @throws InvalidArgumentException
      *
-     * @psalm-return array{User-Agent: 'cover.dandigbib.org', Content-Type: 'application/json', Authorization: string}
+     * @psalm-return array {'User-Agent': 'cover.dandigbib.org', 'Content-Type': 'application/json', 'Authorization': string}
      */
     private function getHeaders(): array
     {
@@ -222,7 +215,7 @@ class Client
     }
 
     /**
-     * Get the products endpoint for the account used.
+     * Get products endpoint for the account used.
      *
      * @return string
      *   The complete URI for the products endpoint
@@ -243,7 +236,7 @@ class Client
     }
 
     /**
-     * Fetch the products endpoint for the account used from the Library API.
+     * Fetch products endpoint for the account used from the Library API.
      *
      * @see https://developer.overdrive.com/apis/library-account
      *
@@ -275,7 +268,7 @@ class Client
             $content = $response->getBody()->getContents();
             $json = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
 
-            // Store products endpoint in local cache.
+            // Store product endpoint in local cache.
             $item->set($json->links->products->href);
             $this->cache->save($item);
 
@@ -312,7 +305,7 @@ class Client
             $this->cache->save($item);
         }
 
-        // Get refresh token if needed
+        // Get refresh token if needed.
         if ($accessToken->hasExpired()) {
             $accessToken = $this->getAuthProvider()->getAccessToken('refresh_token', [
                 'refresh_token' => $accessToken->getRefreshToken(),

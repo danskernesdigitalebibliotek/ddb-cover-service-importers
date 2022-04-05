@@ -64,6 +64,9 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
 
     /**
      * @{@inheritdoc}
+     *
+     * @throws GuzzleException
+     * @throws UnknownVendorServiceException
      */
     public function load(): VendorImportResultMessage
     {
@@ -143,22 +146,24 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
 
     /**
      * Set config from service from DB vendor object.
+     *
+     * @throws UnknownVendorServiceException
      */
     private function loadConfig(): void
     {
         $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
 
         // Set the service access configuration from the vendor.
-        $this->dataWell->setSearchUrl($vendor->getDataServerURI());
-        $this->dataWell->setUser($vendor->getDataServerUser());
-        $this->dataWell->setPassword($vendor->getDataServerPassword());
+        $this->dataWell->setSearchUrl($vendor->getDataServerURI() ?? '');
+        $this->dataWell->setUser($vendor->getDataServerUser() ?? '');
+        $this->dataWell->setPassword($vendor->getDataServerPassword() ?? '');
     }
 
     /**
      * Lookup post urls post normal batch processing.
      *
      * @param array $pids
-     *   The source table pids
+     *   The source table post id's
      * @param array $searchResults
      *   The datawell search result
      *

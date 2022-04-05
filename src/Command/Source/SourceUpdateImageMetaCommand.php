@@ -88,6 +88,6 @@ class SourceUpdateImageMetaCommand extends Command
         $this->em->flush();
         $this->em->clear();
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

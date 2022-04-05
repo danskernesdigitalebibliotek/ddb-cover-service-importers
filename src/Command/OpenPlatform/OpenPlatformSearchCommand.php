@@ -59,8 +59,8 @@ class OpenPlatformSearchCommand extends Command
         $withOutSearchCache = $input->getOption('without-search-cache');
 
         $material = $this->search->search($is, $type, $withOutSearchCache);
-        $output->writeln($material);
+        $output->writeln((string) $material);
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

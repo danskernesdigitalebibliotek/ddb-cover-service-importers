@@ -58,8 +58,8 @@ class CoverStoreUploadCommand extends Command
             $input->getArgument('tags')
         );
 
-        $output->writeln($item);
+        $output->writeln((string) $item);
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

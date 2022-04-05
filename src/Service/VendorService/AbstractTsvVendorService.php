@@ -141,8 +141,6 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
      *
      * @return array
      *   Keys are cell names and values are cell numbers
-     *
-     * @psalm-return array<false|string, array-key>
      */
     private function findCellName(array $cellsArray): array
     {

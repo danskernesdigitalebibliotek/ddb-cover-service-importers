@@ -25,7 +25,6 @@ use Doctrine\DBAL\ConnectionException;
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use ItkDev\MetricsBundle\Service\MetricsService;
-use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
@@ -61,10 +60,10 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
     /**
      * @param SearchNoHitsMessage $message
      *
-     * @throws InvalidArgumentException
      * @throws MaterialTypeException
      * @throws OpenPlatformAuthException
      * @throws OpenPlatformSearchException
+     * @throws \Doctrine\DBAL\Exception
      */
     public function __invoke(SearchNoHitsMessage $message)
     {

@@ -64,6 +64,6 @@ class OpenPlatformAuthCommand extends Command
         $output->writeln(' Access token: '.$token);
         $output->writeln($separator);
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

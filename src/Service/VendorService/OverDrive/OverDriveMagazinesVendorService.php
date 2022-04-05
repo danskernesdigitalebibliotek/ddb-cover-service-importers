@@ -29,10 +29,10 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
     protected const VENDOR_ID = 16;
 
     private const VENDOR_SEARCH_TERM = 'facet.acSource="ereolen magazines"';
-    private const VENDOR_MAGAZINE_URL_BASE = 'http://link.overdrive.com/';
+    private const VENDOR_MAGAZINE_URL_BASE = 'https://link.overdrive.com/';
 
-    private $searchService;
-    private $apiClient;
+    private SearchService $searchService;
+    private Client $apiClient;
 
     /**
      * OverDriveMagazinesVendorService constructor.
@@ -111,12 +111,16 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
     {
         $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
 
-        $libraryAccountEndpoint = $vendor->getDataServerURI();
-        $this->apiClient->setLibraryAccountEndpoint($libraryAccountEndpoint);
-
         $clientId = $vendor->getDataServerUser();
         $clientSecret = $vendor->getDataServerPassword();
-        $this->apiClient->setCredentials($clientId, $clientSecret);
+        $libraryAccountEndpoint = $vendor->getDataServerURI();
+
+        if (!empty($clientId) && !empty($clientSecret) && !empty($libraryAccountEndpoint)) {
+            $this->apiClient->setLibraryAccountEndpoint($libraryAccountEndpoint);
+            $this->apiClient->setCredentials($clientId, $clientSecret);
+        } else {
+            throw new \InvalidArgumentException('Missing configuration');
+        }
     }
 
     /**

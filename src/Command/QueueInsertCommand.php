@@ -96,8 +96,8 @@ class QueueInsertCommand extends Command
         }
 
         // Send message into the system.
-        $this->bus->dispatch($message);
+        $this->bus->dispatch((object) $message);
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

@@ -120,10 +120,14 @@ class BogPortalenVendorService implements VendorServiceInterface
         $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
 
         // Set FTP adapter configuration.
-        $adapter = $this->ftp->getAdapter();
-        $adapter->setUsername($vendor->getDataServerUser());
-        $adapter->setPassword($vendor->getDataServerPassword());
-        $adapter->setHost($vendor->getDataServerURI());
+        if (!empty($vendor->getDataServerUser()) && !empty($vendor->getDataServerPassword()) && !empty($vendor->getDataServerURI())) {
+            $adapter = $this->ftp->getAdapter();
+            $adapter->setUsername($vendor->getDataServerUser());
+            $adapter->setPassword($vendor->getDataServerPassword());
+            $adapter->setHost($vendor->getDataServerURI());
+        } else {
+            throw new \InvalidArgumentException('Missing configuration');
+        }
     }
 
     /**
@@ -185,11 +189,9 @@ class BogPortalenVendorService implements VendorServiceInterface
      * @param $path
      *   The path of the archive in the local filesystem
      *
-     * @return (false|string)[] List of filenames
+     * @return array
      *
      * @throws FileNotFoundException
-     *
-     * @psalm-return list<false|string>
      */
     private function listZipContents(string $path): array
     {
@@ -207,14 +209,14 @@ class BogPortalenVendorService implements VendorServiceInterface
                 $fileNames[] = $zip->getNameIndex($i);
             }
         } else {
-            throw new FileNotFoundException('Error: '.$zipReader.' when reading '.$path);
+            throw new FileNotFoundException('Error when reading '.$path);
         }
 
         return $fileNames;
     }
 
     /**
-     * Get valid and unique ISBN numbers from list of paths.
+     * Get valid and unique ISBNs from list of paths.
      *
      * @param array $filePaths
      *
@@ -233,14 +235,11 @@ class BogPortalenVendorService implements VendorServiceInterface
             $nameParts = explode('-', $fileName);
             $isbn = array_pop($nameParts);
 
-            // Ensure that the found string is a number to filter out
-            // files with wrong or incomplete isbn numbers.
+            // Ensure that the found string is a number to filter out files with wrong or incomplete ISBNs.
             $temp = (int) $isbn;
             $temp = (string) $temp;
             if (($isbn === $temp) && (13 === strlen($isbn))) {
                 $isbnList[] = $isbn;
-            } else {
-                // @TODO: Should we log invalid ISBNs here?
             }
         }
 

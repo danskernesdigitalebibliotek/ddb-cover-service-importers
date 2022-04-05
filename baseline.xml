@@ -1,41 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <files psalm-version="v4.15.0@a1b5e489e6fcebe40cb804793d964e99fc347820">
-  <file src="src/.bootstrap.php">
-    <InvalidArgument occurrences="1">
-      <code>false</code>
-    </InvalidArgument>
-    <PossiblyUndefinedGlobalVariable occurrences="1">
-      <code>$p</code>
-    </PossiblyUndefinedGlobalVariable>
-    <RedundantCondition occurrences="1">
-      <code>method_exists($dotenv, 'loadEnv')</code>
-    </RedundantCondition>
-  </file>
-  <file src="src/Command/CoverStore/CoverStoreMoveCommand.php">
-    <ImplicitToStringCast occurrences="1">
-      <code>$item</code>
-    </ImplicitToStringCast>
-  </file>
-  <file src="src/Command/CoverStore/CoverStoreUploadCommand.php">
-    <ImplicitToStringCast occurrences="1">
-      <code>$item</code>
-    </ImplicitToStringCast>
-  </file>
-  <file src="src/Command/OpenPlatform/OpenPlatformSearchCommand.php">
-    <ImplicitToStringCast occurrences="1">
-      <code>$material</code>
-    </ImplicitToStringCast>
-  </file>
-  <file src="src/Command/QueueInsertCommand.php">
-    <PossiblyInvalidArgument occurrences="1">
-      <code>$message</code>
-    </PossiblyInvalidArgument>
-  </file>
   <file src="src/Command/Search/SearchReindexCommand.php">
-    <RedundantCast occurrences="2">
-      <code>(bool) $input-&gt;getOption('clean-up')</code>
-      <code>(bool) $input-&gt;getOption('without-search-cache')</code>
-    </RedundantCast>
     <UndefinedInterfaceMethod occurrences="1">
       <code>section</code>
     </UndefinedInterfaceMethod>
@@ -95,10 +60,10 @@
       <code>getImage</code>
     </PossiblyNullReference>
   </file>
-  <file src="src/Entity/Source.php">
-    <PossiblyNullPropertyAssignmentValue occurrences="1">
-      <code>$vendor</code>
-    </PossiblyNullPropertyAssignmentValue>
+  <file src="src/Entity/Vendor.php">
+    <NullArgument occurrences="1">
+      <code>null</code>
+    </NullArgument>
   </file>
   <file src="src/EventSubscriber/IndexEventSubscriber.php">
     <PossiblyNullReference occurrences="1">
@@ -111,9 +76,6 @@
     </UndefinedClass>
   </file>
   <file src="src/MessageHandler/SearchNoHitsMessageHandler.php">
-    <InvalidThrow occurrences="1">
-      <code>InvalidArgumentException</code>
-    </InvalidThrow>
     <PossiblyNullArgument occurrences="1">
       <code>$source-&gt;getOriginalFile()</code>
     </PossiblyNullArgument>
@@ -127,34 +89,12 @@
       <code>$source-&gt;getOriginalFile()</code>
     </PossiblyNullArgument>
   </file>
-  <file src="src/Repository/SourceRepository.php">
-    <QueryBuilderSetParameter occurrences="2">
-      <code>$vendor</code>
-      <code>$vendor</code>
-    </QueryBuilderSetParameter>
-  </file>
   <file src="src/Service/CoverStore/CloudinaryCoverStoreService.php">
-    <InvalidScalarArgument occurrences="8">
-      <code>$error-&gt;getCode()</code>
-      <code>$error-&gt;getCode()</code>
-      <code>$error-&gt;getCode()</code>
-      <code>$error-&gt;getCode()</code>
-      <code>$error-&gt;getCode()</code>
-      <code>$error-&gt;getCode()</code>
-      <code>$error-&gt;getCode()</code>
-      <code>$error-&gt;getCode()</code>
-    </InvalidScalarArgument>
-  </file>
-  <file src="src/Service/DataWell/SearchService.php">
     <InvalidScalarArgument occurrences="1">
-      <code>$exception-&gt;getCode()</code>
+      <code>$error-&gt;getCode()</code>
     </InvalidScalarArgument>
   </file>
   <file src="src/Service/OpenPlatform/AuthenticationService.php">
-    <InvalidScalarArgument occurrences="2">
-      <code>$exception-&gt;getCode()</code>
-      <code>$exception-&gt;getCode()</code>
-    </InvalidScalarArgument>
     <InvalidThrow occurrences="2">
       <code>\Psr\Cache\InvalidArgumentException</code>
       <code>\Psr\Cache\InvalidArgumentException</code>
@@ -162,9 +102,6 @@
   </file>
   <file src="src/Service/OpenPlatform/SearchService.php">
     <InvalidCatch occurrences="1"/>
-    <InvalidScalarArgument occurrences="1">
-      <code>$exception-&gt;getCode()</code>
-    </InvalidScalarArgument>
   </file>
   <file src="src/Service/VendorService/AarhusKommuneMbu/AarhusKommuneMbuVendorService.php">
     <UndefinedInterfaceMethod occurrences="2">
@@ -172,26 +109,10 @@
       <code>getPathPrefix</code>
     </UndefinedInterfaceMethod>
   </file>
-  <file src="src/Service/VendorService/AbstractTsvVendorService.php">
-    <InvalidArgument occurrences="1">
-      <code>true</code>
-    </InvalidArgument>
-    <InvalidScalarArgument occurrences="3">
-      <code>$fields</code>
-      <code>$fields</code>
-      <code>$fields</code>
-    </InvalidScalarArgument>
-    <MismatchingDocblockReturnType occurrences="1">
-      <code>array&lt;false|string, array-key&gt;</code>
-    </MismatchingDocblockReturnType>
-  </file>
   <file src="src/Service/VendorService/BogPortalen/BogPortalenVendorService.php">
     <PossiblyFalseArgument occurrences="1">
       <code>$this-&gt;ftp-&gt;readStream($archive)</code>
     </PossiblyFalseArgument>
-    <PossiblyFalseOperand occurrences="1">
-      <code>$zipReader</code>
-    </PossiblyFalseOperand>
     <UndefinedInterfaceMethod occurrences="4">
       <code>getPathPrefix</code>
       <code>setHost</code>
@@ -199,22 +120,12 @@
       <code>setUsername</code>
     </UndefinedInterfaceMethod>
   </file>
-  <file src="src/Service/VendorService/DataWell/DataWellSearchService.php">
-    <InvalidScalarArgument occurrences="1">
-      <code>$exception-&gt;getCode()</code>
-    </InvalidScalarArgument>
-  </file>
   <file src="src/Service/VendorService/DataWell/DataWellVendorService.php">
     <PossiblyNullArgument occurrences="3">
       <code>$vendor-&gt;getDataServerPassword()</code>
       <code>$vendor-&gt;getDataServerURI()</code>
       <code>$vendor-&gt;getDataServerUser()</code>
     </PossiblyNullArgument>
-  </file>
-  <file src="src/Service/VendorService/EbookCentral/EbookCentralVendorService.php">
-    <InvalidArgument occurrences="1">
-      <code>true</code>
-    </InvalidArgument>
   </file>
   <file src="src/Service/VendorService/HerningBib/HerningBibVendorService.php">
     <UndefinedInterfaceMethod occurrences="2">
@@ -233,10 +144,6 @@
       <code>InvalidArgumentException</code>
       <code>InvalidArgumentException</code>
     </InvalidThrow>
-    <PossiblyUndefinedVariable occurrences="2">
-      <code>$content</code>
-      <code>$content</code>
-    </PossiblyUndefinedVariable>
   </file>
   <file src="src/Service/VendorService/OverDrive/OverDriveBooksVendorService.php">
     <InvalidThrow occurrences="1">
@@ -252,18 +159,19 @@
     <InvalidThrow occurrences="1">
       <code>InvalidArgumentException</code>
     </InvalidThrow>
-    <PossiblyNullArgument occurrences="5">
-      <code>$clientId</code>
-      <code>$clientSecret</code>
-      <code>$libraryAccountEndpoint</code>
+    <PossiblyNullArgument occurrences="2">
       <code>$pidTitleIdArray</code>
       <code>$pidTitleUrlArray</code>
     </PossiblyNullArgument>
   </file>
+  <file src="src/Service/VendorService/PressReader/PressReaderVendorService.php">
+    <PossiblyNullArgument occurrences="3">
+      <code>$vendor-&gt;getDataServerPassword()</code>
+      <code>$vendor-&gt;getDataServerURI()</code>
+      <code>$vendor-&gt;getDataServerUser()</code>
+    </PossiblyNullArgument>
+  </file>
   <file src="src/Service/VendorService/Publizon/PublizonVendorService.php">
-    <PossiblyNullArrayOffset occurrences="1">
-      <code>$isbnArray</code>
-    </PossiblyNullArrayOffset>
     <PossiblyNullPropertyAssignmentValue occurrences="2">
       <code>$vendor-&gt;getDataServerPassword()</code>
       <code>$vendor-&gt;getDataServerURI()</code>
@@ -289,40 +197,10 @@
       <code>setUsername</code>
     </UndefinedInterfaceMethod>
   </file>
-  <file src="src/Service/VendorService/Saxo/SaxoVendorService.php">
-    <InvalidArgument occurrences="1">
-      <code>true</code>
-    </InvalidArgument>
-  </file>
-  <file src="src/Service/VendorService/TheMovieDatabase/TheMovieDatabaseApiService.php">
-    <ArgumentTypeCoercion occurrences="1">
-      <code>$retryAfter</code>
-    </ArgumentTypeCoercion>
-    <InvalidArgument occurrences="1">
-      <code>$retryAfterHeader</code>
-    </InvalidArgument>
-  </file>
-  <file src="src/Service/VendorService/TheMovieDatabase/TheMovieDatabaseSearchService.php">
-    <InvalidScalarArgument occurrences="1">
-      <code>$exception-&gt;getCode()</code>
-    </InvalidScalarArgument>
-  </file>
-  <file src="src/Service/VendorService/TheMovieDatabase/TheMovieDatabaseVendorService.php">
-    <PossiblyNullArgument occurrences="3">
-      <code>$vendor-&gt;getDataServerPassword()</code>
-      <code>$vendor-&gt;getDataServerURI()</code>
-      <code>$vendor-&gt;getDataServerUser()</code>
-    </PossiblyNullArgument>
-  </file>
   <file src="src/Service/VendorService/UploadService/UploadServiceVendorService.php">
     <PossiblyNullReference occurrences="1">
       <code>setImageFormat</code>
     </PossiblyNullReference>
-  </file>
-  <file src="src/Service/VendorService/VendorCoreService.php">
-    <TypeDoesNotContainType occurrences="1">
-      <code>empty($this-&gt;vendors[$vendorId])</code>
-    </TypeDoesNotContainType>
   </file>
   <file src="src/Service/VendorService/VendorServiceFactory.php">
     <PossiblyFalseOperand occurrences="1">

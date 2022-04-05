@@ -55,8 +55,8 @@ class CoverStoreMoveCommand extends Command
         $item = $this->store->move($source, $destination);
 
         // If not moved exceptions should have been thrown.
-        $output->writeln($item);
+        $output->writeln((string) $item);
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

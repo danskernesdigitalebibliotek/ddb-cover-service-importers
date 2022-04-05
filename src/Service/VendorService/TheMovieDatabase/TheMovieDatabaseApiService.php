@@ -190,16 +190,21 @@ class TheMovieDatabaseApiService
         // If 429 rate limit has been hit. Retry request after Retry-After.
         if (429 === $response->getStatusCode()) {
             $retryAfterHeader = $response->getHeader('Retry-After');
+            $retryAfterHeader = reset($retryAfterHeader);
             if (is_numeric($retryAfterHeader)) {
                 $retryAfter = (int) $retryAfterHeader;
             } else {
-                $retryAfter = (int) ((new \DateTime($retryAfterHeader))->format('U')) - time();
+                $retryAfter = (int) ((new \DateTime((string) $retryAfterHeader))->format('U')) - time();
             }
 
             // Rate limit hit. Wait until 'Retry-After' header, then retry.
             $this->logger->alert(sprintf('Rate limit hit. Sleeping for %d seconds', $retryAfter + 1));
 
-            sleep($retryAfter);
+            if ($retryAfter > 0) {
+                sleep($retryAfter);
+            } else {
+                throw new \InvalidArgumentException('Sleep only accepts positive-int values');
+            }
 
             // Retry request.
             $response = $this->client->request($method, $queryUrl, $query);
