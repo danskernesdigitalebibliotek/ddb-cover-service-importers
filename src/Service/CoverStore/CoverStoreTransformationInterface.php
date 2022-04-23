@@ -16,7 +16,7 @@ use App\Exception\CoverStoreTransformationException;
 interface CoverStoreTransformationInterface
 {
     /**
-     * Transform a base URL into an URL with applied transformations.
+     * Transform a base URL into a URL with applied transformations.
      *
      * @param string $url
      *   The base URL to transform
