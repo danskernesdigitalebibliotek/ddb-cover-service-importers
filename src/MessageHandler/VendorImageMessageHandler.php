@@ -31,7 +31,7 @@ class VendorImageMessageHandler implements MessageHandlerInterface
     private LoggerInterface $logger;
 
     /**
-     * VendorImageProcessor constructor.
+     * VendorImageMessageHandler constructor.
      *
      * @param EntityManagerInterface $entityManager
      * @param VendorImageValidatorService $imageValidator
