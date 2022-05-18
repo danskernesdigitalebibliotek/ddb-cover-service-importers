@@ -30,6 +30,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Doctrine\DBAL\Exception;
 
 /**
  * Class SearchNoHitsMessageHandler.
@@ -64,14 +65,17 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
      * @throws InvalidArgumentException
      * @throws MaterialTypeException
      * @throws OpenPlatformAuthException
+     * @throws MaterialTypeException
+     * @throws OpenPlatformAuthException
      * @throws OpenPlatformSearchException
+     * @throws Exception
      */
     public function __invoke(SearchNoHitsMessage $message)
     {
         $identifier = $message->getIdentifier();
 
         // If it's a "katalog" identifier, we will try to check if a matching
-        // "basic" identifier exits and create the mapping.
+        // "faust" identifier exits and create the mapping.
         if (strpos($identifier, '-katalog:')) {
             $searchRepos = $this->em->getRepository(Search::class);
             $faust = null;
@@ -154,6 +158,8 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                 if ($source instanceof Source) {
                     // Also check that the source record has an image from the vendor as not all do.
                     if (!is_null($source->getImage())) {
+                        $this->metricsService->counter('no_hit_source_found', 'No-hit source found', 1, ['type' => 'nohit']);
+
                         $message = new SearchMessage();
                         $message->setIdentifier($source->getMatchId())
                             ->setOperation(VendorState::UPDATE)
@@ -162,12 +168,9 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                             ->setImageId($source->getImage()->getId())
                             ->setUseSearchCache(true);
                         $this->bus->dispatch($message);
-                        $this->metricsService->counter('no_hit_source_found', 'No-hit source found', 1, ['type' => 'nohit']);
-                    }
-
-                    // If the source image is null. It might have been made available since we asked the vendor for the
-                    // cover.
-                    if (is_null($source->getImage()) && !is_null($source->getOriginalFile())) {
+                    } else if (is_null($source->getImage()) && !is_null($source->getOriginalFile())) {
+                        // If the source image is null. It might have been made available since we asked the vendor for the
+                        // cover.
                         $this->metricsService->counter('no_hit_without_image', 'No-hit source found without image', 1, ['type' => 'nohit']);
 
                         $item = new VendorImageItem();
@@ -181,14 +184,14 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                         }
 
                         if ($item->isFound()) {
+                            $this->metricsService->counter('no_hit_without_image_new', 'No-hit source found with new image', 1, ['type' => 'nohit']);
+
                             $message = new VendorImageMessage();
                             $message->setOperation(VendorState::UPDATE)
                                 ->setIdentifier($source->getMatchId())
                                 ->setVendorId($source->getVendor()->getId())
                                 ->setIdentifierType($source->getMatchType());
                             $this->bus->dispatch($message);
-
-                            $this->metricsService->counter('no_hit_without_image_new', 'No-hit source found with new image', 1, ['type' => 'nohit']);
                         }
                     }
                 }

@@ -93,8 +93,6 @@ class VendorImageMessageHandler implements MessageHandlerInterface
      * @param VendorImageMessage $message
      * @param Source $source
      *
-     * @throws GuzzleException
-     *
      * @return void
      */
     private function processInsert(VendorImageMessage $message, Source $source): void
@@ -102,9 +100,16 @@ class VendorImageMessageHandler implements MessageHandlerInterface
         $item = new VendorImageItem();
         $item->setOriginalFile($source->getOriginalFile());
 
+        // If the image is validated the isFound() will return true/false. The LastModified and ContentLength length
+        // will also be set on the $item variable.
         $this->imageValidator->validateRemoteImage($item);
 
         if ($item->isFound()) {
+            // Ensure that database operations are completed before sending new related jobs into queues.
+            $source->setOriginalLastModified($item->getOriginalLastModified());
+            $source->setOriginalContentLength($item->getOriginalContentLength());
+            $this->em->flush();
+
             // Hack to send message into new queue.
             $coverStoreMessage = new CoverStoreMessage();
             $coverStoreMessage->setIdentifier($message->getIdentifier())
@@ -114,12 +119,7 @@ class VendorImageMessageHandler implements MessageHandlerInterface
                 ->setUseSearchCache($message->useSearchCache())
                 ->setVendorId($message->getVendorId());
             $this->bus->dispatch($coverStoreMessage);
-
-            $source->setOriginalLastModified($item->getOriginalLastModified());
-            $source->setOriginalContentLength($item->getOriginalContentLength());
-            $this->em->flush();
         } else {
-            $source->setOriginalFile(null);
             $source->setOriginalLastModified(null);
             $source->setOriginalContentLength(null);
             $this->em->flush();
@@ -131,6 +131,9 @@ class VendorImageMessageHandler implements MessageHandlerInterface
                 'url' => $item->getOriginalFile(),
             ]);
         }
+
+        // Free memory.
+        $this->em->clear();
     }
 
     /**

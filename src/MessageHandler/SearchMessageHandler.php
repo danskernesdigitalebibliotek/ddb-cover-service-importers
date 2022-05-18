@@ -125,5 +125,8 @@ class SearchMessageHandler implements MessageHandlerInterface
 
             $this->dispatcher->dispatch($event, $event::NAME);
         }
+
+        // Free memory.
+        $this->em->clear();
     }
 }
