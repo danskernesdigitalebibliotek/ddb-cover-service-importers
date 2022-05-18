@@ -6,8 +6,13 @@
 
 namespace App\Service\VendorService\AarhusKommuneMbu;
 
+use App\Exception\UnknownVendorResourceFormatException;
 use App\Service\VendorService\AbstractTsvVendorService;
+use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
+use App\Utils\Types\IdentifierType;
+use App\Utils\Types\VendorStatus;
 use GuzzleHttp\ClientInterface;
 use League\Flysystem\Filesystem;
 use League\Flysystem\UnreadableFileException;
@@ -17,6 +22,9 @@ use League\Flysystem\UnreadableFileException;
  */
 class AarhusKommuneMbuVendorService extends AbstractTsvVendorService
 {
+    use ProgressBarTrait;
+    use VendorServiceTrait;
+
     protected const VENDOR_ID = 18;
     private const TSV_URL = 'https://drive.google.com/uc?id=1zmXcKSWOvIy5-2-3PODP6gy4lIzZ9k3I';
 
@@ -62,7 +70,63 @@ class AarhusKommuneMbuVendorService extends AbstractTsvVendorService
 
         $this->vendorArchiveDir = $this->local->getAdapter()->getPathPrefix().$this->vendorArchiveDir;
 
-        return parent::load();
+        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
+            return VendorImportResultMessage::error(self::ERROR_RUNNING);
+        }
+
+        try {
+            $this->progressStart('Opening resource: "'.$this->vendorArchiveName.'"');
+
+            $reader = $this->getSheetReader();
+
+            $totalRows = 0;
+            $faustArray = [];
+            $status = new VendorStatus();
+
+            foreach ($reader->getSheetIterator() as $sheet) {
+                $fields = $this->sheetFields;
+                foreach ($sheet->getRowIterator() as $row) {
+                    $cellsArray = $row->getCells();
+                    if (!empty($fields)) {
+                        $basisPid = $cellsArray[$fields['ppid']]->getValue();
+                        $imageUrl = $cellsArray[$fields['url']]->getValue();
+                        if (!empty($basisPid) && !empty($imageUrl) && filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+                            // This is a hack as this vendor uses katalog PID, but want to be able to search on faust,
+                            // so we index them by faust and will make the mapping to katalog in no-hit processing.
+                            if (preg_match('/^300751-katalog:(\d+)/', $basisPid, $matches)) {
+                                $faustArray[$matches[1]] = $imageUrl;
+                            }
+                        }
+                    } else {
+                        throw new UnknownVendorResourceFormatException('Header row was not found.');
+                    }
+
+                    ++$totalRows;
+
+                    if ($this->limit && $totalRows >= $this->limit) {
+                        break;
+                    }
+
+                    if (0 === $totalRows % $this->tsvBatchSize) {
+                        $this->vendorCoreService->updateOrInsertMaterials($status, $faustArray, IdentifierType::FAUST, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
+
+                        $faustArray = [];
+
+                        $this->progressMessageFormatted($status);
+                        $this->progressAdvance();
+                    }
+                }
+            }
+
+            $this->vendorCoreService->updateOrInsertMaterials($status, $faustArray, IdentifierType::FAUST, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
+            $this->progressFinish();
+
+            $this->vendorCoreService->releaseLock($this->getVendorId());
+
+            return VendorImportResultMessage::success($status);
+        } catch (\Exception $exception) {
+            return VendorImportResultMessage::error($exception->getMessage());
+        }
     }
 
     /**

@@ -28,10 +28,8 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
     protected string $fieldDelimiter = "\t";
     protected bool $sheetHasHeaderRow = true;
     protected array $sheetFields = [];
-
-    private string $resourcesDir;
-
-    private int $tsvBatchSize = 100;
+    protected string $resourcesDir;
+    protected int $tsvBatchSize = 100;
 
     /**
      * AbstractTsvVendorService constructor.
@@ -119,7 +117,7 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
      *
      * @throws IOException
      */
-    private function getSheetReader(): Reader
+    protected function getSheetReader(): Reader
     {
         $resourceDirectories = [$this->resourcesDir.'/'.$this->vendorArchiveDir];
 
@@ -142,7 +140,7 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
      * @return array
      *   Keys are cell names and values are cell numbers
      */
-    private function findCellName(array $cellsArray): array
+    protected function findCellName(array $cellsArray): array
     {
         $fields = array_map(function ($cell) {
             return mb_strtolower($cell->getValue());

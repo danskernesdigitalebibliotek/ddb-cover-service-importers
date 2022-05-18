@@ -43,6 +43,8 @@ class DeleteMessageHandler implements MessageHandlerInterface
 
     /**
      * @param DeleteMessage $message
+     *
+     * @throws \Doctrine\DBAL\Exception
      */
     public function __invoke(DeleteMessage $message)
     {
@@ -51,7 +53,7 @@ class DeleteMessageHandler implements MessageHandlerInterface
         $vendor = $vendorRepos->find($message->getVendorId());
 
         try {
-            // There may exists a race condition when multiple queues are
+            // There may exist a race condition when multiple queues are
             // running. To ensure we delete consistently we need to
             // wrap our search/update/insert in a transaction.
             $this->em->getConnection()->beginTransaction();
