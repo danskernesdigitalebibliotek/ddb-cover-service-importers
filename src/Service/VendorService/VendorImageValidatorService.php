@@ -39,7 +39,15 @@ class VendorImageValidatorService
                 ],
             ]);
 
-            $contentLengthArray = $head->getHeader('Content-Length');
+            $contentLengthArray = [];
+            if ($head->getHeader('Content-Length') > 0) {
+                $contentLengthArray = $head->getHeader('Content-Length');
+            }
+            if (empty($contentLengthArray)) {
+                // This is a hack since image services such as flickr don't set content length header.
+                $contentLengthArray = $head->getHeader('ImageWidth');
+            }
+
             $lastModifiedArray = $head->getHeader('Last-Modified');
 
             $timezone = new \DateTimeZone('UTC');
