@@ -124,7 +124,6 @@ class SourceDownloadCoversCommand extends Command
 
             // Free memory when batch size is reached.
             if (0 === ($i % $batchSize)) {
-                $this->em->flush();
                 $this->em->clear();
             }
 

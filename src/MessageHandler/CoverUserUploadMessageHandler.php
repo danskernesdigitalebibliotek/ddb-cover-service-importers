@@ -88,6 +88,9 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
             ->setVendorId($vendor->getId());
 
         $this->bus->dispatch($message);
+
+        // Free memory.
+        $this->em->clear();
     }
 
     /**

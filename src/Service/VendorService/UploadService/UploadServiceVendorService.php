@@ -256,6 +256,12 @@ class UploadServiceVendorService implements VendorServiceInterface
             // Make it stick.
             $this->em->flush();
 
+            // Update UI with progress information.
+            $status->addInserted(1);
+            $status->addRecords(1);
+            $this->progressMessageFormatted($status);
+            $this->progressAdvance();
+
             // Create queue message.
             $message = new VendorImageMessage();
             $message->setOperation($state)
@@ -266,12 +272,6 @@ class UploadServiceVendorService implements VendorServiceInterface
 
             // Send message into queue system into the search part.
             $this->bus->dispatch($message);
-
-            // Update UI with progress information.
-            $status->addInserted(1);
-            $status->addRecords(1);
-            $this->progressMessageFormatted($status);
-            $this->progressAdvance();
         }
 
         $this->progressFinish();
