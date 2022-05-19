@@ -199,6 +199,9 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
                         ->setVendorId($source->getVendor()->getId())
                         ->setIdentifierType($source->getMatchType());
                     $this->bus->dispatch($message);
+
+                    // Free memory.
+                    $this->em->clear();
                 }
             }
         }

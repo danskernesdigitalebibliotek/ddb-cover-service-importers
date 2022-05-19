@@ -174,5 +174,8 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
             ->setVendorId($message->getVendorId())
             ->setUseSearchCache($message->useSearchCache());
         $this->bus->dispatch($searchMessage);
+
+        // Free memory.
+        $this->em->clear();
     }
 }
