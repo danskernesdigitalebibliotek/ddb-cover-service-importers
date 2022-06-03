@@ -36,7 +36,7 @@ class Source
      * @ORM\ManyToOne(targetEntity="App\Entity\Vendor", inversedBy="sources")
      * @ORM\JoinColumn(nullable=false)
      */
-    private Vendor $vendor;
+    private ?Vendor $vendor;
 
     /**
      * @ORM\Column(type="string", length=50)
@@ -117,7 +117,7 @@ class Source
     /**
      * @return static
      */
-    public function setVendor(Vendor $vendor): self
+    public function setVendor(?Vendor $vendor): self
     {
         $this->vendor = $vendor;
 

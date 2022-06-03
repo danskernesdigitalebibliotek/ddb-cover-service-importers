@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Source;
 use App\Entity\Vendor;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\Query\QueryException;
@@ -48,7 +49,7 @@ class SourceRepository extends ServiceEntityRepository
             ->andWhere('s.vendor = (:vendor)')
             ->setParameter('type', $matchType)
             ->setParameter('ids', $idList)
-            ->setParameter('vendor', $vendor, Vendor::class)
+            ->setParameter('vendor', $vendor)
             ->orderBy('s.matchId', 'ASC')
             ->indexBy('s', 's.matchId')
             ->getQuery()
@@ -70,7 +71,7 @@ class SourceRepository extends ServiceEntityRepository
             ->andWhere('s.matchId NOT IN (:ids)')
             ->andWhere('s.vendor = (:vendor)')
             ->setParameter('ids', $matchIdList)
-            ->setParameter('vendor', $vendor, Vendor::class)
+            ->setParameter('vendor', $vendor)
             ->getQuery()
             ->getResult();
     }
