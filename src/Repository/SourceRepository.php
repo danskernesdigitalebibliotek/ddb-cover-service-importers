@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\Source;
 use App\Entity\Vendor;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\Query\QueryException;
