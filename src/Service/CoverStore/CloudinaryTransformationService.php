@@ -47,7 +47,8 @@ class CloudinaryTransformationService implements CoverStoreTransformationInterfa
 
         // Insert named transformation if it exists.
         if (!empty($transformation['transformation'])) {
-            $url = str_replace('/image/upload/', '/image/upload/'.$transformation['transformation'].'/', $url);
+            $trans = str_replace(',', '/', $transformation['transformation']);
+            $url = str_replace('/image/upload/', '/image/upload/'.$trans.'/', $url);
         }
 
         // If extension conversion exists apply it.

@@ -22,6 +22,7 @@ use App\Utils\OpenPlatform\Material;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Doctrine\DBAL\ConnectionException;
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use ItkDev\MetricsBundle\Service\MetricsService;
@@ -29,7 +30,6 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Doctrine\DBAL\Exception;
 
 /**
  * Class SearchNoHitsMessageHandler.
@@ -166,7 +166,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                             ->setImageId($source->getImage()->getId())
                             ->setUseSearchCache(true);
                         $this->bus->dispatch($message);
-                    } else if (is_null($source->getImage()) && !is_null($source->getOriginalFile())) {
+                    } elseif (is_null($source->getImage()) && !is_null($source->getOriginalFile())) {
                         // If the source image is null. It might have been made available since we asked the vendor for the
                         // cover.
                         $this->metricsService->counter('no_hit_without_image', 'No-hit source found without image', 1, ['type' => 'nohit']);

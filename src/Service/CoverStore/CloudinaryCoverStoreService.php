@@ -15,7 +15,10 @@ use App\Exception\CoverStoreNotFoundException;
 use App\Exception\CoverStoreTooLargeFileException;
 use App\Exception\CoverStoreUnexpectedException;
 use App\Utils\CoverStore\CoverStoreItem;
-use Cloudinary\Error;
+use Cloudinary\Api\Exception\ApiError;
+use Cloudinary\Api\Search\SearchApi;
+use Cloudinary\Api\Upload\UploadApi;
+use Cloudinary\Configuration\Configuration;
 
 /**
  * Class CloudinaryCoverStoreService.
@@ -47,11 +50,14 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
         }
 
         // Set global Cloudinary configuration.
-        \Cloudinary::config([
-            'cloud_name' => $bindCloudinaryCloudName,
-            'api_key' => $bindCloudinaryApiKey,
-            'api_secret' => $bindCloudinaryApiSecret,
-            'secure' => true, ]);
+        Configuration::instance([
+            'cloud' => [
+                'cloud_name' => $bindCloudinaryCloudName,
+                'api_key' => $bindCloudinaryApiKey,
+                'api_secret' => $bindCloudinaryApiSecret,
+                'secure' => true,
+            ],
+        ]);
     }
 
     /**
@@ -66,21 +72,22 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
         ];
 
         try {
-            $image = \Cloudinary\Uploader::upload($url, $options);
-        } catch (\Cloudinary\Error $error) {
+            $uploadApi = new UploadApi();
+            $response = $uploadApi->upload($url, $options);
+        } catch (ApiError $error) {
             throw $this->createCloudinaryException($error);
         }
 
         $item = new CoverStoreItem();
-        $item->setId($image['public_id'])
-            ->setUrl($image['secure_url'])
+        $item->setId($response['public_id'])
+            ->setUrl($response['secure_url'])
             ->setVendor($folder)
-            ->setSize($image['bytes'])
-            ->setWidth((int) $image['width'])
-            ->setHeight((int) $image['height'])
-            ->setImageFormat($image['format'])
+            ->setSize($response['bytes'])
+            ->setWidth((int) $response['width'])
+            ->setHeight((int) $response['height'])
+            ->setImageFormat($response['format'])
             ->setOriginalFile($url)
-            ->setCrc($image['signature']);
+            ->setCrc($response['signature']);
 
         return $item;
     }
@@ -91,8 +98,9 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
     public function remove(string $folder, string $identifier): void
     {
         try {
-            $result = \Cloudinary\Uploader::destroy($folder.'/'.$identifier, ['invalidate' => true]);
-        } catch (\Cloudinary\Error $error) {
+            $uploadApi = new UploadApi();
+            $response = $uploadApi->destroy($folder.'/'.$identifier, ['invalidate' => true]);
+        } catch (\Exception $error) {
             $message = $error->getMessage();
 
             if (preg_match('/^Invalid.*/', $message)) {
@@ -102,7 +110,7 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
             throw new CoverStoreException($message, (int) $error->getCode());
         }
 
-        $status = $result['result'];
+        $status = $response['result'];
         if (preg_match('/^not found.*/', $status)) {
             throw new CoverStoreNotFoundException($status, 400);
         }
@@ -114,14 +122,15 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
 
     /**
      * {@inheritdoc}
+     *
+     * @throws \Cloudinary\Api\Exception\GeneralError
      */
     public function search(string $folder, string $rawQuery = null): array
     {
-        $search = new \Cloudinary\Search();
-        $search
-            ->expression('folder='.$folder)
-            ->sort_by('public_id', 'desc')
-            ->max_results(100);
+        $search = new SearchApi();
+        $search->expression('folder='.$folder)
+            ->sortBy('public_id', 'desc')
+            ->maxResults(100);
 
         if (!is_null($rawQuery)) {
             $search->expression($rawQuery);
@@ -152,26 +161,27 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
         try {
             // This is done like this with overwrite because you get an "Invalid Signature" error if you send overwrite
             // false in the request.
+            $uploadApi = new UploadApi();
             if (true === $overwrite) {
-                $result = \Cloudinary\Uploader::rename($source, $destination, ['invalidate' => true, 'overwrite' => $overwrite]);
+                $response = $uploadApi->rename($source, $destination, ['invalidate' => true, 'overwrite' => $overwrite]);
             } else {
-                $result = \Cloudinary\Uploader::rename($source, $destination, ['invalidate' => true]);
+                $response = $uploadApi->rename($source, $destination, ['invalidate' => true]);
             }
-        } catch (\Cloudinary\Error $error) {
+        } catch (\Exception $error) {
             throw $this->createCloudinaryException($error);
         }
 
         $parts = explode('/', $destination);
 
         $item = new CoverStoreItem();
-        $item->setId($result['public_id'])
-            ->setUrl($result['secure_url'])
+        $item->setId($response['public_id'])
+            ->setUrl($response['secure_url'])
             ->setVendor($parts[0])
-            ->setSize($result['bytes'])
-            ->setWidth((int) $result['width'])
-            ->setHeight((int) $result['height'])
-            ->setImageFormat($result['format'])
-            ->setCrc($result['signature']);
+            ->setSize($response['bytes'])
+            ->setWidth((int) $response['width'])
+            ->setHeight((int) $response['height'])
+            ->setImageFormat($response['format'])
+            ->setCrc($response['signature']);
 
         return $item;
     }
@@ -179,13 +189,13 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
     /**
      * Helper function to transform Cloudinary error into CoverStore Exceptions.
      *
-     * @param error $error
+     * @param \Exception $error
      *   Error generated by the cloudinary library
      *
      * @return coverStoreAlreadyExistsException|CoverStoreCredentialException|CoverStoreException|CoverStoreNotFoundException|CoverStoreTooLargeFileException|CoverStoreUnexpectedException|CoverStoreInvalidResourceException
      *   Exception based on the error inputted
      */
-    private function createCloudinaryException(Error $error)
+    private function createCloudinaryException(\Exception $error)
     {
         $message = $error->getMessage();
 

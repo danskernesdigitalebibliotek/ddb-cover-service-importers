@@ -16,7 +16,7 @@
         "ext-zend-opcache": "*",
         "ext-zip": "*",
         "box/spout": "^3.0",
-        "cloudinary/cloudinary_php": "^1.12",
+        "cloudinary/cloudinary_php": "^2",
         "composer/package-versions-deprecated": "^1.11.99",
         "doctrine/doctrine-bundle": "^2.4",
         "doctrine/doctrine-migrations-bundle": "^3.0",
