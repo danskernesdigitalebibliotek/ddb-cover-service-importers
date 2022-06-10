@@ -87,7 +87,7 @@ class DataWellVendorService implements VendorServiceInterface
     }
 
     /**
-     * Set config fro service from DB vendor object.
+     * Set config from service from DB vendor object.
      */
     private function loadConfig(): void
     {
