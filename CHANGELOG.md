@@ -12,10 +12,16 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 ## [Unreleased]
 
 ### Changed
+- Updated url pattern in Datawell vendor url converter
 - Updated code base with types to prepare for PHP 8.
 - Switch to Cloudinary API version 2.
 - Updated MariaDB version to 10.6 in doctrine config.
-- Updated url pattern in Datawell vendor url converter
+- Switched to ElasticSearch 8.2 from version 6.x.
+- Upgraded elasticsearch/elasticsearch to 8.2.
+
+### Removed
+- Removed FOS elasticsearch bundle and Elastica library.
+>>>>>>> 1ec0053 (DDBTEAM-0101: POC on populate with clean elasticsearch php library)
 
 ## [2.3.3] - 2022-05-19
 

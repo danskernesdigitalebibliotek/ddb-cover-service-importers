@@ -131,6 +131,8 @@ class IndexMessageHandler implements MessageHandlerInterface
                 'message' => $exception->getMessage(),
             ]);
         }
+
+        // @TODO: Send message data into the index backend.
     }
 
     /**

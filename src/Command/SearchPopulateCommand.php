@@ -7,6 +7,7 @@
 namespace App\Command;
 
 use App\Service\PopulateService;
+use App\Service\VendorService\ProgressBarTrait;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -18,6 +19,8 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class SearchPopulateCommand extends Command
 {
+    use ProgressBarTrait;
+
     private PopulateService $populateService;
 
     protected static $defaultName = 'app:search:populate';
@@ -57,9 +60,15 @@ class SearchPopulateCommand extends Command
 
         $progressBar = new ProgressBar($output);
         $progressBar->setFormat('[%bar%] %elapsed% (%memory%) - %message%');
-        $this->populateService->setProgressBar($progressBar);
+        $this->setProgressBar($progressBar);
+        $this->progressStart('Starting populate process');
 
-        $this->populateService->populate($id, $force);
+        foreach ($this->populateService->populate($id, $force) as $message) {
+            $this->progressMessage($message);
+            $this->progressAdvance();
+        };
+
+        $this->progressFinish();
 
         // Start the command line on a new line.
         $output->writeln('');
