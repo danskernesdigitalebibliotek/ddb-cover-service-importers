@@ -6,17 +6,12 @@
 
 namespace App\Service;
 
-use App\Entity\Search;
 use App\Repository\SearchRepository;
-use App\Service\VendorService\ProgressBarTrait;
+use App\Service\Indexing\SearchIndexElasticService;
+use App\Service\Indexing\SearchIndexInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-//use Elasticsearch\ClientBuilder;
-//use FOS\ElasticaBundle\Exception\AliasIsIndexException;
-//use FOS\ElasticaBundle\Index\IndexManager;
-//use FOS\ElasticaBundle\Index\Resetter;
-use Elastic\Elasticsearch\ClientBuilder;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\LockInterface;
 
@@ -31,12 +26,10 @@ class PopulateService
     public const BATCH_SIZE = 1000;
 
     private SearchRepository $searchRepository;
-    private string $elasticHost;
     private EntityManagerInterface $entityManager;
-//    private IndexManager $indexManager;
-//    private Resetter $resetter;
     private LockFactory $lockFactory;
     private LockInterface $lock;
+    private SearchIndexElasticService $indexService;
 
     /**
      * PopulateService constructor.
@@ -44,17 +37,14 @@ class PopulateService
      * @param EntityManagerInterface $entityManager
      * @param SearchRepository $searchRepository
      * @param LockFactory $lockFactory
-     * @param string $bindElasticSearchUrl
      */
-    public function __construct(EntityManagerInterface $entityManager, SearchRepository $searchRepository, LockFactory $lockFactory, string $bindElasticSearchUrl)
+    public function __construct(EntityManagerInterface $entityManager, SearchRepository $searchRepository, LockFactory $lockFactory, SearchIndexElasticService $searchIndex)
     {
         $this->searchRepository = $searchRepository;
         $this->entityManager = $entityManager;
 
-        $this->elasticHost = $bindElasticSearchUrl;
-//        $this->indexManager = $indexManager;
-//        $this->resetter = $resetter;
         $this->lockFactory = $lockFactory;
+        $this->indexService = $searchIndex;
     }
 
     /**
@@ -73,59 +63,6 @@ class PopulateService
     public function populate(int $record_id = -1, bool $force = false): \Generator
     {
         if ($this->acquireLock($force)) {
-            $client = ClientBuilder::create()->setHosts([$this->elasticHost])->build();
-
-            // @TODO: Move basic index prefix into config.
-            $indexName = 'coverservice_'.date('Y-m-d-His');
-            $aliasName = 'coverservice';
-
-            $response = $client->indices()->getAlias(['name' => $aliasName]);
-            if ($response->getStatusCode() !== 200) {
-                yield '<error>Unable to get aliases</error>';
-                return;
-            }
-
-            $aliases = $response->asArray();
-            $aliases = array_keys($aliases);
-            $existingIndexName = array_pop($aliases);
-
-            $response = $client->indices()->create([
-                'index' => $indexName,
-                'body' => [
-                    'settings' => [
-                        'number_of_shards' => 5,
-                        'number_of_replicas' => 0,
-                    ],
-                    'mappings' => [
-                        'properties' => [
-                            'isIdentifier' => [
-                                "type" => "keyword",
-                            ],
-                            'imageFormat' => [
-                                "type" => "keyword",
-                            ],
-                            'imageUrl' => [
-                                "type" => "text",
-                            ],
-                            'width' => [
-                                "type" => "integer",
-                            ],
-                            'isType' => [
-                                "type" => "keyword",
-                            ],
-                            'height' => [
-                                "type" => "integer",
-                            ],
-                        ],
-                    ]
-                ],
-            ]);
-
-            if ($response->getStatusCode() !== 200) {
-                yield '<error>Unable to create index</error>';
-                return;
-            }
-
             $numberOfRecords = 1;
             $lastId = $record_id;
             if (-1 === $record_id) {
@@ -143,7 +80,7 @@ class PopulateService
             $currentId = 0;
 
             while ($entriesAdded < $numberOfRecords) {
-                $params = ['body' => []];
+                $items = [];
 
                 $criteria = [];
                 if (-1 !== $record_id) {
@@ -158,14 +95,8 @@ class PopulateService
                 }
 
                 foreach ($entities as $entity) {
-                    $params['body'][] = [
-                        'index' => [
-                            '_index' => $indexName,
-                            '_id' => $entity->getId(),
-                        ],
-                    ];
-
-                    $params['body'][] = [
+                    $items[] = [
+                        'id' => $entity->getId(),
                         'isIdentifier' => $entity->getIsIdentifier(),
                         'isType' => $entity->getIsType(),
                         'imageUrl' => $entity->getImageUrl(),
@@ -179,7 +110,7 @@ class PopulateService
                 }
 
                 // Send bulk.
-                $client->bulk($params);
+                $this->indexService->bulkAdd($items);
 
                 // Update progress message.
                 yield sprintf('%s of %s added. Current id: %d. Last id: %d.', number_format($entriesAdded, 0, ',', '.'), number_format($numberOfRecords, 0, ',', '.'), $currentId, $lastId);
@@ -189,23 +120,8 @@ class PopulateService
                 gc_collect_cycles();
             }
 
-            $client->indices()->refresh(['index' => $indexName]);
-            yield sprintf('<info>Refreshing</info> <comment>%s</comment>', $indexName);
-
-            yield sprintf('<info>Switching alias</info> <comment>%s -> %s</comment>', $existingIndexName, $indexName);
-            $client->indices()->updateAliases([
-                'body' => [
-                    'actions' => [
-                        [
-                            'add' => [
-                                'index' => $indexName,
-                                'alias' => $aliasName,
-                            ]
-                        ]
-                    ]
-                ]
-            ]);
-            $client->indices()->delete(['index' => $existingIndexName]);
+            yield '<info>Switching alias and removing old index</info>';
+            $this->indexService->switchIndex();
 
             $this->releaseLock();
         } else {

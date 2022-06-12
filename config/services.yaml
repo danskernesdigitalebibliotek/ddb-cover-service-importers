@@ -32,6 +32,7 @@ services:
             $cloudinaryTransformations: '%env(yml:file:resolve:CLOUDINARY_CONFIG_FILE)%'
 
             $bindElasticSearchUrl: '%env(ELASTIC_URL)%'
+            $bindElasticSearchIndeAlias: '%env(ELASTIC_INDEX_ALIAS)%'
 
             $bindMetricsHost: '%env(string:METRICS_HOST)%'
             $bindMetricsPort: '%env(int:METRICS_PORT)%'
