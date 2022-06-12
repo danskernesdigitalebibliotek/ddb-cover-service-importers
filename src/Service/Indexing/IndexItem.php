@@ -4,7 +4,6 @@ namespace App\Service\Indexing;
 
 class IndexItem {
 
-
     private int $id;
     private string $isIdentifier;
     private string $isType;
@@ -24,9 +23,11 @@ class IndexItem {
     /**
      * @param int $id
      */
-    public function setId(int $id): void
+    public function setId(int $id): self
     {
         $this->id = $id;
+
+        return $this;
     }
 
     /**
@@ -40,9 +41,11 @@ class IndexItem {
     /**
      * @param string $isIdentifier
      */
-    public function setIsIdentifier(string $isIdentifier): void
+    public function setIsIdentifier(string $isIdentifier): self
     {
         $this->isIdentifier = $isIdentifier;
+
+        return $this;
     }
 
     /**
@@ -56,9 +59,11 @@ class IndexItem {
     /**
      * @param string $isType
      */
-    public function setIsType(string $isType): void
+    public function setIsType(string $isType): self
     {
         $this->isType = $isType;
+
+        return $this;
     }
 
     /**
@@ -72,9 +77,11 @@ class IndexItem {
     /**
      * @param string $imageUrl
      */
-    public function setImageUrl(string $imageUrl): void
+    public function setImageUrl(string $imageUrl): self
     {
         $this->imageUrl = $imageUrl;
+
+        return $this;
     }
 
     /**
@@ -88,9 +95,11 @@ class IndexItem {
     /**
      * @param string $imageFormat
      */
-    public function setImageFormat(string $imageFormat): void
+    public function setImageFormat(string $imageFormat): self
     {
         $this->imageFormat = $imageFormat;
+
+        return $this;
     }
 
     /**
@@ -104,9 +113,11 @@ class IndexItem {
     /**
      * @param int $width
      */
-    public function setWidth(int $width): void
+    public function setWidth(int $width): self
     {
         $this->width = $width;
+
+        return $this;
     }
 
     /**
@@ -120,10 +131,28 @@ class IndexItem {
     /**
      * @param int $height
      */
-    public function setHeight(int $height): void
+    public function setHeight(int $height): self
     {
         $this->height = $height;
+
+        return $this;
     }
 
+    /**
+     * Format the item as an array.
+     *
+     * @return array
+     */
+    public function toArray(): array
+    {
+        return [
+            'isIdentifier' => $this->getIsIdentifier(),
+            'isType' => $this->getIsType(),
+            'imageUrl' => $this->getImageUrl(),
+            'imageFormat' => $this->getImageFormat(),
+            'width' => $this->getWidth(),
+            'height' => $this->getHeight(),
+        ];
+    }
 
 }

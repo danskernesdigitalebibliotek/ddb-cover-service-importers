@@ -7,6 +7,7 @@
 namespace App\Service;
 
 use App\Repository\SearchRepository;
+use App\Service\Indexing\IndexItem;
 use App\Service\Indexing\SearchIndexElasticService;
 use App\Service\Indexing\SearchIndexInterface;
 use Doctrine\ORM\EntityManagerInterface;
@@ -95,15 +96,15 @@ class PopulateService
                 }
 
                 foreach ($entities as $entity) {
-                    $items[] = [
-                        'id' => $entity->getId(),
-                        'isIdentifier' => $entity->getIsIdentifier(),
-                        'isType' => $entity->getIsType(),
-                        'imageUrl' => $entity->getImageUrl(),
-                        'imageFormat' => $entity->getImageFormat(),
-                        'width' => $entity->getWidth(),
-                        'height' => $entity->getHeight(),
-                    ];
+                    $item = new IndexItem();
+                    $item->setId($entity->getId())
+                        ->setIsIdentifier($entity->getIsIdentifier())
+                        ->setIsType($entity->getIsType())
+                        ->setImageUrl($entity->getImageUrl())
+                        ->setImageFormat($entity->getImageFormat())
+                        ->setWidth($entity->getWidth())
+                        ->setHeight($entity->getHeight());
+                    $items[] = $item;
 
                     ++$entriesAdded;
                     $currentId = $entity->getId();

@@ -39,10 +39,15 @@ class SearchIndexElasticService implements SearchIndexInterface
         // TODO: Implement search() method.
     }
 
+
     /**
-     * @TODO: Change input array to be of object with fields.
+     * @param IndexItem[] $items
+     *
+     * @throws ClientResponseException
+     * @throws SearchIndexException
+     * @throws ServerResponseException
      */
-    public function bulkAdd(array $items)
+    public function bulkAdd(array $items): void
     {
         if (!isset($this->newIndexName)) {
             $this->newIndexName = $this->indexAliasName.'_'.date('Y-m-d-His');
@@ -54,11 +59,11 @@ class SearchIndexElasticService implements SearchIndexInterface
             $params['body'][] = [
                 'index' => [
                     '_index' => $this->newIndexName,
-                    '_id' => $item['id'],
+                    '_id' => $item->getId(),
                 ],
             ];
-            unset($item['id']);
-            $params['body'][] = $item;
+
+            $params['body'][] = $item->toArray();
         }
 
         $this->getClient()->bulk($params);
