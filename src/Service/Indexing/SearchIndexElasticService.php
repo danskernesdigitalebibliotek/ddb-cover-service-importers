@@ -25,12 +25,7 @@ class SearchIndexElasticService implements SearchIndexInterface
     }
 
     /**
-     * Add single item to the index.
-     *
-     * @param indexItem $item
-     *   Item to add to the index
-     *
-     * @throws SearchIndexException
+     * {@inheritdoc}
      */
     public function add(IndexItem $item): void
     {
@@ -52,12 +47,7 @@ class SearchIndexElasticService implements SearchIndexInterface
     }
 
     /**
-     * Remove single item from the index.
-     *
-     * @param int $id
-     *   Id of the item to remove
-     *
-     * @throws SearchIndexException
+     * {@inheritdoc}
      */
     public function remove(int $id): void
     {
@@ -83,11 +73,7 @@ class SearchIndexElasticService implements SearchIndexInterface
     }
 
     /**
-     * @param IndexItem[] $items
-     *
-     * @throws ClientResponseException
-     * @throws SearchIndexException
-     * @throws ServerResponseException
+     * {@inheritdoc}
      */
     public function bulkAdd(array $items): void
     {
@@ -108,7 +94,11 @@ class SearchIndexElasticService implements SearchIndexInterface
             $params['body'][] = $item->toArray();
         }
 
-        $this->getClient()->bulk($params);
+        try {
+            $this->getClient()->bulk($params);
+        } catch (SearchIndexException|ClientResponseException|ServerResponseException $e) {
+            throw new SearchIndexException($e->getMessage(), $e->getCode());
+        }
     }
 
     /**
