@@ -83,3 +83,7 @@ services:
     App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiService:
         arguments:
             $apiKey: '%env(THEMOVIEDATABASE_APIKEY)%'
+
+    App\Service\PopulateService:
+        arguments:
+            $indexService: '@App\Service\Indexing\SearchIndexElasticService'

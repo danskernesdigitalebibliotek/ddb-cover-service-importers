@@ -66,7 +66,7 @@ class SearchPopulateCommand extends Command
         foreach ($this->populateService->populate($id, $force) as $message) {
             $this->progressMessage($message);
             $this->progressAdvance();
-        };
+        }
 
         $this->progressFinish();
 

@@ -2,16 +2,15 @@
 
 namespace App\Service\Indexing;
 
-interface SearchIndexInterface {
+interface SearchIndexInterface
+{
+    public function add(IndexItem $item);
 
-    public function add();
-
-    public function remove();
+    public function remove(int $id);
 
     public function search();
 
     public function bulkAdd(array $items);
 
     public function switchIndex();
-
 }

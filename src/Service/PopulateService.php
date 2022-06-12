@@ -20,6 +20,7 @@ use Symfony\Component\Lock\LockInterface;
  * Class PopulateService.
  *
  * @TODO: move into indexes client
+ *
  * @see https://www.elastic.co/guide/en/elasticsearch/client/php-api/current/index.html
  */
 class PopulateService
@@ -39,13 +40,12 @@ class PopulateService
      * @param SearchRepository $searchRepository
      * @param LockFactory $lockFactory
      */
-    public function __construct(EntityManagerInterface $entityManager, SearchRepository $searchRepository, LockFactory $lockFactory, SearchIndexElasticService $searchIndex)
+    public function __construct(EntityManagerInterface $entityManager, SearchRepository $searchRepository, LockFactory $lockFactory, SearchIndexInterface $indexService)
     {
         $this->searchRepository = $searchRepository;
         $this->entityManager = $entityManager;
-
         $this->lockFactory = $lockFactory;
-        $this->indexService = $searchIndex;
+        $this->indexService = $indexService;
     }
 
     /**
@@ -65,20 +65,18 @@ class PopulateService
     {
         if ($this->acquireLock($force)) {
             $numberOfRecords = 1;
-            $lastId = $record_id;
             if (-1 === $record_id) {
                 $numberOfRecords = $this->searchRepository->getNumberOfRecords();
-                $lastId = $this->searchRepository->findLastId();
             }
 
             // Make sure there are entries in the Search table to process.
-            if (0 === $numberOfRecords || null === $lastId) {
+            if (0 === $numberOfRecords) {
                 yield 'No entries in Search table.';
+
                 return;
             }
 
             $entriesAdded = 0;
-            $currentId = 0;
 
             while ($entriesAdded < $numberOfRecords) {
                 $items = [];
@@ -91,7 +89,7 @@ class PopulateService
 
                 // No more results.
                 if (0 === count($entities)) {
-                    yield sprintf('%d of %d processed. Id: %d. Last id: %d. No more results.', $entriesAdded, $numberOfRecords, $currentId, $lastId);
+                    yield sprintf('%d of %d processed. No more results.', number_format($entriesAdded, 0, ',', '.'), number_format($numberOfRecords, 0, ',', '.'));
                     break;
                 }
 
@@ -107,14 +105,13 @@ class PopulateService
                     $items[] = $item;
 
                     ++$entriesAdded;
-                    $currentId = $entity->getId();
                 }
 
                 // Send bulk.
                 $this->indexService->bulkAdd($items);
 
                 // Update progress message.
-                yield sprintf('%s of %s added. Current id: %d. Last id: %d.', number_format($entriesAdded, 0, ',', '.'), number_format($numberOfRecords, 0, ',', '.'), $currentId, $lastId);
+                yield sprintf('%s of %s added', number_format($entriesAdded, 0, ',', '.'), number_format($numberOfRecords, 0, ',', '.'));
 
                 // Free up memory usages.
                 $this->entityManager->clear();

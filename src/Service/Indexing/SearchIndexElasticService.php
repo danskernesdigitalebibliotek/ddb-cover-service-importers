@@ -24,12 +24,12 @@ class SearchIndexElasticService implements SearchIndexInterface
         $this->indexAliasName = $bindElasticSearchIndeAlias;
     }
 
-    public function add()
+    public function add(IndexItem $item)
     {
         // TODO: Implement add() method.
     }
 
-    public function remove()
+    public function remove(int $id)
     {
         // TODO: Implement remove() method.
     }
@@ -38,7 +38,6 @@ class SearchIndexElasticService implements SearchIndexInterface
     {
         // TODO: Implement search() method.
     }
-
 
     /**
      * @param IndexItem[] $items
@@ -83,10 +82,10 @@ class SearchIndexElasticService implements SearchIndexInterface
                         'add' => [
                             'index' => $this->newIndexName,
                             'alias' => $this->indexAliasName,
-                        ]
-                    ]
-                ]
-            ]
+                        ],
+                    ],
+                ],
+            ],
         ]);
         $client->indices()->delete(['index' => $existingIndexName]);
     }
@@ -94,8 +93,8 @@ class SearchIndexElasticService implements SearchIndexInterface
     /**
      * Get client to communicate with ES.
      *
-     * @return Client
-     *   ElasticSearch client.
+     * @return client
+     *   ElasticSearch client
      *
      * @throws SearchIndexException
      */
@@ -118,7 +117,7 @@ class SearchIndexElasticService implements SearchIndexInterface
      * Refresh index to ensure data is searchable.
      *
      * @param string $indexName
-     *   Name of the index to refresh.
+     *   Name of the index to refresh
      *
      * @throws SearchIndexException
      */
@@ -135,7 +134,7 @@ class SearchIndexElasticService implements SearchIndexInterface
      * Get the current active index base on alias.
      *
      * @return string
-     *   The name of the active index.
+     *   The name of the active index
      *
      * @throws SearchIndexException
      */
@@ -149,7 +148,7 @@ class SearchIndexElasticService implements SearchIndexInterface
             throw new SearchIndexException($e->getMessage(), $e->getCode());
         }
 
-        if ($response->getStatusCode() !== 200) {
+        if (200 !== $response->getStatusCode()) {
             throw new SearchIndexException('Unable to get aliases', $response->getStatusCode());
         }
 
@@ -163,7 +162,7 @@ class SearchIndexElasticService implements SearchIndexInterface
      * Create new index.
      *
      * @param string $indexName
-     *   Name of the index to create.
+     *   Name of the index to create
      *
      * @throws SearchIndexException
      */
@@ -182,34 +181,33 @@ class SearchIndexElasticService implements SearchIndexInterface
                     'mappings' => [
                         'properties' => [
                             'isIdentifier' => [
-                                "type" => "keyword",
+                                'type' => 'keyword',
                             ],
                             'imageFormat' => [
-                                "type" => "keyword",
+                                'type' => 'keyword',
                             ],
                             'imageUrl' => [
-                                "type" => "text",
+                                'type' => 'text',
                             ],
                             'width' => [
-                                "type" => "integer",
+                                'type' => 'integer',
                             ],
                             'isType' => [
-                                "type" => "keyword",
+                                'type' => 'keyword',
                             ],
                             'height' => [
-                                "type" => "integer",
+                                'type' => 'integer',
                             ],
                         ],
-                    ]
+                    ],
                 ],
             ]);
         } catch (ClientResponseException|MissingParameterException|ServerResponseException $e) {
             throw new SearchIndexException($e->getMessage(), $e->getCode());
         }
 
-        if ($response->getStatusCode() !== 200) {
+        if (200 !== $response->getStatusCode()) {
             throw new SearchIndexException('Unable to create new index', $response->getStatusCode());
         }
     }
-
 }

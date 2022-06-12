@@ -2,8 +2,8 @@
 
 namespace App\Service\Indexing;
 
-class IndexItem {
-
+class IndexItem
+{
     private int $id;
     private string $isIdentifier;
     private string $isType;
@@ -154,5 +154,4 @@ class IndexItem {
             'height' => $this->getHeight(),
         ];
     }
-
 }

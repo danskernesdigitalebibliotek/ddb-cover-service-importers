@@ -6,12 +6,9 @@
 
 namespace App\Exception;
 
-use Throwable;
-
 /**
- * Class SearchIndexException
+ * Class SearchIndexException.
  */
 class SearchIndexException extends \Exception
 {
-
 }
