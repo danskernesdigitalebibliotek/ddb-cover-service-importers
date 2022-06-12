@@ -24,14 +24,57 @@ class SearchIndexElasticService implements SearchIndexInterface
         $this->indexAliasName = $bindElasticSearchIndeAlias;
     }
 
-    public function add(IndexItem $item)
+    /**
+     * Add single item to the index.
+     *
+     * @param indexItem $item
+     *   Item to add to the index
+     *
+     * @throws SearchIndexException
+     */
+    public function add(IndexItem $item): void
     {
-        // TODO: Implement add() method.
+        $params = [
+            'index' => $this->indexAliasName,
+            'id' => $item->getId(),
+            'body' => $item->toArray(),
+        ];
+
+        try {
+            $response = $this->getClient()->index($params);
+        } catch (SearchIndexException|ClientResponseException|MissingParameterException|ServerResponseException $e) {
+            throw new SearchIndexException($e->getMessage(), $e->getCode());
+        }
+
+        if (200 !== $response->getStatusCode()) {
+            throw new SearchIndexException('Unable to create new index', $response->getStatusCode());
+        }
     }
 
-    public function remove(int $id)
+    /**
+     * Remove single item from the index.
+     *
+     * @param int $id
+     *   Id of the item to remove
+     *
+     * @throws SearchIndexException
+     */
+    public function remove(int $id): void
     {
-        // TODO: Implement remove() method.
+        $params = [
+            'index' => $this->indexAliasName,
+            'id' => $id,
+        ];
+
+        try {
+            $response = $this->getClient()->delete($params);
+        } catch (SearchIndexException|ClientResponseException|MissingParameterException|ServerResponseException $e) {
+            throw new SearchIndexException($e->getMessage(), $e->getCode());
+        }
+
+        if (200 !== $response->getStatusCode()) {
+            throw new SearchIndexException('Unable to create new index', $response->getStatusCode());
+        }
     }
 
     public function search()
@@ -68,26 +111,34 @@ class SearchIndexElasticService implements SearchIndexInterface
         $this->getClient()->bulk($params);
     }
 
-    public function switchIndex()
+    /**
+     * Switch new index with old by updating alias.
+     *
+     * @throws SearchIndexException
+     */
+    public function switchIndex(): void
     {
-        $existingIndexName = $this->getCurrentActiveIndex();
-
+        $existingIndexName = $this->getCurrentActiveIndexName();
         $this->refreshIndex($this->newIndexName);
 
-        $client = $this->getClient();
-        $client->indices()->updateAliases([
-            'body' => [
-                'actions' => [
-                    [
-                        'add' => [
-                            'index' => $this->newIndexName,
-                            'alias' => $this->indexAliasName,
+        try {
+            $client = $this->getClient();
+            $client->indices()->updateAliases([
+                'body' => [
+                    'actions' => [
+                        [
+                            'add' => [
+                                'index' => $this->newIndexName,
+                                'alias' => $this->indexAliasName,
+                            ],
                         ],
                     ],
                 ],
-            ],
-        ]);
-        $client->indices()->delete(['index' => $existingIndexName]);
+            ]);
+            $client->indices()->delete(['index' => $existingIndexName]);
+        } catch (ClientResponseException|MissingParameterException|ServerResponseException $e) {
+            throw new SearchIndexException($e->getMessage(), $e->getCode());
+        }
     }
 
     /**
@@ -131,14 +182,14 @@ class SearchIndexElasticService implements SearchIndexInterface
     }
 
     /**
-     * Get the current active index base on alias.
+     * Get the current active index name base on alias.
      *
      * @return string
      *   The name of the active index
      *
      * @throws SearchIndexException
      */
-    private function getCurrentActiveIndex(): string
+    private function getCurrentActiveIndexName(): string
     {
         $client = $this->getClient();
 
