@@ -10,7 +10,7 @@ use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastic\Elasticsearch\Exception\MissingParameterException;
 use Elastic\Elasticsearch\Exception\ServerResponseException;
 
-class SearchIndexElasticService implements SearchIndexInterface
+class IndexingElasticService implements IndexingServiceInterface
 {
     private string $hostUrl;
     private string $newIndexName;
@@ -27,7 +27,7 @@ class SearchIndexElasticService implements SearchIndexInterface
     /**
      * {@inheritdoc}
      */
-    public function add(IndexItem $item): void
+    public function add(IndexItemInterface $item): void
     {
         $params = [
             'index' => $this->indexAliasName,

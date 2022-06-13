@@ -4,17 +4,17 @@ namespace App\Service\Indexing;
 
 use App\Exception\SearchIndexException;
 
-interface SearchIndexInterface
+interface IndexingServiceInterface
 {
     /**
      * Add single item to the index.
      *
-     * @param indexItem $item
+     * @param IndexItemInterface $item
      *   Item to add to the index
      *
      * @throws SearchIndexException
      */
-    public function add(IndexItem $item): void;
+    public function add(IndexItemInterface $item): void;
 
     /**
      * Remove single item from the index.
@@ -31,7 +31,7 @@ interface SearchIndexInterface
     /**
      * Bulk add IndexItem objects.
      *
-     * @param IndexItem[] $items
+     * @param IndexItemInterface[] $items
      *   Array of IndexItem to add to the index
      *
      * @throws SearchIndexException

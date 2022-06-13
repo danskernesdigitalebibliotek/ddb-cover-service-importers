@@ -7,9 +7,9 @@
 namespace App\Service;
 
 use App\Repository\SearchRepository;
-use App\Service\Indexing\IndexItem;
-use App\Service\Indexing\SearchIndexElasticService;
-use App\Service\Indexing\SearchIndexInterface;
+use App\Service\Indexing\IndexItemElastic;
+use App\Service\Indexing\IndexingElasticService;
+use App\Service\Indexing\IndexingServiceInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -31,7 +31,7 @@ class PopulateService
     private EntityManagerInterface $entityManager;
     private LockFactory $lockFactory;
     private LockInterface $lock;
-    private SearchIndexElasticService $indexService;
+    private IndexingElasticService $indexService;
 
     /**
      * PopulateService constructor.
@@ -40,7 +40,7 @@ class PopulateService
      * @param SearchRepository $searchRepository
      * @param LockFactory $lockFactory
      */
-    public function __construct(EntityManagerInterface $entityManager, SearchRepository $searchRepository, LockFactory $lockFactory, SearchIndexInterface $indexService)
+    public function __construct(EntityManagerInterface $entityManager, SearchRepository $searchRepository, LockFactory $lockFactory, IndexingServiceInterface $indexService)
     {
         $this->searchRepository = $searchRepository;
         $this->entityManager = $entityManager;
@@ -94,7 +94,7 @@ class PopulateService
                 }
 
                 foreach ($entities as $entity) {
-                    $item = new IndexItem();
+                    $item = new IndexItemElastic();
                     $item->setId($entity->getId())
                         ->setIsIdentifier($entity->getIsIdentifier())
                         ->setIsType($entity->getIsType())

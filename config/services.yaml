@@ -86,4 +86,4 @@ services:
 
     App\Service\PopulateService:
         arguments:
-            $indexService: '@App\Service\Indexing\SearchIndexElasticService'
+            $indexService: '@App\Service\Indexing\IndexingElasticService'
