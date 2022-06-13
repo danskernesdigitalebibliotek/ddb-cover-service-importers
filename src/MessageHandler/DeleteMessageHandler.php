@@ -85,6 +85,8 @@ class DeleteMessageHandler implements MessageHandlerInterface
                     // Make it stick
                     $this->em->flush();
                     $this->em->getConnection()->commit();
+
+                // @TODO: Send message data into the index backend.
                 } else {
                     $this->logger->error('Source not found in the database', [
                         'service' => 'DeleteProcessor',

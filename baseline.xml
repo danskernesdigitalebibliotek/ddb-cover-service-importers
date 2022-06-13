@@ -68,15 +68,28 @@
       <code>$this-&gt;vendor</code>
     </NullableReturnStatement>
   </file>
-  <file src="src/EventSubscriber/IndexEventSubscriber.php">
-    <PossiblyNullReference occurrences="1">
-      <code>getVendor</code>
-    </PossiblyNullReference>
-  </file>
   <file src="src/Exception/XmlReaderException.php">
     <UndefinedClass occurrences="1">
       <code>Throwable</code>
     </UndefinedClass>
+  </file>
+  <file src="src/Message/IndexMessage.php">
+    <RedundantPropertyInitializationCheck occurrences="2">
+      <code>$this-&gt;material</code>
+      <code>null</code>
+    </RedundantPropertyInitializationCheck>
+  </file>
+  <file src="src/MessageHandler/IndexMessageHandler.php">
+    <PossiblyNullArgument occurrences="1">
+      <code>$message-&gt;getImageId()</code>
+    </PossiblyNullArgument>
+    <PossiblyNullReference occurrences="5">
+      <code>getIdentifiers</code>
+      <code>getIdentifiers</code>
+      <code>getIdentifiers</code>
+      <code>getIdentifiers</code>
+      <code>getVendor</code>
+    </PossiblyNullReference>
   </file>
   <file src="src/MessageHandler/SearchNoHitsMessageHandler.php">
     <PossiblyNullArgument occurrences="1">
@@ -103,6 +116,23 @@
       <code>$error-&gt;getCode()</code>
     </InvalidScalarArgument>
   </file>
+  <file src="src/Service/Indexing/IndexingElasticService.php">
+    <PossiblyUndefinedMethod occurrences="9">
+      <code>asArray</code>
+      <code>getStatusCode</code>
+      <code>getStatusCode</code>
+      <code>getStatusCode</code>
+      <code>getStatusCode</code>
+      <code>getStatusCode</code>
+      <code>getStatusCode</code>
+      <code>getStatusCode</code>
+      <code>getStatusCode</code>
+    </PossiblyUndefinedMethod>
+    <RedundantPropertyInitializationCheck occurrences="2">
+      <code>isset($this-&gt;client)</code>
+      <code>isset($this-&gt;newIndexName)</code>
+    </RedundantPropertyInitializationCheck>
+  </file>
   <file src="src/Service/OpenPlatform/AuthenticationService.php">
     <InvalidThrow occurrences="2">
       <code>\Psr\Cache\InvalidArgumentException</code>
@@ -117,6 +147,11 @@
       <code>get</code>
       <code>getPathPrefix</code>
     </UndefinedInterfaceMethod>
+  </file>
+  <file src="src/Service/VendorService/AbstractTsvVendorService.php">
+    <InvalidArgument occurrences="1">
+      <code>true</code>
+    </InvalidArgument>
   </file>
   <file src="src/Service/VendorService/BogPortalen/BogPortalenVendorService.php">
     <PossiblyFalseArgument occurrences="1">
@@ -135,6 +170,11 @@
       <code>$vendor-&gt;getDataServerURI()</code>
       <code>$vendor-&gt;getDataServerUser()</code>
     </PossiblyNullArgument>
+  </file>
+  <file src="src/Service/VendorService/EbookCentral/EbookCentralVendorService.php">
+    <InvalidArgument occurrences="1">
+      <code>true</code>
+    </InvalidArgument>
   </file>
   <file src="src/Service/VendorService/HerningBib/HerningBibVendorService.php">
     <UndefinedInterfaceMethod occurrences="2">
@@ -205,6 +245,11 @@
       <code>setPassword</code>
       <code>setUsername</code>
     </UndefinedInterfaceMethod>
+  </file>
+  <file src="src/Service/VendorService/Saxo/SaxoVendorService.php">
+    <InvalidArgument occurrences="1">
+      <code>true</code>
+    </InvalidArgument>
   </file>
   <file src="src/Service/VendorService/UploadService/UploadServiceVendorService.php">
     <PossiblyNullReference occurrences="1">

@@ -37,9 +37,6 @@ services:
       - mariadb
     volumes:
       - nfsApp:/app:delegated
-    tmpfs:
-      - /app/var/cache:size=1G
-      - /tmp:size=1G
 
   nginx:
     image: nginx:latest

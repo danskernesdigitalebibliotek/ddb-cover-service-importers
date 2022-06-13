@@ -6,8 +6,8 @@
 
 namespace App\Service;
 
+use App\Exception\SearchIndexException;
 use App\Repository\SearchRepository;
-use App\Service\Indexing\IndexingElasticService;
 use App\Service\Indexing\IndexingServiceInterface;
 use App\Service\Indexing\IndexItemElastic;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,7 +31,7 @@ class PopulateService
     private EntityManagerInterface $entityManager;
     private LockFactory $lockFactory;
     private LockInterface $lock;
-    private IndexingElasticService $indexService;
+    private IndexingServiceInterface $indexService;
 
     /**
      * PopulateService constructor.
@@ -58,6 +58,7 @@ class PopulateService
      *
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws SearchIndexException
      *
      * @return \Generator
      */
