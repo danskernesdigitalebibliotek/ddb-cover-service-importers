@@ -42,5 +42,4 @@ interface IndexItemInterface
     public function getHeight(): int;
 
     public function setHeight(int $height): self;
-
 }

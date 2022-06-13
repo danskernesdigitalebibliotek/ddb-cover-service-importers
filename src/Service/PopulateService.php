@@ -7,9 +7,9 @@
 namespace App\Service;
 
 use App\Repository\SearchRepository;
-use App\Service\Indexing\IndexItemElastic;
 use App\Service\Indexing\IndexingElasticService;
 use App\Service\Indexing\IndexingServiceInterface;
+use App\Service\Indexing\IndexItemElastic;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;

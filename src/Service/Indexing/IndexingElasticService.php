@@ -67,11 +67,6 @@ class IndexingElasticService implements IndexingServiceInterface
         }
     }
 
-    public function search()
-    {
-        // TODO: Implement search() method.
-    }
-
     /**
      * {@inheritdoc}
      */

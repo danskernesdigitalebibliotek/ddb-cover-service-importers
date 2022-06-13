@@ -26,8 +26,6 @@ interface IndexingServiceInterface
      */
     public function remove(int $id): void;
 
-    public function search();
-
     /**
      * Bulk add IndexItem objects.
      *
