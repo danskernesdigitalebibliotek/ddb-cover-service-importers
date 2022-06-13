@@ -15,6 +15,7 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 - Updated code base with types to prepare for PHP 8.
 - Switch to Cloudinary API version 2.
 - Updated MariaDB version to 10.6 in doctrine config.
+- Updated url pattern in Datawell vendor url converter
 
 ## [2.3.3] - 2022-05-19
 
