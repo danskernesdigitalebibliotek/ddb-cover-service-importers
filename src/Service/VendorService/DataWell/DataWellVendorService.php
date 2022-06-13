@@ -7,7 +7,7 @@
 
 namespace App\Service\VendorService\DataWell;
 
-use App\Service\VendorService\DataWell\DataConverter\IversePublicUrlConverter;
+use App\Service\VendorService\DataWell\DataConverter\AmazonPublicUrlConverter;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
@@ -65,7 +65,7 @@ class DataWellVendorService implements VendorServiceInterface
                 $pidArray = array_filter($pidArray);
 
                 // Convert images url from 'medium' to 'large'
-                IversePublicUrlConverter::convertArrayValues($pidArray);
+                AmazonPublicUrlConverter::convertArrayValues($pidArray);
 
                 $batchSize = \count($pidArray);
                 $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, $batchSize);

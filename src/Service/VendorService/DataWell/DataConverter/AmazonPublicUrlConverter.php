@@ -7,9 +7,9 @@
 namespace App\Service\VendorService\DataWell\DataConverter;
 
 /**
- * Class IversePublicUrlConverter.
+ * Class AmazonPublicUrlConverter.
  */
-class IversePublicUrlConverter
+class AmazonPublicUrlConverter
 {
     // URL example: https://cdpmm-public.s3.amazonaws.com/store/cover/padlarge/153C407C3C7.png
     private const PADMEDIUM_URL_STRING = '/cover/padmedium/';
