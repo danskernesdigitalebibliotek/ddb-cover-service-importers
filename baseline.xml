@@ -79,9 +79,20 @@
       <code>null</code>
     </RedundantPropertyInitializationCheck>
   </file>
-  <file src="src/MessageHandler/IndexMessageHandler.php">
+  <file src="src/MessageHandler/DeleteMessageHandler.php">
     <PossiblyNullArgument occurrences="1">
+      <code>$search-&gt;getId()</code>
+    </PossiblyNullArgument>
+  </file>
+  <file src="src/MessageHandler/IndexMessageHandler.php">
+    <PossiblyNullArgument occurrences="7">
       <code>$message-&gt;getImageId()</code>
+      <code>$search-&gt;getHeight()</code>
+      <code>$search-&gt;getId()</code>
+      <code>$search-&gt;getImageFormat()</code>
+      <code>$search-&gt;getImageUrl()</code>
+      <code>$search-&gt;getIsIdentifier()</code>
+      <code>$search-&gt;getIsType()</code>
     </PossiblyNullArgument>
     <PossiblyNullReference occurrences="5">
       <code>getIdentifiers</code>
@@ -148,11 +159,6 @@
       <code>getPathPrefix</code>
     </UndefinedInterfaceMethod>
   </file>
-  <file src="src/Service/VendorService/AbstractTsvVendorService.php">
-    <InvalidArgument occurrences="1">
-      <code>true</code>
-    </InvalidArgument>
-  </file>
   <file src="src/Service/VendorService/BogPortalen/BogPortalenVendorService.php">
     <PossiblyFalseArgument occurrences="1">
       <code>$this-&gt;ftp-&gt;readStream($archive)</code>
@@ -170,11 +176,6 @@
       <code>$vendor-&gt;getDataServerURI()</code>
       <code>$vendor-&gt;getDataServerUser()</code>
     </PossiblyNullArgument>
-  </file>
-  <file src="src/Service/VendorService/EbookCentral/EbookCentralVendorService.php">
-    <InvalidArgument occurrences="1">
-      <code>true</code>
-    </InvalidArgument>
   </file>
   <file src="src/Service/VendorService/HerningBib/HerningBibVendorService.php">
     <UndefinedInterfaceMethod occurrences="2">
@@ -245,11 +246,6 @@
       <code>setPassword</code>
       <code>setUsername</code>
     </UndefinedInterfaceMethod>
-  </file>
-  <file src="src/Service/VendorService/Saxo/SaxoVendorService.php">
-    <InvalidArgument occurrences="1">
-      <code>true</code>
-    </InvalidArgument>
   </file>
   <file src="src/Service/VendorService/UploadService/UploadServiceVendorService.php">
     <PossiblyNullReference occurrences="1">
