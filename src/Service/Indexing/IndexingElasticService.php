@@ -38,11 +38,12 @@ class IndexingElasticService implements IndexingServiceInterface
 
         try {
             $response = $this->getClient()->index($params);
+            $this->refreshIndex($this->indexAliasName);
         } catch (SearchIndexException|ClientResponseException|MissingParameterException|ServerResponseException $e) {
             throw new SearchIndexException($e->getMessage(), (int) $e->getCode());
         }
 
-        if (200 !== $response->getStatusCode()) {
+        if (201 !== $response->getStatusCode()) {
             throw new SearchIndexException('Unable to create new index', $response->getStatusCode());
         }
     }
@@ -59,6 +60,7 @@ class IndexingElasticService implements IndexingServiceInterface
 
         try {
             $response = $this->getClient()->delete($params);
+            $this->refreshIndex($this->indexAliasName);
         } catch (SearchIndexException|ClientResponseException|MissingParameterException|ServerResponseException $e) {
             throw new SearchIndexException($e->getMessage(), (int) $e->getCode());
         }

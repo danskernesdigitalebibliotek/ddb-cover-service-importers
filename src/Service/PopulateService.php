@@ -18,10 +18,6 @@ use Symfony\Component\Lock\LockInterface;
 
 /**
  * Class PopulateService.
- *
- * @TODO: move into indexes client
- *
- * @see https://www.elastic.co/guide/en/elasticsearch/client/php-api/current/index.html
  */
 class PopulateService
 {

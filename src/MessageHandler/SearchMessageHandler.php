@@ -123,7 +123,7 @@ class SearchMessageHandler implements MessageHandlerInterface
                 ->setImageId($message->getImageId())
                 ->setMaterial($material);
 
-            $this->bus->dispatch($message);
+            $this->bus->dispatch($indexMessage);
         }
 
         // Free memory.
