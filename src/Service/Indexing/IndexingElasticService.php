@@ -27,9 +27,9 @@ class IndexingElasticService implements IndexingServiceInterface
     /**
      * {@inheritdoc}
      */
-    public function add(IndexItemInterface $item): void
+    public function add(IndexItem $item): void
     {
-        /** @var IndexItemElastic $item */
+        /** @var IndexItem $item */
         $params = [
             'index' => $this->indexAliasName,
             'id' => $item->getId(),
@@ -80,7 +80,7 @@ class IndexingElasticService implements IndexingServiceInterface
 
         $params = [];
         foreach ($items as $item) {
-            /* @var IndexItemElastic $item */
+            /* @var IndexItem $item */
             $params['body'][] = [
                 'index' => [
                     '_index' => $this->newIndexName,

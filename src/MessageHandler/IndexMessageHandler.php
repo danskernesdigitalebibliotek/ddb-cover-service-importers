@@ -11,6 +11,8 @@ use App\Entity\Image;
 use App\Entity\Search;
 use App\Entity\Source;
 use App\Message\IndexMessage;
+use App\Service\Indexing\IndexingServiceInterface;
+use App\Service\Indexing\IndexItem;
 use App\Utils\OpenPlatform\Material;
 use Doctrine\DBAL\ConnectionException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -29,6 +31,7 @@ class IndexMessageHandler implements MessageHandlerInterface
     private LoggerInterface $logger;
     private ManagerRegistry $registry;
     private MetricsService $metricsService;
+    private IndexingServiceInterface $indexingService;
 
     /**
      * SearchProcessor constructor.
@@ -38,12 +41,13 @@ class IndexMessageHandler implements MessageHandlerInterface
      * @param ManagerRegistry $registry
      * @param MetricsService $metricsService
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $informationLogger, ManagerRegistry $registry, MetricsService $metricsService)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $informationLogger, ManagerRegistry $registry, MetricsService $metricsService, IndexingServiceInterface $indexingService)
     {
         $this->em = $entityManager;
         $this->logger = $informationLogger;
         $this->registry = $registry;
         $this->metricsService = $metricsService;
+        $this->indexingService = $indexingService;
     }
 
     public function __invoke(IndexMessage $message)
@@ -99,7 +103,19 @@ class IndexMessageHandler implements MessageHandlerInterface
                         }
                     }
 
+                    // Make it stick.
                     $this->em->flush();
+
+                    // Send data into the index.
+                    $item = new IndexItem();
+                    $item->setId($search->getId())
+                        ->setIsType($search->getIsType())
+                        ->setIsIdentifier($search->getIsIdentifier())
+                        ->setImageUrl($search->getImageUrl())
+                        ->setImageFormat($search->getImageFormat())
+                        ->setWidth($search->getWidth())
+                        ->setHeight($search->getHeight());
+                    $this->indexingService->add($item);
                 }
             } catch (UniqueConstraintViolationException $exception) {
                 // Some vendors have more than one unique identifier in the input data, so to queue processors can try
@@ -131,8 +147,6 @@ class IndexMessageHandler implements MessageHandlerInterface
                 'message' => $exception->getMessage(),
             ]);
         }
-
-        // @TODO: Send message data into the index backend.
     }
 
     /**

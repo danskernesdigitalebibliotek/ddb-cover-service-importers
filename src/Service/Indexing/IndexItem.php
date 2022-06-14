@@ -2,7 +2,7 @@
 
 namespace App\Service\Indexing;
 
-class IndexItemElastic implements IndexItemInterface
+class IndexItem
 {
     private int $id;
     private string $isIdentifier;
@@ -96,11 +96,6 @@ class IndexItemElastic implements IndexItemInterface
         return $this;
     }
 
-    /**
-     * Format the item as an array.
-     *
-     * @return array
-     */
     public function toArray(): array
     {
         return [

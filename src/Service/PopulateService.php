@@ -9,7 +9,7 @@ namespace App\Service;
 use App\Exception\SearchIndexException;
 use App\Repository\SearchRepository;
 use App\Service\Indexing\IndexingServiceInterface;
-use App\Service\Indexing\IndexItemElastic;
+use App\Service\Indexing\IndexItem;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -31,7 +31,7 @@ class PopulateService
     private EntityManagerInterface $entityManager;
     private LockFactory $lockFactory;
     private LockInterface $lock;
-    private IndexingServiceInterface $indexService;
+    private IndexingServiceInterface $indexingService;
 
     /**
      * PopulateService constructor.
@@ -40,12 +40,12 @@ class PopulateService
      * @param SearchRepository $searchRepository
      * @param LockFactory $lockFactory
      */
-    public function __construct(EntityManagerInterface $entityManager, SearchRepository $searchRepository, LockFactory $lockFactory, IndexingServiceInterface $indexService)
+    public function __construct(EntityManagerInterface $entityManager, SearchRepository $searchRepository, LockFactory $lockFactory, IndexingServiceInterface $indexingService)
     {
         $this->searchRepository = $searchRepository;
         $this->entityManager = $entityManager;
         $this->lockFactory = $lockFactory;
-        $this->indexService = $indexService;
+        $this->indexingService = $indexingService;
     }
 
     /**
@@ -95,7 +95,7 @@ class PopulateService
                 }
 
                 foreach ($entities as $entity) {
-                    $item = new IndexItemElastic();
+                    $item = new IndexItem();
                     $item->setId($entity->getId())
                         ->setIsIdentifier($entity->getIsIdentifier())
                         ->setIsType($entity->getIsType())
@@ -109,7 +109,7 @@ class PopulateService
                 }
 
                 // Send bulk.
-                $this->indexService->bulkAdd($items);
+                $this->indexingService->bulkAdd($items);
 
                 // Update progress message.
                 yield sprintf('%s of %s added', number_format($entriesAdded, 0, ',', '.'), number_format($numberOfRecords, 0, ',', '.'));
@@ -120,7 +120,7 @@ class PopulateService
             }
 
             yield '<info>Switching alias and removing old index</info>';
-            $this->indexService->switchIndex();
+            $this->indexingService->switchIndex();
 
             $this->releaseLock();
         } else {

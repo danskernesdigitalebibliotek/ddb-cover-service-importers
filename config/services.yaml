@@ -86,4 +86,12 @@ services:
 
     App\Service\PopulateService:
         arguments:
-            $indexService: '@App\Service\Indexing\IndexingElasticService'
+            $indexingService: '@App\Service\Indexing\IndexingElasticService'
+
+    App\MessageHandler\IndexMessageHandler:
+        arguments:
+            $indexingService: '@App\Service\Indexing\IndexingElasticService'
+
+    App\MessageHandler\DeleteMessageHandler:
+        arguments:
+            $indexingService: '@App\Service\Indexing\IndexingElasticService'

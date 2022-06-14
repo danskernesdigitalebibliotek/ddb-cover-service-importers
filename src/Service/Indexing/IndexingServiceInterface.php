@@ -9,12 +9,12 @@ interface IndexingServiceInterface
     /**
      * Add single item to the index.
      *
-     * @param IndexItemInterface $item
+     * @param IndexItem $item
      *   Item to add to the index
      *
      * @throws SearchIndexException
      */
-    public function add(IndexItemInterface $item): void;
+    public function add(IndexItem $item): void;
 
     /**
      * Remove single item from the index.
@@ -29,7 +29,7 @@ interface IndexingServiceInterface
     /**
      * Bulk add IndexItem objects.
      *
-     * @param IndexItemInterface[] $items
+     * @param IndexItem[] $items
      *   Array of IndexItem to add to the index
      *
      * @throws SearchIndexException
