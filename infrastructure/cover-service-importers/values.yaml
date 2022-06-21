@@ -8,7 +8,8 @@ app:
   image:
     version: latest
     imagePullPolicy: IfNotPresent
-  elastic_url: "http://es-elasticsearch-coordinating-only.cover-service.svc.cluster.local:9200"
+  indexing:
+    url: "http://es-elasticsearch-coordinating-only.cover-service.svc.cluster.local:9200"
   no_hits_ttl: 3600
   redis:
     server: "redis-master.cover-service.svc.cluster.local"

@@ -18,10 +18,10 @@ class IndexingElasticService implements IndexingServiceInterface
 
     private Client $client;
 
-    public function __construct(string $bindElasticSearchUrl, string $bindElasticSearchIndeAlias)
+    public function __construct(string $bindIndexingUrl, string $bindIndexingAlias)
     {
-        $this->hostUrl = $bindElasticSearchUrl;
-        $this->indexAliasName = $bindElasticSearchIndeAlias;
+        $this->hostUrl = $bindIndexingUrl;
+        $this->indexAliasName = $bindIndexingAlias;
     }
 
     /**
