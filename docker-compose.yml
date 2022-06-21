@@ -87,6 +87,14 @@ services:
       - '9200'
       - '9300'
 
+  redisearch:
+    image: redislabs/redisearch:2.4.8
+    networks:
+      - app
+      - frontend
+    ports:
+      - '6379'
+
   rabbit:
     image: rabbitmq:3.9-management
     networks:

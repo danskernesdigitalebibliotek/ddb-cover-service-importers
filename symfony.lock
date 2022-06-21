@@ -232,6 +232,9 @@
     "league/oauth2-client": {
         "version": "2.6.0"
     },
+    "macfja/redisearch": {
+        "version": "2.1.2"
+    },
     "monolog/monolog": {
         "version": "2.3.5"
     },
@@ -368,6 +371,12 @@
     },
     "ralouphie/getallheaders": {
         "version": "3.0.3"
+    },
+    "respect/stringifier": {
+        "version": "0.2.0"
+    },
+    "respect/validation": {
+        "version": "2.2.3"
     },
     "scriptotek/marc": {
         "version": "v2.2.1"

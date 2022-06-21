@@ -25,6 +25,7 @@
         "elasticsearch/elasticsearch": "^8.2",
         "itk-dev/metrics-bundle": "^0.0.1",
         "league/oauth2-client": "^2.6",
+        "macfja/redisearch": "^2.1",
         "nicebooks/isbn": "^0.3",
         "oneup/flysystem-bundle": "^3.0",
         "predis/predis": "^1.1",
