@@ -91,17 +91,11 @@ class Vendor
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getClass(): string
     {
         return $this->class;
     }
 
-    /**
-     * @return static
-     */
     public function setClass(string $class): self
     {
         $this->class = $class;
@@ -109,17 +103,11 @@ class Vendor
         return $this;
     }
 
-    /**
-     * @return int
-     */
     public function getRank(): int
     {
         return $this->rank;
     }
 
-    /**
-     * @return static
-     */
     public function setRank(int $rank): self
     {
         $this->rank = $rank;
@@ -127,17 +115,11 @@ class Vendor
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getName(): string
     {
         return $this->name;
     }
 
-    /**
-     * @return static
-     */
     public function setName(string $name): self
     {
         $this->name = $name;
@@ -145,17 +127,11 @@ class Vendor
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getImageServerURI(): ?string
     {
         return $this->imageServerURI;
     }
 
-    /**
-     * @return static
-     */
     public function setImageServerURI(string $imageServerURI): self
     {
         $this->imageServerURI = $imageServerURI;
@@ -163,17 +139,11 @@ class Vendor
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getDataServerURI(): ?string
     {
         return $this->dataServerURI;
     }
 
-    /**
-     * @return static
-     */
     public function setDataServerURI(string $dataServerURI): self
     {
         $this->dataServerURI = $dataServerURI;
@@ -181,17 +151,11 @@ class Vendor
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getDataServerUser(): ?string
     {
         return $this->dataServerUser;
     }
 
-    /**
-     * @return static
-     */
     public function setDataServerUser(string $dataServerUser): self
     {
         $this->dataServerUser = $dataServerUser;
@@ -199,17 +163,11 @@ class Vendor
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
     public function getDataServerPassword(): ?string
     {
         return $this->dataServerPassword;
     }
 
-    /**
-     * @return static
-     */
     public function setDataServerPassword(string $dataServerPassword): self
     {
         $this->dataServerPassword = $dataServerPassword;
@@ -217,17 +175,11 @@ class Vendor
         return $this;
     }
 
-    /**
-     * @return Collection
-     */
     public function getSources(): Collection
     {
         return $this->sources;
     }
 
-    /**
-     * @return static
-     */
     public function addSource(Source $source): self
     {
         if (!$this->sources->contains($source)) {
@@ -238,9 +190,6 @@ class Vendor
         return $this;
     }
 
-    /**
-     * @return static
-     */
     public function removeSource(Source $source): self
     {
         if ($this->sources->contains($source)) {

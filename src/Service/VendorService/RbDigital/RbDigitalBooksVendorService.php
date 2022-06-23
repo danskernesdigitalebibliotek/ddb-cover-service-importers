@@ -96,8 +96,9 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
                 $this->progressAdvance();
 
                 $count = 0;
+                $pathPrefix = $this->local->getAdapter()->getPathPrefix();
                 $isbnImageUrlArray = [];
-                $localArchivePath = $this->local->getAdapter()->getPathPrefix().$mrcFileName;
+                $localArchivePath = (empty($pathPrefix) ? $pathPrefix : '').$mrcFileName;
                 $collection = Collection::fromFile($localArchivePath);
 
                 foreach ($collection as $record) {
@@ -163,7 +164,7 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
         $this->cache->save($remoteModifiedAtCache);
 
         // @TODO Error handling for missing archive
-        return $this->local->put($mrcFileName, $this->ftp->read($mrcFileName));
+        return $this->local->put($mrcFileName, (string) $this->ftp->read($mrcFileName));
     }
 
     /**

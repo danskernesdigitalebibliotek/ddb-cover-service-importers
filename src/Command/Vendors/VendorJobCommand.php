@@ -58,7 +58,7 @@ class VendorJobCommand extends Command
         $operation = $input->getArgument('operation');
         $identifier = $input->getArgument('identifier');
         $type = $input->getArgument('type');
-        $vendorId = $input->getArgument('vendorId');
+        $vendorId = (int) $input->getArgument('vendorId');
 
         switch ($operation) {
             case VendorState::INSERT:

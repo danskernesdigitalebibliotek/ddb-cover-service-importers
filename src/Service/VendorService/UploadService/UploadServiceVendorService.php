@@ -207,9 +207,9 @@ class UploadServiceVendorService implements VendorServiceInterface
                     'matchId' => $identifier,
                     'vendor' => $this->vendorCoreService->getVendor($this->getVendorId()),
                 ]);
-                if (!empty($source)) {
+                if (null !== $source) {
                     $image = $source->getImage();
-                    if (!empty($image)) {
+                    if (null === $image) {
                         $this->logger->error($this->getVendorName().' error loading image', [
                             'service' => self::class,
                             'type' => $type,

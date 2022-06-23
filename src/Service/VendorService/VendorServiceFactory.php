@@ -14,10 +14,9 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class VendorServiceFactory
 {
-    private $vendorServices;
-    private $em;
-
-    private $vendors = [];
+    /** @var VendorServiceInterface[] $vendorServices */
+    private array $vendorServices;
+    private EntityManagerInterface $em;
 
     /**
      * VendorFactoryService constructor.
@@ -43,9 +42,6 @@ class VendorServiceFactory
                 throw new DuplicateVendorServiceException('Vendor services must have a unique VENDOR_ID. Duplicate id detected in '.$className);
             }
             $ids[] = $vendor->getVendorId();
-
-            // Store found vendors
-            $this->vendors[] = $vendor;
         }
 
         $this->em = $entityManager;
@@ -63,7 +59,7 @@ class VendorServiceFactory
      *
      * @psalm-return 0|positive-int
      */
-    public function populateVendors()
+    public function populateVendors(): int
     {
         $vendorRepos = $this->em->getRepository(Vendor::class);
 
@@ -76,7 +72,8 @@ class VendorServiceFactory
             $vendor = $vendorRepos->findOneByClass($className);
 
             if (!$vendor) {
-                $name = substr($className, strrpos($className, '\\') + 1);
+                $pos = strrpos($className, '\\');
+                $name = substr($className, (int) $pos + 1);
                 $name = str_replace('VendorService', '', $name);
                 $maxRank += 10;
 

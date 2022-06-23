@@ -129,7 +129,7 @@ class SaxoVendorService implements VendorServiceInterface
         $resourceDirectories = [$this->resourcesDir.'/'.self::VENDOR_ARCHIVE_DIR];
 
         $fileLocator = new FileLocator($resourceDirectories);
-        $filePath = $fileLocator->locate(self::VENDOR_ARCHIVE_NAME, null, true);
+        $filePath = $fileLocator->locate(self::VENDOR_ARCHIVE_NAME);
 
         $reader = ReaderEntityFactory::createXLSXReader();
         $reader->open($filePath);
