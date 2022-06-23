@@ -6,6 +6,7 @@
 
 namespace App\Message;
 
+use App\Exception\UninitializedPropertyException;
 use App\Utils\OpenPlatform\Material;
 
 /**
@@ -13,11 +14,15 @@ use App\Utils\OpenPlatform\Material;
  */
 class IndexMessage extends AbstractBaseMessage
 {
-    private Material $material;
+    private ?Material $material;
 
-    public function getMaterial(): ?Material
+    public function getMaterial(): Material
     {
-        return $this->material ?? null;
+        if (isset($this->material)) {
+            return $this->material;
+        }
+
+        throw new UninitializedPropertyException('Material is not initialized');
     }
 
     public function setMaterial(Material $material): self

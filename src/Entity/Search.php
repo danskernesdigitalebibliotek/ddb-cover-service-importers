@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Exception\UninitializedPropertyException;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -67,7 +68,7 @@ class Search
      *
      * @Groups({"read"})
      */
-    private ?int $height;
+    private int $height;
 
     /**
      * @ORM\Column(type="boolean", options={"default" : false})
@@ -79,7 +80,7 @@ class Search
      */
     private ?Source $source;
 
-    public function getId(): ?int
+    public function getId(): int
     {
         return $this->id;
     }
@@ -159,7 +160,7 @@ class Search
         return $this;
     }
 
-    public function getHeight(): ?int
+    public function getHeight(): int
     {
         return $this->height;
     }

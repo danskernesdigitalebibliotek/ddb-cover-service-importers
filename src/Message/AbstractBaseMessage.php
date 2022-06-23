@@ -6,6 +6,8 @@
 
 namespace App\Message;
 
+use App\Exception\UninitializedPropertyException;
+
 /**
  * Class BaseMessage.
  */

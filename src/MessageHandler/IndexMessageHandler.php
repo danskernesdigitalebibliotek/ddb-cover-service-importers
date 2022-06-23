@@ -109,10 +109,10 @@ class IndexMessageHandler implements MessageHandlerInterface
                     // Send data into the index.
                     $item = new IndexItem();
                     $item->setId($search->getId())
-                        ->setIsType($search->getIsType())
-                        ->setIsIdentifier($search->getIsIdentifier())
-                        ->setImageUrl($search->getImageUrl())
-                        ->setImageFormat($search->getImageFormat())
+                        ->setIsType((string) $search->getIsType())
+                        ->setIsIdentifier((string) $search->getIsIdentifier())
+                        ->setImageUrl((string) $search->getImageUrl())
+                        ->setImageFormat((string) $search->getImageFormat())
                         ->setWidth($search->getWidth())
                         ->setHeight($search->getHeight());
                     $this->indexingService->add($item);
@@ -194,10 +194,10 @@ class IndexMessageHandler implements MessageHandlerInterface
      * @return Image|null
      *   Image entity if found else null
      */
-    private function getImage(int $imageId): ?Image
+    private function getImage(?int $imageId): ?Image
     {
         $repos = $this->em->getRepository(Image::class);
 
-        return $repos->findOneById($imageId);
+        return null !== $imageId ? $repos->findOneById($imageId) : null;
     }
 }

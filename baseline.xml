@@ -73,32 +73,8 @@
       <code>Throwable</code>
     </UndefinedClass>
   </file>
-  <file src="src/Message/IndexMessage.php">
-    <RedundantPropertyInitializationCheck occurrences="2">
-      <code>$this-&gt;material</code>
-      <code>null</code>
-    </RedundantPropertyInitializationCheck>
-  </file>
-  <file src="src/MessageHandler/DeleteMessageHandler.php">
-    <PossiblyNullArgument occurrences="1">
-      <code>$search-&gt;getId()</code>
-    </PossiblyNullArgument>
-  </file>
   <file src="src/MessageHandler/IndexMessageHandler.php">
-    <PossiblyNullArgument occurrences="7">
-      <code>$message-&gt;getImageId()</code>
-      <code>$search-&gt;getHeight()</code>
-      <code>$search-&gt;getId()</code>
-      <code>$search-&gt;getImageFormat()</code>
-      <code>$search-&gt;getImageUrl()</code>
-      <code>$search-&gt;getIsIdentifier()</code>
-      <code>$search-&gt;getIsType()</code>
-    </PossiblyNullArgument>
-    <PossiblyNullReference occurrences="5">
-      <code>getIdentifiers</code>
-      <code>getIdentifiers</code>
-      <code>getIdentifiers</code>
-      <code>getIdentifiers</code>
+    <PossiblyNullReference occurrences="1">
       <code>getVendor</code>
     </PossiblyNullReference>
   </file>
