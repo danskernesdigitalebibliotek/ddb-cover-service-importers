@@ -60,6 +60,8 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
+    App\Service\Indexing\IndexingServiceInterface: '@App\Service\Indexing\IndexingElasticService'
+
     monolog.formatter.json:
         class: Monolog\Formatter\JsonFormatter
 
@@ -83,15 +85,3 @@ services:
     App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiService:
         arguments:
             $apiKey: '%env(THEMOVIEDATABASE_APIKEY)%'
-
-    App\Service\PopulateService:
-        arguments:
-            $indexingService: '@App\Service\Indexing\IndexingElasticService'
-
-    App\MessageHandler\IndexMessageHandler:
-        arguments:
-            $indexingService: '@App\Service\Indexing\IndexingElasticService'
-
-    App\MessageHandler\DeleteMessageHandler:
-        arguments:
-            $indexingService: '@App\Service\Indexing\IndexingElasticService'

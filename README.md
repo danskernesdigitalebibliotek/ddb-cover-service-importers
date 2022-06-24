@@ -70,6 +70,15 @@ The application logs to ElasticSearch to allow debugging and monitoring. A `stat
 ensure that Elastic chooses the right type for the index fields a dynamic index template must be added to Elastic. This
 can be done with the `app:elastic:create-stats-template` command.
 
+### Low disk
+
+If you have less than 10% disk space left elastic search will not index content and switchs into read-only mode. This
+command will disable this behaviour:
+
+```shell
+curl -XPUT http://0.0.0.0:<PORT>/_cluster/settings -H 'Content-Type: application/json' -d '{"transient":{"cluster.routing.allocation.disk.threshold_enabled":fals }}'
+```
+
 ## Implementation Overview
 
 ### Import/Index/Upload Engine
