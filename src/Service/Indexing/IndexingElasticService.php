@@ -10,15 +10,13 @@ use Elastic\Elasticsearch\Exception\ServerResponseException;
 
 class IndexingElasticService implements IndexingServiceInterface
 {
-    private string $hostUrl;
     private string $newIndexName;
     private string $indexAliasName;
 
     private Client $client;
 
-    public function __construct(string $bindIndexingUrl, string $bindIndexingAlias, Client $client)
+    public function __construct(string $bindIndexingAlias, Client $client)
     {
-        $this->hostUrl = $bindIndexingUrl;
         $this->indexAliasName = $bindIndexingAlias;
         $this->client = $client;
     }
@@ -94,7 +92,7 @@ class IndexingElasticService implements IndexingServiceInterface
 
         try {
             $this->client->bulk($params);
-        } catch (SearchIndexException|ClientResponseException|ServerResponseException $e) {
+        } catch (ClientResponseException|ServerResponseException $e) {
             throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
         }
     }
@@ -140,7 +138,7 @@ class IndexingElasticService implements IndexingServiceInterface
     {
         try {
             $this->client->indices()->refresh(['index' => $indexName]);
-        } catch (SearchIndexException|ClientResponseException|ServerResponseException $e) {
+        } catch (ClientResponseException|ServerResponseException $e) {
             throw new SearchIndexException('Unable to create new index', (int) $e->getCode(), $e);
         }
     }
