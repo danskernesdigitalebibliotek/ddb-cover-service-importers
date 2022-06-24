@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\Exception\UninitializedPropertyException;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 

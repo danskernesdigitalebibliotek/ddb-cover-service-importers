@@ -2,6 +2,6 @@
 
 namespace App\Exception;
 
-class UninitializedPropertyException extends \RuntimeException {
-
+class UninitializedPropertyException extends \RuntimeException
+{
 }
