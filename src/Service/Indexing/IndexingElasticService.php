@@ -18,10 +18,11 @@ class IndexingElasticService implements IndexingServiceInterface
 
     private Client $client;
 
-    public function __construct(string $bindIndexingUrl, string $bindIndexingAlias)
+    public function __construct(string $bindIndexingUrl, string $bindIndexingAlias, Client $client)
     {
         $this->hostUrl = $bindIndexingUrl;
         $this->indexAliasName = $bindIndexingAlias;
+        $this->client = $client;
     }
 
     /**
@@ -37,7 +38,7 @@ class IndexingElasticService implements IndexingServiceInterface
         ];
 
         try {
-            $response = $this->getClient()->index($params);
+            $response = $this->client->index($params);
             $this->refreshIndex($this->indexAliasName);
         } catch (SearchIndexException|ClientResponseException|MissingParameterException|ServerResponseException $e) {
             throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
@@ -59,7 +60,7 @@ class IndexingElasticService implements IndexingServiceInterface
         ];
 
         try {
-            $response = $this->getClient()->delete($params);
+            $response = $this->client->delete($params);
             $this->refreshIndex($this->indexAliasName);
         } catch (SearchIndexException|ClientResponseException|MissingParameterException|ServerResponseException $e) {
             throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
@@ -94,7 +95,7 @@ class IndexingElasticService implements IndexingServiceInterface
         }
 
         try {
-            $this->getClient()->bulk($params);
+            $this->client->bulk($params);
         } catch (SearchIndexException|ClientResponseException|ServerResponseException $e) {
             throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
         }
@@ -111,8 +112,7 @@ class IndexingElasticService implements IndexingServiceInterface
         $this->refreshIndex($this->newIndexName);
 
         try {
-            $client = $this->getClient();
-            $client->indices()->updateAliases([
+            $this->client->indices()->updateAliases([
                 'body' => [
                     'actions' => [
                         [
@@ -124,33 +124,10 @@ class IndexingElasticService implements IndexingServiceInterface
                     ],
                 ],
             ]);
-            $client->indices()->delete(['index' => $existingIndexName]);
+            $this->client->indices()->delete(['index' => $existingIndexName]);
         } catch (ClientResponseException|MissingParameterException|ServerResponseException $e) {
             throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
         }
-    }
-
-    /**
-     * Get client to communicate with ES.
-     *
-     * @return client
-     *   ElasticSearch client
-     *
-     * @throws SearchIndexException
-     */
-    private function getClient(): Client
-    {
-        if (!isset($this->client)) {
-            try {
-                $client = ClientBuilder::create()->setHosts([$this->hostUrl])->build();
-            } catch (AuthenticationException $e) {
-                throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
-            }
-
-            $this->client = $client;
-        }
-
-        return $this->client;
     }
 
     /**
@@ -164,7 +141,7 @@ class IndexingElasticService implements IndexingServiceInterface
     private function refreshIndex(string $indexName): void
     {
         try {
-            $this->getClient()->indices()->refresh(['index' => $indexName]);
+            $this->client->indices()->refresh(['index' => $indexName]);
         } catch (SearchIndexException|ClientResponseException|ServerResponseException $e) {
             throw new SearchIndexException('Unable to create new index', (int) $e->getCode(), $e);
         }
@@ -180,10 +157,8 @@ class IndexingElasticService implements IndexingServiceInterface
      */
     private function getCurrentActiveIndexName(): string
     {
-        $client = $this->getClient();
-
         try {
-            $response = $client->indices()->getAlias(['name' => $this->indexAliasName]);
+            $response = $this->client->indices()->getAlias(['name' => $this->indexAliasName]);
         } catch (ClientResponseException|ServerResponseException $e) {
             throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
         }
@@ -208,10 +183,8 @@ class IndexingElasticService implements IndexingServiceInterface
      */
     private function createIndex(string $indexName): void
     {
-        $client = $this->getClient();
-
         try {
-            $response = $client->indices()->create([
+            $response = $this->client->indices()->create([
                 'index' => $indexName,
                 'body' => [
                     'settings' => [
