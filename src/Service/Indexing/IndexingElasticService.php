@@ -40,7 +40,7 @@ class IndexingElasticService implements IndexingServiceInterface
             $response = $this->getClient()->index($params);
             $this->refreshIndex($this->indexAliasName);
         } catch (SearchIndexException|ClientResponseException|MissingParameterException|ServerResponseException $e) {
-            throw new SearchIndexException($e->getMessage(), (int) $e->getCode());
+            throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
         }
 
         if (201 !== $response->getStatusCode()) {
@@ -62,7 +62,7 @@ class IndexingElasticService implements IndexingServiceInterface
             $response = $this->getClient()->delete($params);
             $this->refreshIndex($this->indexAliasName);
         } catch (SearchIndexException|ClientResponseException|MissingParameterException|ServerResponseException $e) {
-            throw new SearchIndexException($e->getMessage(), (int) $e->getCode());
+            throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
         }
 
         if (200 !== $response->getStatusCode()) {
@@ -96,7 +96,7 @@ class IndexingElasticService implements IndexingServiceInterface
         try {
             $this->getClient()->bulk($params);
         } catch (SearchIndexException|ClientResponseException|ServerResponseException $e) {
-            throw new SearchIndexException($e->getMessage(), (int) $e->getCode());
+            throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
         }
     }
 
@@ -126,7 +126,7 @@ class IndexingElasticService implements IndexingServiceInterface
             ]);
             $client->indices()->delete(['index' => $existingIndexName]);
         } catch (ClientResponseException|MissingParameterException|ServerResponseException $e) {
-            throw new SearchIndexException($e->getMessage(), (int) $e->getCode());
+            throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
         }
     }
 
@@ -144,7 +144,7 @@ class IndexingElasticService implements IndexingServiceInterface
             try {
                 $client = ClientBuilder::create()->setHosts([$this->hostUrl])->build();
             } catch (AuthenticationException $e) {
-                throw new SearchIndexException($e->getMessage(), (int) $e->getCode());
+                throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
             }
 
             $this->client = $client;
@@ -166,7 +166,7 @@ class IndexingElasticService implements IndexingServiceInterface
         try {
             $this->getClient()->indices()->refresh(['index' => $indexName]);
         } catch (SearchIndexException|ClientResponseException|ServerResponseException $e) {
-            throw new SearchIndexException('Unable to create new index', (int) $e->getCode());
+            throw new SearchIndexException('Unable to create new index', (int) $e->getCode(), $e);
         }
     }
 
@@ -185,7 +185,7 @@ class IndexingElasticService implements IndexingServiceInterface
         try {
             $response = $client->indices()->getAlias(['name' => $this->indexAliasName]);
         } catch (ClientResponseException|ServerResponseException $e) {
-            throw new SearchIndexException($e->getMessage(), (int) $e->getCode());
+            throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
         }
 
         if (200 !== $response->getStatusCode()) {
@@ -243,7 +243,7 @@ class IndexingElasticService implements IndexingServiceInterface
                 ],
             ]);
         } catch (ClientResponseException|MissingParameterException|ServerResponseException $e) {
-            throw new SearchIndexException($e->getMessage(), (int) $e->getCode());
+            throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
         }
 
         if (200 !== $response->getStatusCode()) {
