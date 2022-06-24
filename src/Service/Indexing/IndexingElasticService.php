@@ -44,7 +44,7 @@ class IndexingElasticService implements IndexingServiceInterface
         }
 
         if (201 !== $response->getStatusCode()) {
-            throw new SearchIndexException('Unable to create new index', $response->getStatusCode());
+            throw new SearchIndexException('Unable to add item to index', $response->getStatusCode());
         }
     }
 
@@ -66,7 +66,7 @@ class IndexingElasticService implements IndexingServiceInterface
         }
 
         if (200 !== $response->getStatusCode()) {
-            throw new SearchIndexException('Unable to create new index', $response->getStatusCode());
+            throw new SearchIndexException('Unable to remove item from index', $response->getStatusCode());
         }
     }
 
