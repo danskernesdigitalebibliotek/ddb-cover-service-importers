@@ -104,6 +104,10 @@ class IndexingElasticService implements IndexingServiceInterface
      */
     public function switchIndex(): void
     {
+        if (!isset($this->newIndexName)) {
+            throw new SearchIndexException('New index not found');
+        }
+
         $existingIndexName = $this->getCurrentActiveIndexName();
         $this->refreshIndex($this->newIndexName);
 
