@@ -14,5 +14,4 @@ return (new PhpCsFixer\Config())
         'array_syntax' => ['syntax' => 'short'],
     ])
     ->setFinder($finder)
-    ->setCacheFile('.php-cs-fixer.cache') // forward compatibility with 3.x line
 ;
