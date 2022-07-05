@@ -5,16 +5,6 @@
       <code>section</code>
     </UndefinedInterfaceMethod>
   </file>
-  <file src="src/Command/Source/SourceDownloadCoversCommand.php">
-    <PossiblyNullArgument occurrences="1">
-      <code>$source-&gt;getOriginalFile()</code>
-    </PossiblyNullArgument>
-  </file>
-  <file src="src/Command/Vendors/VendorJobCommand.php">
-    <InvalidScalarArgument occurrences="1">
-      <code>$vendorId</code>
-    </InvalidScalarArgument>
-  </file>
   <file src="src/Command/Vendors/VendorLoadCommand.php">
     <UndefinedInterfaceMethod occurrences="1">
       <code>section</code>
@@ -55,19 +45,6 @@
       <code>$faker-&gt;width</code>
     </UndefinedMagicPropertyFetch>
   </file>
-  <file src="src/Entity/Image.php">
-    <PossiblyNullReference occurrences="1">
-      <code>getImage</code>
-    </PossiblyNullReference>
-  </file>
-  <file src="src/Entity/Source.php">
-    <InvalidNullableReturnType occurrences="1">
-      <code>Vendor</code>
-    </InvalidNullableReturnType>
-    <NullableReturnStatement occurrences="1">
-      <code>$this-&gt;vendor</code>
-    </NullableReturnStatement>
-  </file>
   <file src="src/Exception/XmlReaderException.php">
     <UndefinedClass occurrences="1">
       <code>Throwable</code>
@@ -79,18 +56,9 @@
     </PossiblyNullReference>
   </file>
   <file src="src/MessageHandler/SearchNoHitsMessageHandler.php">
-    <PossiblyNullArgument occurrences="1">
-      <code>$source-&gt;getOriginalFile()</code>
-    </PossiblyNullArgument>
     <PossiblyNullReference occurrences="1">
       <code>getId</code>
     </PossiblyNullReference>
-  </file>
-  <file src="src/MessageHandler/VendorImageMessageHandler.php">
-    <PossiblyNullArgument occurrences="2">
-      <code>$source-&gt;getOriginalFile()</code>
-      <code>$source-&gt;getOriginalFile()</code>
-    </PossiblyNullArgument>
   </file>
   <file src="src/Repository/SourceRepository.php">
     <QueryBuilderSetParameter occurrences="2">
@@ -116,7 +84,7 @@
       <code>getStatusCode</code>
     </PossiblyUndefinedMethod>
     <RedundantPropertyInitializationCheck occurrences="2">
-      <code>isset($this-&gt;client)</code>
+      <code>isset($this-&gt;newIndexName)</code>
       <code>isset($this-&gt;newIndexName)</code>
     </RedundantPropertyInitializationCheck>
   </file>
@@ -197,41 +165,17 @@
       <code>$vendor-&gt;getDataServerUser()</code>
     </PossiblyNullArgument>
   </file>
-  <file src="src/Service/VendorService/Publizon/PublizonVendorService.php">
-    <PossiblyNullPropertyAssignmentValue occurrences="2">
-      <code>$vendor-&gt;getDataServerPassword()</code>
-      <code>$vendor-&gt;getDataServerURI()</code>
-    </PossiblyNullPropertyAssignmentValue>
-  </file>
-  <file src="src/Service/VendorService/Publizon/PublizonXmlReaderService.php">
-    <InvalidStaticInvocation occurrences="1">
-      <code>\XMLReader::open($apiEndpoint)</code>
-    </InvalidStaticInvocation>
-  </file>
   <file src="src/Service/VendorService/RbDigital/RbDigitalBooksVendorService.php">
     <InvalidThrow occurrences="2">
       <code>InvalidArgumentException</code>
       <code>InvalidArgumentException</code>
     </InvalidThrow>
-    <PossiblyFalseArgument occurrences="1">
-      <code>$this-&gt;ftp-&gt;read($mrcFileName)</code>
-    </PossiblyFalseArgument>
     <UndefinedInterfaceMethod occurrences="4">
       <code>getPathPrefix</code>
       <code>setHost</code>
       <code>setPassword</code>
       <code>setUsername</code>
     </UndefinedInterfaceMethod>
-  </file>
-  <file src="src/Service/VendorService/UploadService/UploadServiceVendorService.php">
-    <PossiblyNullReference occurrences="1">
-      <code>setImageFormat</code>
-    </PossiblyNullReference>
-  </file>
-  <file src="src/Service/VendorService/VendorServiceFactory.php">
-    <PossiblyFalseOperand occurrences="1">
-      <code>strrpos($className, '\\')</code>
-    </PossiblyFalseOperand>
   </file>
   <file src="src/Service/VendorService/VendorServiceTrait.php">
     <UndefinedConstant occurrences="1">
