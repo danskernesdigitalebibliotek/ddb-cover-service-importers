@@ -106,6 +106,7 @@ class Source
         if (null === $this->vendor) {
             throw new UninitializedPropertyException('Vendor is not initialized');
         }
+
         return $this->vendor;
     }
 

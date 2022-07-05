@@ -14,7 +14,7 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class VendorServiceFactory
 {
-    /** @var VendorServiceInterface[] $vendorServices */
+    /** @var VendorServiceInterface[] */
     private array $vendorServices;
     private EntityManagerInterface $em;
 

@@ -166,6 +166,7 @@ class PublizonVendorService implements VendorServiceInterface
             $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
         } catch (\Exception $e) {
             $this->xmlReader->close();
+
             return VendorImportResultMessage::error($e->getMessage());
         }
 

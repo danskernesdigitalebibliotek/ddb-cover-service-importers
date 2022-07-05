@@ -40,6 +40,7 @@ class PublizonXmlReaderService
 
         if ($this->reader->open($apiEndpoint)) {
             $this->isOpen = true;
+
             return true;
         }
 
