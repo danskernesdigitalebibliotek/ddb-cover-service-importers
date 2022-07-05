@@ -60,7 +60,6 @@
         "symfony/maker-bundle": "^1.9",
         "symfony/phpunit-bridge": "^5.3",
         "symfony/stopwatch": "^5.3",
-        "symfony/web-profiler-bundle": "^5.3",
         "vimeo/psalm": "^4.12",
         "weirdan/doctrine-psalm-plugin": "^2.0"
     },
