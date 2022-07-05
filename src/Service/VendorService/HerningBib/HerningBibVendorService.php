@@ -7,6 +7,7 @@
 namespace App\Service\VendorService\HerningBib;
 
 use App\Service\VendorService\AbstractTsvVendorService;
+use App\Service\VendorService\CsvReaderService;
 use App\Utils\Message\VendorImportResultMessage;
 use GuzzleHttp\ClientInterface;
 use League\Flysystem\Filesystem;
@@ -36,10 +37,10 @@ class HerningBibVendorService extends AbstractTsvVendorService
      * @param ClientInterface $httpClient
      * @param Filesystem $local
      */
-    public function __construct(ClientInterface $httpClient, Filesystem $local)
+    public function __construct(ClientInterface $httpClient, Filesystem $local, CsvReaderService $csvReaderService)
     {
         // Resource files is loaded from online location
-        parent::__construct('');
+        parent::__construct('', $csvReaderService);
 
         $this->location = $this->vendorArchiveDir.'/'.$this->vendorArchiveName;
 

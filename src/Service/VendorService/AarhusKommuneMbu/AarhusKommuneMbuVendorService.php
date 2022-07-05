@@ -8,6 +8,7 @@ namespace App\Service\VendorService\AarhusKommuneMbu;
 
 use App\Exception\UnknownVendorResourceFormatException;
 use App\Service\VendorService\AbstractTsvVendorService;
+use App\Service\VendorService\CsvReaderService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
@@ -44,10 +45,10 @@ class AarhusKommuneMbuVendorService extends AbstractTsvVendorService
      * @param ClientInterface $httpClient
      * @param Filesystem $local
      */
-    public function __construct(ClientInterface $httpClient, Filesystem $local)
+    public function __construct(ClientInterface $httpClient, Filesystem $local, CsvReaderService $csvReaderService)
     {
         // Resource files is loaded from online location
-        parent::__construct('');
+        parent::__construct('', $csvReaderService);
 
         $this->location = $this->vendorArchiveDir.'/'.$this->vendorArchiveName;
 
@@ -77,7 +78,7 @@ class AarhusKommuneMbuVendorService extends AbstractTsvVendorService
         try {
             $this->progressStart('Opening resource: "'.$this->vendorArchiveName.'"');
 
-            $reader = $this->getSheetReader();
+            $reader = $this->getSheetIterator();
 
             $totalRows = 0;
             $faustArray = [];

@@ -10,9 +10,7 @@ use App\Exception\UnknownVendorResourceFormatException;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
-use Box\Spout\Common\Exception\IOException;
-use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
-use Box\Spout\Reader\CSV\Reader;
+use Iterator;
 use Symfony\Component\Config\FileLocator;
 
 /**
@@ -30,6 +28,7 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
     protected array $sheetFields = [];
     protected string $resourcesDir;
     protected int $tsvBatchSize = 100;
+    protected CsvReaderService $csvReaderService;
 
     /**
      * AbstractTsvVendorService constructor.
@@ -37,9 +36,10 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(string $resourcesDir)
+    public function __construct(string $resourcesDir, CsvReaderService $csvReaderService)
     {
         $this->resourcesDir = $resourcesDir;
+        $this->csvReaderService = $csvReaderService;
     }
 
     /**
@@ -54,48 +54,46 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
         try {
             $this->progressStart('Opening resource: "'.$this->vendorArchiveName.'"');
 
-            $reader = $this->getSheetReader();
-
             $totalRows = 0;
             $pidArray = [];
             $status = new VendorStatus();
+            $fields = $this->sheetFields;
 
-            foreach ($reader->getSheetIterator() as $sheet) {
-                $fields = $this->sheetFields;
-                foreach ($sheet->getRowIterator() as $row) {
-                    $cellsArray = $row->getCells();
-                    if ($this->sheetHasHeaderRow && 0 === $totalRows) {
-                        $fields = $this->findCellName($cellsArray);
-                        // First row in the tsv file contains the headers.
-                        if (!array_key_exists('faust', $fields) || !array_key_exists('ppid', $fields) || !array_key_exists('url', $fields)) {
-                            throw new UnknownVendorResourceFormatException('Unknown columns in tsv resource file.');
+            $iterator = $this->getSheetIterator();
+            foreach ($iterator as $row) {
+                if ($this->sheetHasHeaderRow && 0 === $totalRows) {
+                    // Header row exists, so lets try finding the right cell numbers.
+                    $fields = $this->findCellName($row);
+
+                    // First row in the tsv file contains the headers.
+                    if (!array_key_exists('faust', $fields) || !array_key_exists('ppid', $fields) || !array_key_exists('url', $fields)) {
+                        throw new UnknownVendorResourceFormatException('Unknown columns in tsv resource file.');
+                    }
+                } else {
+                    if (!empty($fields)) {
+                        $basisPid = $row[$fields['ppid']];
+                        $imageUrl = $row[$fields['url']];
+                        if (!empty($basisPid) && !empty($imageUrl) && filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+                            $pidArray[$basisPid] = $imageUrl;
                         }
                     } else {
-                        if (!empty($fields)) {
-                            $basisPid = $cellsArray[$fields['ppid']]->getValue();
-                            $imageUrl = $cellsArray[$fields['url']]->getValue();
-                            if (!empty($basisPid) && !empty($imageUrl) && filter_var($imageUrl, FILTER_VALIDATE_URL)) {
-                                $pidArray[$basisPid] = $imageUrl;
-                            }
-                        } else {
-                            throw new UnknownVendorResourceFormatException('Header row was not found.');
-                        }
+                        throw new UnknownVendorResourceFormatException('Header row was not found.');
                     }
+                }
 
-                    ++$totalRows;
+                ++$totalRows;
 
-                    if ($this->limit && $totalRows >= $this->limit) {
-                        break;
-                    }
+                if ($this->limit && $totalRows >= $this->limit) {
+                    break;
+                }
 
-                    if (0 === $totalRows % $this->tsvBatchSize) {
-                        $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
+                if (0 === $totalRows % $this->tsvBatchSize) {
+                    $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
 
-                        $pidArray = [];
+                    $pidArray = [];
 
-                        $this->progressMessageFormatted($status);
-                        $this->progressAdvance();
-                    }
+                    $this->progressMessageFormatted($status);
+                    $this->progressAdvance();
                 }
             }
 
@@ -111,40 +109,34 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
     }
 
     /**
-     * Get a tsv file reader reference for the import source.
+     * Get a tsv file Iterator reference for the import source.
      *
-     * @return Reader
-     *
-     * @throws IOException
+     * @return Iterator
      */
-    protected function getSheetReader(): Reader
+    protected function getSheetIterator(): Iterator
     {
         $resourceDirectories = [$this->resourcesDir.'/'.$this->vendorArchiveDir];
 
         $fileLocator = new FileLocator($resourceDirectories);
         $filePath = $fileLocator->locate($this->vendorArchiveName, null, true);
 
-        $reader = ReaderEntityFactory::createCSVReader();
-        $reader->setFieldDelimiter($this->fieldDelimiter);
-        $reader->open($filePath);
-
-        return $reader;
+        return $this->csvReaderService->read($filePath, "\t");
     }
 
     /**
      * Helper function to get cell names.
      *
-     * @param array $cellsArray
+     * @param array $fields
      *   The first row from the tsv file
      *
      * @return array
      *   Keys are cell names and values are cell numbers
      */
-    protected function findCellName(array $cellsArray): array
+    protected function findCellName(array $fields): array
     {
-        $fields = array_map(function ($cell) {
-            return mb_strtolower($cell->getValue());
-        }, $cellsArray);
+        $fields = array_map(function ($field) {
+            return mb_strtolower($field);
+        }, $fields);
 
         return array_flip($fields);
     }

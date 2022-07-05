@@ -67,7 +67,7 @@ class Source
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Image", inversedBy="source", cascade={"persist", "remove"})
      */
-    private ?Image $image;
+    private ?Image $image = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Search", mappedBy="source")
