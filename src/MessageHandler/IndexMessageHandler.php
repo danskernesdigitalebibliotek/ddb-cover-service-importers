@@ -2,16 +2,17 @@
 
 /**
  * @file
- * Index event subscriber that updates the "search" database table thereby ensuring that the material gets indexed into
- * the search engine.
+ * Index message handler
  */
 
-namespace App\EventSubscriber;
+namespace App\MessageHandler;
 
 use App\Entity\Image;
 use App\Entity\Search;
 use App\Entity\Source;
-use App\Event\IndexReadyEvent;
+use App\Message\IndexMessage;
+use App\Service\Indexing\IndexingServiceInterface;
+use App\Service\Indexing\IndexItem;
 use App\Utils\OpenPlatform\Material;
 use Doctrine\DBAL\ConnectionException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -19,54 +20,41 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use ItkDev\MetricsBundle\Service\MetricsService;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 
 /**
- * Class IndexEventSubscriber.
+ * Class IndexMessageHandler.
  */
-class IndexEventSubscriber implements EventSubscriberInterface
+class IndexMessageHandler implements MessageHandlerInterface
 {
     private EntityManagerInterface $em;
     private LoggerInterface $logger;
     private ManagerRegistry $registry;
     private MetricsService $metricsService;
+    private IndexingServiceInterface $indexingService;
 
     /**
-     * IndexEventSubscriber constructor.
+     * SearchProcessor constructor.
      *
      * @param EntityManagerInterface $entityManager
      * @param LoggerInterface $informationLogger
+     * @param ManagerRegistry $registry
+     * @param MetricsService $metricsService
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $informationLogger, ManagerRegistry $registry, MetricsService $metricsService)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $informationLogger, ManagerRegistry $registry, MetricsService $metricsService, IndexingServiceInterface $indexingService)
     {
         $this->em = $entityManager;
         $this->logger = $informationLogger;
         $this->registry = $registry;
         $this->metricsService = $metricsService;
+        $this->indexingService = $indexingService;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedEvents(): array
-    {
-        return [
-            IndexReadyEvent::NAME => 'onIndexEvent',
-        ];
-    }
-
-    /**
-     * Updated event handler.
-     *
-     * @param IndexReadyEvent $event
-     *
-     * @return void
-     */
-    public function onIndexEvent(IndexReadyEvent $event): void
+    public function __invoke(IndexMessage $message)
     {
         try {
-            $material = $event->getMaterial();
-            $image = $this->getImage($event->getImageId());
+            $material = $message->getMaterial();
+            $image = $this->getImage($message->getImageId());
             $source = (null !== $image) ? $image->getSource() : null;
 
             // If image or source are null something is broken in the data,
@@ -115,7 +103,19 @@ class IndexEventSubscriber implements EventSubscriberInterface
                         }
                     }
 
+                    // Make it stick.
                     $this->em->flush();
+
+                    // Send data into the index.
+                    $item = new IndexItem();
+                    $item->setId($search->getId())
+                        ->setIsType((string) $search->getIsType())
+                        ->setIsIdentifier((string) $search->getIsIdentifier())
+                        ->setImageUrl((string) $search->getImageUrl())
+                        ->setImageFormat((string) $search->getImageFormat())
+                        ->setWidth($search->getWidth())
+                        ->setHeight($search->getHeight());
+                    $this->indexingService->add($item);
                 }
             } catch (UniqueConstraintViolationException $exception) {
                 // Some vendors have more than one unique identifier in the input data, so to queue processors can try
@@ -139,7 +139,7 @@ class IndexEventSubscriber implements EventSubscriberInterface
             $this->logger->error('Database Connection Exception', [
                 'service' => 'IndexEventSubscriber',
                 'message' => $exception->getMessage(),
-                'identifiers' => $event->getMaterial()->getIdentifiers(),
+                'identifiers' => $message->getMaterial()->getIdentifiers(),
             ]);
         } catch (\Exception $exception) {
             $this->logger->error('Index Exception', [
@@ -194,10 +194,10 @@ class IndexEventSubscriber implements EventSubscriberInterface
      * @return Image|null
      *   Image entity if found else null
      */
-    private function getImage(int $imageId): ?Image
+    private function getImage(?int $imageId): ?Image
     {
         $repos = $this->em->getRepository(Image::class);
 
-        return $repos->findOneById($imageId);
+        return null !== $imageId ? $repos->findOneById($imageId) : null;
     }
 }

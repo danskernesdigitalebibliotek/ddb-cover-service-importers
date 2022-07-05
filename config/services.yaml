@@ -18,6 +18,7 @@ parameters:
     datawell.vendor.search_url: '%env(DATAWELL_VENDOR_SEARCH_URL)%'
     datawell.vendor.user: '%env(DATAWELL_VENDOR_USER)%'
     datawell.vendor.password: '%env(DATAWELL_VENDOR_PASSWORD)%'
+    es_config: {'hosts': ['%env(INDEXING_URL)%']}
 
 services:
     # default configuration for services in *this* file
@@ -31,7 +32,8 @@ services:
             $bindTraceId: '%env(traceId:HTTP_X_REQUEST_ID)%'
             $cloudinaryTransformations: '%env(yml:file:resolve:CLOUDINARY_CONFIG_FILE)%'
 
-            $bindElasticSearchUrl: '%env(ELASTIC_URL)%'
+            $bindIndexingUrl: '%env(INDEXING_URL)%'
+            $bindIndexingAlias: '%env(INDEXING_ALIAS)%'
 
             $bindMetricsHost: '%env(string:METRICS_HOST)%'
             $bindMetricsPort: '%env(int:METRICS_PORT)%'
@@ -58,6 +60,13 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Service\Indexing\IndexingServiceInterface: '@App\Service\Indexing\IndexingElasticService'
+
+    Elastic\Elasticsearch\ClientBuilder: ~
+    Elastic\Elasticsearch\Client:
+        factory: ['@Elastic\Elasticsearch\ClientBuilder', fromConfig]
+        arguments: ['%es_config%']
 
     monolog.formatter.json:
         class: Monolog\Formatter\JsonFormatter

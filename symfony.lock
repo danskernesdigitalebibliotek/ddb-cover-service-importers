@@ -160,20 +160,17 @@
             "config/packages/eight_points_guzzle.yaml"
         ]
     },
+    "elastic/transport": {
+        "version": "v8.1.0"
+    },
     "elasticsearch/elasticsearch": {
-        "version": "v6.8.2"
+        "version": "v8.2.2"
     },
     "endclothing/prometheus_client_php": {
         "version": "1.0.1"
     },
     "escapestudios/symfony2-coding-standard": {
         "version": "3.12.0"
-    },
-    "ezimuel/guzzlestreams": {
-        "version": "3.0.1"
-    },
-    "ezimuel/ringphp": {
-        "version": "1.2.0"
     },
     "fakerphp/faker": {
         "version": "v1.16.0"
@@ -198,18 +195,6 @@
     },
     "friendsofphp/proxy-manager-lts": {
         "version": "v1.0.5"
-    },
-    "friendsofsymfony/elastica-bundle": {
-        "version": "5.2",
-        "recipe": {
-            "repo": "github.com/symfony/recipes-contrib",
-            "branch": "master",
-            "version": "5.0",
-            "ref": "46c9cd2c1e07f0fcfd97e96f12b03b2e0845c4cd"
-        },
-        "files": [
-            "config/packages/fos_elastica.yaml"
-        ]
     },
     "guzzlehttp/guzzle": {
         "version": "6.5.5"
@@ -283,9 +268,6 @@
     "openlss/lib-array2xml": {
         "version": "1.0.0"
     },
-    "pagerfanta/pagerfanta": {
-        "version": "v2.7.2"
-    },
     "pear/file_marc": {
         "version": "1.4.1"
     },
@@ -303,6 +285,15 @@
     },
     "php-cs-fixer/diff": {
         "version": "v1.3.1"
+    },
+    "php-http/discovery": {
+        "version": "1.14.2"
+    },
+    "php-http/httplug": {
+        "version": "2.3.0"
+    },
+    "php-http/promise": {
+        "version": "1.1.0"
     },
     "phpdocumentor/reflection-common": {
         "version": "2.2.0"
@@ -377,12 +368,6 @@
     },
     "ralouphie/getallheaders": {
         "version": "3.0.3"
-    },
-    "react/promise": {
-        "version": "v2.8.0"
-    },
-    "ruflin/elastica": {
-        "version": "6.2.0"
     },
     "scriptotek/marc": {
         "version": "v2.2.1"
@@ -666,12 +651,6 @@
     },
     "symfony/process": {
         "version": "v5.3.7"
-    },
-    "symfony/property-access": {
-        "version": "v5.3.8"
-    },
-    "symfony/property-info": {
-        "version": "v5.3.8"
     },
     "symfony/proxy-manager-bridge": {
         "version": "v5.3.4"

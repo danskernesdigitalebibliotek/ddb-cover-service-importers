@@ -6,16 +6,13 @@
 
 namespace App\Service;
 
-use App\Entity\Search;
+use App\Exception\SearchIndexException;
 use App\Repository\SearchRepository;
-use App\Service\VendorService\ProgressBarTrait;
+use App\Service\Indexing\IndexingServiceInterface;
+use App\Service\Indexing\IndexItem;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
-use Elasticsearch\ClientBuilder;
-use FOS\ElasticaBundle\Exception\AliasIsIndexException;
-use FOS\ElasticaBundle\Index\IndexManager;
-use FOS\ElasticaBundle\Index\Resetter;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Lock\LockInterface;
 
@@ -24,37 +21,27 @@ use Symfony\Component\Lock\LockInterface;
  */
 class PopulateService
 {
-    use ProgressBarTrait;
-
     public const BATCH_SIZE = 1000;
 
     private SearchRepository $searchRepository;
-    private string $elasticHost;
     private EntityManagerInterface $entityManager;
-    private IndexManager $indexManager;
-    private Resetter $resetter;
     private LockFactory $lockFactory;
     private LockInterface $lock;
+    private IndexingServiceInterface $indexingService;
 
     /**
      * PopulateService constructor.
      *
      * @param EntityManagerInterface $entityManager
      * @param SearchRepository $searchRepository
-     * @param IndexManager $indexManager
-     * @param Resetter $resetter
      * @param LockFactory $lockFactory
-     * @param string $bindElasticSearchUrl
      */
-    public function __construct(EntityManagerInterface $entityManager, SearchRepository $searchRepository, IndexManager $indexManager, Resetter $resetter, LockFactory $lockFactory, string $bindElasticSearchUrl)
+    public function __construct(EntityManagerInterface $entityManager, SearchRepository $searchRepository, LockFactory $lockFactory, IndexingServiceInterface $indexingService)
     {
         $this->searchRepository = $searchRepository;
         $this->entityManager = $entityManager;
-
-        $this->elasticHost = $bindElasticSearchUrl;
-        $this->indexManager = $indexManager;
-        $this->resetter = $resetter;
         $this->lockFactory = $lockFactory;
+        $this->indexingService = $indexingService;
     }
 
     /**
@@ -67,109 +54,74 @@ class PopulateService
      *
      * @throws NoResultException
      * @throws NonUniqueResultException
+     * @throws SearchIndexException
      *
-     * @return void
+     * @return \Generator
      */
-    public function populate(int $record_id = -1, bool $force = false): void
+    public function populate(int $record_id = -1, bool $force = false): \Generator
     {
-        $this->progressStart('Starting populate process');
-
         if ($this->acquireLock($force)) {
-            $client = ClientBuilder::create()->setHosts([$this->elasticHost])->build();
-            $indexes = array_keys($this->indexManager->getAllIndexes());
-            foreach ($indexes as $indexName) {
-                // When aliases is configured this reset will create a new index in ES.
-                $this->resetter->resetIndex($indexName, true);
-
-                // Get information about the newly created index and get its name.
-                $index = $this->indexManager->getIndex($indexName);
-
-                $numberOfRecords = 1;
-                $lastId = $record_id;
-                if (-1 === $record_id) {
-                    $numberOfRecords = $this->searchRepository->getNumberOfRecords();
-                    $lastId = $this->searchRepository->findLastId();
-                }
-                // Make sure there are entries in the Search table to process.
-                if (0 === $numberOfRecords || null === $lastId) {
-                    $this->progressMessage('No entries in Search table.');
-                    $this->progressFinish();
-
-                    return;
-                }
-
-                $entriesAdded = 0;
-                $currentId = 0;
-
-                while ($entriesAdded < $numberOfRecords) {
-                    $params = ['body' => []];
-
-                    $criteria = [];
-                    if (-1 !== $record_id) {
-                        $criteria = ['id' => $record_id];
-                    }
-                    $entities = $this->searchRepository->findBy($criteria, ['id' => 'ASC'], self::BATCH_SIZE, $entriesAdded);
-
-                    // No more results.
-                    if (0 === count($entities)) {
-                        $this->progressMessage(sprintf('%d of %d processed. Id: %d. Last id: %d. No more results.', $entriesAdded, $numberOfRecords, $currentId, $lastId));
-                        break;
-                    }
-
-                    foreach ($entities as $entity) {
-                        $params['body'][] = [
-                            'index' => [
-                                '_index' => $index->getName(),
-                                '_id' => $entity->getId(),
-                                '_type' => 'search',
-                            ],
-                        ];
-
-                        $params['body'][] = [
-                            'isIdentifier' => $entity->getIsIdentifier(),
-                            'isType' => $entity->getIsType(),
-                            'imageUrl' => $entity->getImageUrl(),
-                            'imageFormat' => $entity->getImageFormat(),
-                            'width' => $entity->getWidth(),
-                            'height' => $entity->getHeight(),
-                        ];
-
-                        ++$entriesAdded;
-                        $currentId = $entity->getId();
-                    }
-
-                    // Send bulk.
-                    $client->bulk($params);
-
-                    // Update progress message.
-                    $this->progressMessage(sprintf('%s of %s added. Current id: %d. Last id: %d.', number_format($entriesAdded, 0, ',', '.'), number_format($numberOfRecords, 0, ',', '.'), $currentId, $lastId));
-
-                    // Free up memory usages.
-                    $this->entityManager->clear();
-                    gc_collect_cycles();
-
-                    $this->progressAdvance();
-                }
-
-                $this->progressMessage(sprintf('<info>Refreshing</info> <comment>%s</comment>', $index->getName()));
-                $index->refresh();
-
-                $this->progressMessage(sprintf('<info>Switching alias</info> <comment>%s -> %s</comment>', $index->getOriginalName(), $index->getName()));
-
-                // Switching the alias and deleting the old index.
-                try {
-                    $this->resetter->switchIndexAlias($indexName, true);
-                } catch (AliasIsIndexException $exception) {
-                    $this->progressMessage('<info>Failed to switch alias, please to it by hand</info>');
-                }
+            $numberOfRecords = 1;
+            if (-1 === $record_id) {
+                $numberOfRecords = $this->searchRepository->getNumberOfRecords();
             }
+
+            // Make sure there are entries in the Search table to process.
+            if (0 === $numberOfRecords) {
+                yield 'No entries in Search table.';
+
+                return;
+            }
+
+            $entriesAdded = 0;
+
+            while ($entriesAdded < $numberOfRecords) {
+                $items = [];
+
+                $criteria = [];
+                if (-1 !== $record_id) {
+                    $criteria = ['id' => $record_id];
+                }
+                $entities = $this->searchRepository->findBy($criteria, ['id' => 'ASC'], self::BATCH_SIZE, $entriesAdded);
+
+                // No more results.
+                if (0 === count($entities)) {
+                    yield sprintf('%d of %d processed. No more results.', number_format($entriesAdded, 0, ',', '.'), number_format($numberOfRecords, 0, ',', '.'));
+                    break;
+                }
+
+                foreach ($entities as $entity) {
+                    $item = new IndexItem();
+                    $item->setId($entity->getId())
+                        ->setIsIdentifier($entity->getIsIdentifier())
+                        ->setIsType($entity->getIsType())
+                        ->setImageUrl($entity->getImageUrl())
+                        ->setImageFormat($entity->getImageFormat())
+                        ->setWidth($entity->getWidth())
+                        ->setHeight($entity->getHeight());
+                    $items[] = $item;
+
+                    ++$entriesAdded;
+                }
+
+                // Send bulk.
+                $this->indexingService->bulkAdd($items);
+
+                // Update progress message.
+                yield sprintf('%s of %s added', number_format($entriesAdded, 0, ',', '.'), number_format($numberOfRecords, 0, ',', '.'));
+
+                // Free up memory usages.
+                $this->entityManager->clear();
+                gc_collect_cycles();
+            }
+
+            yield '<info>Switching alias and removing old index</info>';
+            $this->indexingService->switchIndex();
 
             $this->releaseLock();
         } else {
-            $this->progressMessage('<error>Process is already running use "--force" to run command</error>');
+            yield '<error>Process is already running use "--force" to run command</error>';
         }
-
-        $this->progressFinish();
     }
 
     /**
