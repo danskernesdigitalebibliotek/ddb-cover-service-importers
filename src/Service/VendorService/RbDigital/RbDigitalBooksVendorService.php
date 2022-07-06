@@ -17,6 +17,9 @@ use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem;
+use League\Flysystem\FilesystemException;
+use League\Flysystem\Ftp\FtpAdapter;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Scriptotek\Marc\Collection;
@@ -41,22 +44,24 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
     /**
      * RbDigitalVendorService constructor.
      *
-     * @param Filesystem $local
+     * @param LocalFilesystemAdapter $local
      *   Flysystem adapter for local filesystem
-     * @param Filesystem $ftp
+     * @param FtpAdapter $ftp
      *   Flysystem adapter for remote ftp server
      * @param CacheItemPoolInterface $cache
      *   Cache adapter for the application
      */
     public function __construct(
-        private readonly Filesystem $local,
-        private readonly Filesystem $ftp,
+        private readonly LocalFilesystemAdapter $local,
+        private readonly FtpAdapter $ftp,
         private readonly CacheItemPoolInterface $cache
     ) {
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @throws FilesystemException
      */
     public function load(): VendorImportResultMessage
     {
@@ -71,7 +76,7 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
 
         $mrcFileNames = [];
         foreach (self::VENDOR_ARCHIVES_DIRECTORIES as $directory) {
-            foreach ($this->ftp->listContents($directory) as $content) {
+            foreach ($this->ftp->listContents($directory, false) as $content) {
                 $mrcFileNames[] = $content['path'];
             }
         }

@@ -219,11 +219,18 @@
     "laminas/laminas-code": {
         "version": "4.4.3"
     },
-    "league/flysystem": {
-        "version": "1.1.5"
-    },
-    "league/mime-type-detection": {
-        "version": "1.8.0"
+    "league/flysystem-bundle": {
+        "version": "2.2",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "main",
+            "version": "1.0",
+            "ref": "913dc3d7a5a1af0d2b044c5ac3a16e2f851d7380"
+        },
+        "files": [
+            "config/packages/flysystem.yaml",
+            "var/storage/.gitignore"
+        ]
     },
     "league/oauth2-client": {
         "version": "2.6.0"
@@ -248,18 +255,6 @@
     },
     "ocramius/proxy-manager": {
         "version": "2.2.2"
-    },
-    "oneup/flysystem-bundle": {
-        "version": "4.4",
-        "recipe": {
-            "repo": "github.com/symfony/recipes-contrib",
-            "branch": "main",
-            "version": "4.0",
-            "ref": "3ae1b83985e89138f5443bbc2d9b8c074b497d49"
-        },
-        "files": [
-            "config/packages/oneup_flysystem.yaml"
-        ]
     },
     "openlss/lib-array2xml": {
         "version": "1.0.0"

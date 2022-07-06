@@ -69,13 +69,13 @@ services:
 
     App\Service\VendorService\BogPortalen\BogPortalenVendorService:
         arguments:
-            $local: '@oneup_flysystem.local_filesystem'
-            $ftp: '@oneup_flysystem.bogportalen_ftp_filesystem'
+            $local: '@flysystem.adapter.default.storage'
+            $ftp: '@flysystem.adapter.bogportalen.storage'
 
     App\Service\VendorService\RbDigital\RbDigitalBooksVendorService:
         arguments:
-            $local: '@oneup_flysystem.local_filesystem'
-            $ftp: '@oneup_flysystem.rbdigital_ftp_filesystem'
+            $local: '@flysystem.adapter.default.storage'
+            $ftp: '@flysystem.adapter.rbdigital.storage'
 
     App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiService:
         arguments:

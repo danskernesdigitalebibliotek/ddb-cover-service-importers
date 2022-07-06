@@ -14,9 +14,9 @@ use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
-use GuzzleHttp\ClientInterface;
-use League\Flysystem\Filesystem;
-use League\Flysystem\UnreadableFileException;
+use Symfony\Component\Filesystem\Exception\FileNotFoundException;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class HerningBibVendorService.
@@ -39,55 +39,60 @@ class AarhusKommuneMbuVendorService extends AbstractTsvVendorService
     /**
      * HerningBibVendorService constructor.
      *
-     * @param ClientInterface $httpClient
-     * @param Filesystem $local
+     * @param string $resourcesDir
+     * @param CsvReaderService $csvReaderService
+     * @param HttpClientInterface $httpClient
      */
     public function __construct(
-        private readonly ClientInterface $httpClient,
-        private readonly Filesystem $local,
-        CsvReaderService $csvReaderService
+        protected string $resourcesDir,
+        protected CsvReaderService $csvReaderService,
+        protected HttpClientInterface $httpClient,
     ) {
-        // Resource files is loaded from online location
-        parent::__construct('', $csvReaderService);
+        parent::__construct($resourcesDir, $csvReaderService, $httpClient);
 
-        $this->location = $this->vendorArchiveDir.'/'.$this->vendorArchiveName;
+        $this->fieldDelimiter = ' ';
+        $this->location = $resourcesDir.'/'.$this->vendorArchiveDir.'/'.$this->vendorArchiveName;
     }
 
     /**
      * {@inheritdoc}
      *
-     * @throws UnreadableFileException
+     * @throws FileNotFoundException
      */
     public function load(): VendorImportResultMessage
     {
-        $tsv = $this->getTsv($this->location, self::TSV_URL);
-
-        if (!$tsv) {
-            throw new UnreadableFileException('Failed to get TSV file from CDN');
-        }
-
-        $this->vendorArchiveDir = $this->local->getAdapter()->getPathPrefix().$this->vendorArchiveDir;
-
         if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
             return VendorImportResultMessage::error(self::ERROR_RUNNING);
         }
 
         try {
-            $this->progressStart('Opening resource: "'.$this->vendorArchiveName.'"');
+            $this->downloadTsv($this->location, self::TSV_URL);
+        } catch (TransportExceptionInterface $e) {
+            throw new FileNotFoundException('Failed to get TSV file from CDN', $e->getCode(), $e);
+        }
 
-            $reader = $this->getSheetIterator();
+        try {
+            $this->progressStart('Opening resource: "'.$this->vendorArchiveName.'"');
 
             $totalRows = 0;
             $faustArray = [];
             $status = new VendorStatus();
+            $fields = $this->sheetFields;
 
-            foreach ($reader->getSheetIterator() as $sheet) {
-                $fields = $this->sheetFields;
-                foreach ($sheet->getRowIterator() as $row) {
-                    $cellsArray = $row->getCells();
+            $iterator = $this->getSheetIterator();
+            foreach ($iterator as $row) {
+                if ($this->sheetHasHeaderRow && 0 === $totalRows) {
+                    // Header row exists, so lets try finding the right cell numbers.
+                    $fields = $this->findCellName($row);
+
+                    // First row in the tsv file contains the headers.
+                    if (!array_key_exists('faust', $fields) || !array_key_exists('ppid', $fields) || !array_key_exists('url', $fields)) {
+                        throw new UnknownVendorResourceFormatException('Unknown columns in tsv resource file.');
+                    }
+                } else {
                     if (!empty($fields)) {
-                        $basisPid = $cellsArray[$fields['ppid']]->getValue();
-                        $imageUrl = $cellsArray[$fields['url']]->getValue();
+                        $basisPid = $row[$fields['ppid']];
+                        $imageUrl = $row[$fields['url']];
                         if (!empty($basisPid) && !empty($imageUrl) && filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                             // This is a hack as this vendor uses katalog PID, but want to be able to search on faust,
                             // so we index them by faust and will make the mapping to katalog in no-hit processing.
@@ -98,21 +103,21 @@ class AarhusKommuneMbuVendorService extends AbstractTsvVendorService
                     } else {
                         throw new UnknownVendorResourceFormatException('Header row was not found.');
                     }
+                }
 
-                    ++$totalRows;
+                ++$totalRows;
 
-                    if ($this->limit && $totalRows >= $this->limit) {
-                        break;
-                    }
+                if ($this->limit && $totalRows >= $this->limit) {
+                    break;
+                }
 
-                    if (0 === $totalRows % $this->tsvBatchSize) {
-                        $this->vendorCoreService->updateOrInsertMaterials($status, $faustArray, IdentifierType::FAUST, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
+                if (0 === $totalRows % $this->tsvBatchSize) {
+                    $this->vendorCoreService->updateOrInsertMaterials($status, $faustArray, IdentifierType::FAUST, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
 
-                        $faustArray = [];
+                    $faustArray = [];
 
-                        $this->progressMessageFormatted($status);
-                        $this->progressAdvance();
-                    }
+                    $this->progressMessageFormatted($status);
+                    $this->progressAdvance();
                 }
             }
 
@@ -125,15 +130,5 @@ class AarhusKommuneMbuVendorService extends AbstractTsvVendorService
         } catch (\Exception $exception) {
             return VendorImportResultMessage::error($exception->getMessage());
         }
-    }
-
-    /**
-     * Download the TSV file to local filesystem.
-     */
-    private function getTsv(string $location, string $url): bool
-    {
-        $response = $this->httpClient->get($url);
-
-        return $this->local->putStream($location, $response->getBody()->detach());
     }
 }

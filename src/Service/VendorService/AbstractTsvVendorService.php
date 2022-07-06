@@ -12,6 +12,9 @@ use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
 use Iterator;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\HttpClient\Response\StreamWrapper;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class AbstractTsvVendorService.
@@ -36,7 +39,8 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
      */
     public function __construct(
         protected string $resourcesDir,
-        protected CsvReaderService $csvReaderService
+        protected CsvReaderService $csvReaderService,
+        protected HttpClientInterface $httpClient,
     ) {
     }
 
@@ -118,7 +122,7 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
         $fileLocator = new FileLocator($resourceDirectories);
         $filePath = $fileLocator->locate($this->vendorArchiveName, null, true);
 
-        return $this->csvReaderService->read($filePath, "\t");
+        return $this->csvReaderService->read($filePath, $this->fieldDelimiter);
     }
 
     /**
@@ -135,5 +139,19 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
         $fields = array_map(fn ($field) => mb_strtolower((string) $field), $fields);
 
         return array_flip($fields);
+    }
+
+    /**
+     * Download the TSV file to local filesystem.
+     *
+     * @throws TransportExceptionInterface
+     */
+    protected function downloadTsv(string $location, string $url): void
+    {
+        $response = $this->httpClient->request('GET', $url);
+
+        $dest = fopen($location, 'w');
+        stream_copy_to_stream(StreamWrapper::createResource($response, $this->httpClient), $dest);
+        fclose($dest);
     }
 }

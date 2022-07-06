@@ -43,10 +43,10 @@ class TheMovieDatabaseApiService
      * @param string|null $director
      *   The director of the movie
      *
-     * @return string
+     * @return string|null
      *   The poster url or null
      *
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function searchPosterUrl(string $title = null, string $originalYear = null, string $director = null): ?string
     {

@@ -14,6 +14,9 @@ use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
 use League\Flysystem\Filesystem;
+use League\Flysystem\FilesystemException;
+use League\Flysystem\Ftp\FtpAdapter;
+use League\Flysystem\Local\LocalFilesystemAdapter;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 
 /**
@@ -30,21 +33,21 @@ class BogPortalenVendorService implements VendorServiceInterface
     /**
      * BogPortalenVendorService constructor.
      *
-     * @param filesystem $local
+     * @param LocalFilesystemAdapter $local
      *   Flysystem adapter for local filesystem
-     * @param filesystem $ftp
+     * @param FtpAdapter $ftp
      *   Flysystem adapter for remote ftp server
      */
     public function __construct(
-        private readonly Filesystem $local,
-        private readonly Filesystem $ftp
+        private readonly LocalFilesystemAdapter $local,
+        private readonly FtpAdapter $ftp
     ) {
     }
 
     /**
      * {@inheritdoc}
      *
-     * @throws UnknownVendorServiceException
+     * @throws UnknownVendorServiceException|FilesystemException
      */
     public function load(): VendorImportResultMessage
     {

@@ -20,7 +20,7 @@ class CsvReaderService
         $file = fopen($filename, 'r');
         while (!feof($file)) {
             $row = fgetcsv($file, 4096, $separator);
-            if (!is_array($row)) {
+            if (!is_array($row) || empty($row) || empty($row[0])) {
                 // Handle empty lines in the input file.
                 continue;
             }

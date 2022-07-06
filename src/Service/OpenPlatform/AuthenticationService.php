@@ -11,11 +11,11 @@
 namespace App\Service\OpenPlatform;
 
 use App\Exception\OpenPlatformAuthException;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\RequestException;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class AuthenticationService.
@@ -37,14 +37,14 @@ class AuthenticationService
      *   Cache to store access token
      * @param LoggerInterface $logger
      *   Logger object to send stats to ES
-     * @param ClientInterface $httpClient
+     * @param HttpClientInterface $httpClient
      *   Guzzle Client
      */
     public function __construct(
         private readonly ParameterBagInterface $params,
         private readonly CacheItemPoolInterface $cache,
         private readonly LoggerInterface $logger,
-        private readonly ClientInterface $httpClient
+        private readonly HttpClientInterface $httpClient
     ) {
     }
 
@@ -60,8 +60,6 @@ class AuthenticationService
      *   The access token
      *
      * @throws OpenPlatformAuthException
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function getAccessToken(bool $refresh = false): string
     {
@@ -111,21 +109,21 @@ class AuthenticationService
                         $this->params->get('openPlatform.auth.secret'),
                     ],
                 ]);
-            } catch (RequestException $exception) {
+            } catch (TransportExceptionInterface $exception) {
                 $this->logger->error('Access token not acquired', [
                     'service' => 'AuthenticationService',
                     'cache' => false,
                     'message' => $exception->getMessage(),
                 ]);
 
-                throw new OpenPlatformAuthException($exception->getMessage(), (int) $exception->getCode());
+                throw new OpenPlatformAuthException($exception->getMessage(), (int) $exception->getCode(), $exception);
             } catch (\Exception $exception) {
                 $this->logger->error('Unknown error in acquiring access token', [
                     'service' => 'AuthenticationService',
                     'message' => $exception->getMessage(),
                 ]);
 
-                throw new OpenPlatformAuthException($exception->getMessage(), (int) $exception->getCode());
+                throw new OpenPlatformAuthException($exception->getMessage(), (int) $exception->getCode(), $exception);
             }
 
             // Get the content and parse json object as an array.
