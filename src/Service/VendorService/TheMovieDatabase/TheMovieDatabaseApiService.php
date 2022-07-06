@@ -22,12 +22,12 @@ class TheMovieDatabaseApiService
     /**
      * TheMovieDatabaseApiService constructor.
      *
-     * @param string                      $apiKey
+     * @param string $apiKey
      * @param \GuzzleHttp\ClientInterface $httpClient
-     * @param \Psr\Log\LoggerInterface    $logger
+     * @param \Psr\Log\LoggerInterface $logger
      */
     public function __construct(
-        private readonly string          $apiKey,
+        private readonly string $apiKey,
         private readonly ClientInterface $httpClient,
         private readonly LoggerInterface $logger
     ) {
