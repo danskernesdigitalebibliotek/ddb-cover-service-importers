@@ -8,6 +8,7 @@
 namespace App\Command\OpenPlatform;
 
 use App\Service\OpenPlatform\AuthenticationService;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,10 +17,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Class OpenPlatformAuthCommand.
  */
+#[AsCommand(name: 'app:openplatform:auth')]
 class OpenPlatformAuthCommand extends Command
 {
-    protected static $defaultName = 'app:openplatform:auth';
-
     private AuthenticationService $authentication;
     private bool $refresh = false;
 

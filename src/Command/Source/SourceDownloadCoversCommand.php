@@ -14,6 +14,7 @@ use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -24,11 +25,10 @@ use Symfony\Component\Messenger\MessageBusInterface;
 /**
  * Class SourceDownloadCoversCommand.
  */
+#[AsCommand(name: 'app:source:download')]
 class SourceDownloadCoversCommand extends Command
 {
     use ProgressBarTrait;
-
-    protected static $defaultName = 'app:source:download';
 
     private EntityManagerInterface $em;
     private VendorImageValidatorService $validator;

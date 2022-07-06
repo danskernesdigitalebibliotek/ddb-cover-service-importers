@@ -16,7 +16,7 @@ use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use Nicebooks\Isbn\Isbn;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 /**
@@ -25,7 +25,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 class SearchService
 {
     private ParameterBagInterface $params;
-    private AdapterInterface $cache;
+    private CacheItemPoolInterface $cache;
     private AuthenticationService $authenticationService;
     private ClientInterface $client;
 
@@ -54,14 +54,14 @@ class SearchService
      *
      * @param ParameterBagInterface $params
      *   Access to environment variables
-     * @param AdapterInterface $cache
+     * @param CacheItemPoolInterface $cache
      *   Cache object to store results
      * @param AuthenticationService $authenticationService
      *   The Open Platform authentication service
      * @param ClientInterface $httpClient
      *   Guzzle Client
      */
-    public function __construct(ParameterBagInterface $params, AdapterInterface $cache, AuthenticationService $authenticationService, ClientInterface $httpClient)
+    public function __construct(ParameterBagInterface $params, CacheItemPoolInterface $cache, AuthenticationService $authenticationService, ClientInterface $httpClient)
     {
         $this->params = $params;
         $this->cache = $cache;

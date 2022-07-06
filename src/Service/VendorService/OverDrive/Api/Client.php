@@ -15,8 +15,8 @@ use GuzzleHttp\Exception\GuzzleException;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
 use League\OAuth2\Client\Token\AccessTokenInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
 
 /**
  * Class Client.
@@ -31,7 +31,7 @@ class Client
     private string $libraryAccountEndpoint;
     private string $clientId;
     private string $clientSecret;
-    private AdapterInterface $cache;
+    private CacheItemPoolInterface $cache;
     private ClientInterface $httpClient;
     private AccessTokenInterface $accessToken;
     private string $productsEndpoint;
@@ -39,12 +39,12 @@ class Client
     /**
      * Client constructor.
      *
-     * @param AdapterInterface $cache
+     * @param CacheItemPoolInterface $cache
      *   Cache adapter for using the application cache
      * @param ClientInterface $httpClient
      *   Http client for api calls
      */
-    public function __construct(AdapterInterface $cache, ClientInterface $httpClient)
+    public function __construct(CacheItemPoolInterface $cache, ClientInterface $httpClient)
     {
         $this->cache = $cache;
         $this->httpClient = $httpClient;

@@ -17,9 +17,9 @@ use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
 use League\Flysystem\FileNotFoundException;
 use League\Flysystem\Filesystem;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Scriptotek\Marc\Collection;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
 
 /**
  * Class RbDigitalBooksVendorService.
@@ -40,7 +40,7 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
 
     private Filesystem $local;
     private Filesystem $ftp;
-    private AdapterInterface $cache;
+    private CacheItemPoolInterface $cache;
 
     /**
      * RbDigitalVendorService constructor.
@@ -49,10 +49,10 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
      *   Flysystem adapter for local filesystem
      * @param Filesystem $ftp
      *   Flysystem adapter for remote ftp server
-     * @param AdapterInterface $cache
+     * @param CacheItemPoolInterface $cache
      *   Cache adapter for the application
      */
-    public function __construct(Filesystem $local, Filesystem $ftp, AdapterInterface $cache)
+    public function __construct(Filesystem $local, Filesystem $ftp, CacheItemPoolInterface $cache)
     {
         $this->local = $local;
         $this->ftp = $ftp;

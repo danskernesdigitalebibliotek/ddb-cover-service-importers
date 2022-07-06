@@ -8,6 +8,7 @@
 namespace App\Command\OpenPlatform;
 
 use App\Service\OpenPlatform\SearchService;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -16,10 +17,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Class OpenPlatformSearchCommand.
  */
+#[AsCommand(name: 'app:openplatform:search')]
 class OpenPlatformSearchCommand extends Command
 {
-    protected static $defaultName = 'app:openplatform:search';
-
     private SearchService $search;
 
     /**

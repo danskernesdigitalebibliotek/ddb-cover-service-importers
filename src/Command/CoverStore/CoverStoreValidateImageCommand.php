@@ -14,6 +14,7 @@ use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,10 +24,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Class CoverStoreValidateImageCommand.
  */
+#[AsCommand(name: 'app:cover:validate-image')]
 class CoverStoreValidateImageCommand extends Command
 {
-    protected static $defaultName = 'app:cover:validate-image';
-
     private CoverStoreInterface $store;
     private SourceRepository $sourceRepository;
     private VendorRepository $vendorRepository;

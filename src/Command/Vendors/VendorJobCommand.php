@@ -10,6 +10,7 @@ namespace App\Command\Vendors;
 use App\Message\DeleteMessage;
 use App\Message\VendorImageMessage;
 use App\Utils\Types\VendorState;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,10 +20,9 @@ use Symfony\Component\Messenger\MessageBusInterface;
 /**
  * Class VendorJobCommand.
  */
+#[AsCommand(name: 'app:vendor:job-test')]
 class VendorJobCommand extends Command
 {
-    protected static $defaultName = 'app:vendor:job-test';
-
     private MessageBusInterface $bus;
 
     /**

@@ -10,6 +10,7 @@ namespace Tests\Service\OpenPlatform;
 use App\Exception\OpenPlatformAuthException;
 use App\Service\OpenPlatform\AuthenticationService;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -17,8 +18,8 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class AuthenticationServiceTest extends TestCase
@@ -28,8 +29,8 @@ class AuthenticationServiceTest extends TestCase
     /**
      * Test that token is returned.
      *
-     * @throws \App\Exception\OpenPlatformAuthException
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws OpenPlatformAuthException
+     * @throws GuzzleException
      * @throws \Psr\Cache\InvalidArgumentException
      */
     public function testGetAccessToken()
@@ -42,8 +43,8 @@ class AuthenticationServiceTest extends TestCase
     /**
      * Test that a token is return if cache is enabled.
      *
-     * @throws \App\Exception\OpenPlatformAuthException
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws OpenPlatformAuthException
+     * @throws GuzzleException
      * @throws \Psr\Cache\InvalidArgumentException
      */
     public function testGetAccessTokenCache()
@@ -56,7 +57,7 @@ class AuthenticationServiceTest extends TestCase
      * Test that PlatformAuthException is throw on client error.
      *
      * @throws OpenPlatformAuthException
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      * @throws \Psr\Cache\InvalidArgumentException
      */
     public function testErrorHandling()
@@ -93,7 +94,7 @@ class AuthenticationServiceTest extends TestCase
             ->method('isHit')
             ->willReturn($cacheHit);
 
-        $cache = $this->createMock(AdapterInterface::class);
+        $cache = $this->createMock(CacheItemPoolInterface::class);
         $cache->expects($this->once())
             ->method('getItem')
             ->willReturn($cacheItem);

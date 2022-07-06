@@ -13,6 +13,7 @@ use App\Entity\Vendor;
 use App\Service\CoverStore\CoverStoreInterface;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -21,10 +22,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Class MissingImagesCommand.
  */
+#[AsCommand(name: 'app:image:missing')]
 class MissingImagesCommand extends Command
 {
-    protected static $defaultName = 'app:image:missing';
-
     private CoverStoreInterface $store;
     private EntityManager $em;
 

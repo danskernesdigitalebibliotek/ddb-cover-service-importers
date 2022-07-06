@@ -13,8 +13,8 @@ namespace App\Service\OpenPlatform;
 use App\Exception\OpenPlatformAuthException;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 /**
@@ -22,13 +22,13 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
  */
 class AuthenticationService
 {
-    // Used to give the token some grace-period so it will not expire will
+    // Used to give the token some grace-period, so it will not expire will
     // being used. Currently, the token is valid for 30 days. So we set the
     // limit to be 1 day, so it will be refreshed before it expires.
     public const TOKEN_EXPIRE_LIMIT = 86400;
 
     private ParameterBagInterface $params;
-    private AdapterInterface $cache;
+    private CacheItemPoolInterface $cache;
     private LoggerInterface $logger;
     private string $accessToken = '';
     private ClientInterface $client;
@@ -38,14 +38,14 @@ class AuthenticationService
      *
      * @param ParameterBagInterface $params
      *   Used to get parameters form the environment
-     * @param AdapterInterface $cache
+     * @param CacheItemPoolInterface $cache
      *   Cache to store access token
      * @param LoggerInterface $informationLogger
      *   Logger object to send stats to ES
      * @param ClientInterface $httpClient
      *   Guzzle Client
      */
-    public function __construct(ParameterBagInterface $params, AdapterInterface $cache, LoggerInterface $informationLogger, ClientInterface $httpClient)
+    public function __construct(ParameterBagInterface $params, CacheItemPoolInterface $cache, LoggerInterface $informationLogger, ClientInterface $httpClient)
     {
         $this->params = $params;
         $this->cache = $cache;

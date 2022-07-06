@@ -13,6 +13,7 @@ use App\Repository\SourceRepository;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -20,11 +21,10 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
+#[AsCommand(name: 'app:search:reindex')]
 class SearchReindexCommand extends Command
 {
     use ProgressBarTrait;
-
-    protected static $defaultName = 'app:search:reindex';
 
     private EntityManagerInterface $em;
     private MessageBusInterface $bus;

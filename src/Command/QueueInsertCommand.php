@@ -11,6 +11,7 @@ use App\Message\SearchMessage;
 use App\Message\SearchNoHitsMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -20,11 +21,10 @@ use Symfony\Component\Messenger\MessageBusInterface;
 /**
  * Class QueueInsertCommand.
  */
+#[AsCommand(name: 'app:queue:insert')]
 class QueueInsertCommand extends Command
 {
     private MessageBusInterface $bus;
-
-    protected static $defaultName = 'app:queue:insert';
 
     /**
      * QueueInsertCommand constructor.

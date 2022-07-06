@@ -1,23 +1,25 @@
-# Read the documentation: https://github.com/1up-lab/OneupFlysystemBundle/blob/release/3.x/Resources/doc/index.md
+# Read the documentation: https://github.com/1up-lab/OneupFlysystemBundle
 oneup_flysystem:
     adapters:
         filesystem_adapter:
             local:
-                directory: '%kernel.cache_dir%/flysystem'
+                location: '%kernel.cache_dir%/flysystem'
         bogportalen_ftp:
             ftp:
-                host: ''
-                username: ''
-                password: ''
-                root: 'Public'
-                ssl: false
+                options:
+                    host: ''
+                    username: ''
+                    password: ''
+                    root: 'Public'
+                    ssl: false
         rbdigital_ftp:
             ftp:
-                host: ''
-                username: ''
-                password: ''
-                root: 'Marc/OCLC/Subscription'
-                ssl: false
+                options:
+                    host: ''
+                    username: ''
+                    password: ''
+                    root: 'Marc/OCLC/Subscription'
+                    ssl: false
     filesystems:
         local:
             adapter: filesystem_adapter

@@ -7,22 +7,23 @@
 
 namespace App\EnvVarProcessor;
 
+use JetBrains\PhpStorm\ArrayShape;
 use Symfony\Component\DependencyInjection\EnvVarProcessorInterface;
 use Symfony\Component\DependencyInjection\Exception\EnvNotFoundException;
 
 class TraceIdEnvVarProcessor implements EnvVarProcessorInterface
 {
-    private static $id;
+    private static string $id;
 
     /**
      * {@inheritdoc}
      */
-    public function getEnv($prefix, $name, $getEnv)
+    public function getEnv($prefix, $name, $getEnv): string
     {
         try {
             $this::$id = $getEnv($name);
         } catch (EnvNotFoundException $exception) {
-            // Do not do anything here as the id will fallback to be generated.
+            // Do not do anything here as the id will fall back to be generated.
         }
 
         if (empty($this::$id)) {
@@ -35,7 +36,8 @@ class TraceIdEnvVarProcessor implements EnvVarProcessorInterface
     /**
      * {@inheritdoc}
      */
-    public static function getProvidedTypes()
+    #[ArrayShape(['traceId' => 'string'])]
+    public static function getProvidedTypes(): array
     {
         return [
             'traceId' => 'string',

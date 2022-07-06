@@ -8,6 +8,7 @@ namespace App\Command;
 
 use App\Service\PopulateService;
 use App\Service\VendorService\ProgressBarTrait;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -17,13 +18,12 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Class SearchPopulateCommand.
  */
+#[AsCommand(name: 'app:search:populate')]
 class SearchPopulateCommand extends Command
 {
     use ProgressBarTrait;
 
     private PopulateService $populateService;
-
-    protected static $defaultName = 'app:search:populate';
 
     /**
      * SearchPopulateCommand constructor.

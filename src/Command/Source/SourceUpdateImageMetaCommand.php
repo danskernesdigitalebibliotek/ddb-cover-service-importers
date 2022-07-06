@@ -10,15 +10,15 @@ use App\Entity\Source;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[AsCommand(name: 'app:source:update-image-meta')]
 class SourceUpdateImageMetaCommand extends Command
 {
-    protected static $defaultName = 'app:source:update-image-meta';
-
     private EntityManagerInterface $em;
     private VendorImageValidatorService $validator;
 

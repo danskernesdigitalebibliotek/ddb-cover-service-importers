@@ -39,13 +39,11 @@
         "version": "1.13",
         "recipe": {
             "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "1.0",
-            "ref": "a2759dd6123694c8d901d0ec80006e044c2e6457"
+            "branch": "main",
+            "version": "1.10",
+            "ref": "64d8583af5ea57b7afa4aba4b159907f3a148b05"
         },
-        "files": [
-            "config/routes/annotations.yaml"
-        ]
+        "files": []
     },
     "doctrine/cache": {
         "version": "2.1.1"
@@ -252,12 +250,12 @@
         "version": "2.2.2"
     },
     "oneup/flysystem-bundle": {
-        "version": "3.7",
+        "version": "4.4",
         "recipe": {
             "repo": "github.com/symfony/recipes-contrib",
-            "branch": "master",
-            "version": "3.0",
-            "ref": "e6c6440b279273a468e1f570b0fc1d4ff54ad69e"
+            "branch": "main",
+            "version": "4.0",
+            "ref": "3ae1b83985e89138f5443bbc2d9b8c074b497d49"
         },
         "files": [
             "config/packages/oneup_flysystem.yaml"
@@ -433,9 +431,6 @@
             "phpcs.xml.dist"
         ]
     },
-    "symfony/amqp-messenger": {
-        "version": "v5.3.7"
-    },
     "symfony/cache": {
         "version": "v5.3.10"
     },
@@ -570,12 +565,12 @@
         }
     },
     "symfony/messenger": {
-        "version": "5.4",
+        "version": "6.1",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
-            "version": "5.4",
-            "ref": "dfe610928a5c61619bdfc830cd7fa7f091368023"
+            "version": "6.0",
+            "ref": "2523f7d31488903e247a522e760dc279be7f7aaf"
         },
         "files": [
             "config/packages/messenger.yaml"
@@ -629,9 +624,6 @@
     "symfony/polyfill-php72": {
         "version": "v1.23.0"
     },
-    "symfony/polyfill-php73": {
-        "version": "v1.23.0"
-    },
     "symfony/polyfill-php80": {
         "version": "v1.23.1"
     },
@@ -641,16 +633,13 @@
     "symfony/process": {
         "version": "v5.3.7"
     },
-    "symfony/redis-messenger": {
-        "version": "v5.3.10"
-    },
     "symfony/routing": {
-        "version": "5.4",
+        "version": "6.1",
         "recipe": {
             "repo": "github.com/symfony/recipes",
             "branch": "main",
-            "version": "5.3",
-            "ref": "85de1d8ae45b284c3c84b668171d2615049e698f"
+            "version": "6.1",
+            "ref": "a44010c0d06989bd4f154aa07d2542d47caf5b83"
         },
         "files": [
             "config/packages/routing.yaml",

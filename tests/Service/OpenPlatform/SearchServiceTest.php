@@ -20,8 +20,8 @@ use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 /**
@@ -100,7 +100,7 @@ class SearchServiceTest extends TestCase
                 ->willReturn($cacheHit);
         }
 
-        $cache = $this->createMock(AdapterInterface::class);
+        $cache = $this->createMock(CacheItemPoolInterface::class);
         $cache->expects($this->once())
             ->method('getItem')
             ->willReturn($cacheItem);
