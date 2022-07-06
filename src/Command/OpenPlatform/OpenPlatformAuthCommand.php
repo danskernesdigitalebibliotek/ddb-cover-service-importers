@@ -20,7 +20,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:openplatform:auth')]
 class OpenPlatformAuthCommand extends Command
 {
-    private AuthenticationService $authentication;
     private bool $refresh = false;
 
     /**
@@ -29,10 +28,9 @@ class OpenPlatformAuthCommand extends Command
      * @param AuthenticationService $authentication
      *   Open Platform authentication service
      */
-    public function __construct(AuthenticationService $authentication)
-    {
-        $this->authentication = $authentication;
-
+    public function __construct(
+        private readonly AuthenticationService $authentication
+    ) {
         parent::__construct();
     }
 

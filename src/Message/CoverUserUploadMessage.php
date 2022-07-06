@@ -22,17 +22,12 @@ class CoverUserUploadMessage
     private $vendorId;
     private $traceId;
 
-    /**
-     * @return string
-     */
     public function getOperation(): string
     {
         return $this->operation;
     }
 
     /**
-     * @param string $operation
-     *
      * @return static
      */
     public function setOperation(string $operation): self
@@ -42,17 +37,12 @@ class CoverUserUploadMessage
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getIdentifierType(): string
     {
         return $this->identifierType;
     }
 
     /**
-     * @param string $type
-     *
      * @return static
      */
     public function setIdentifierType(string $type): self
@@ -62,17 +52,12 @@ class CoverUserUploadMessage
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getIdentifier(): string
     {
         return $this->identifier;
     }
 
     /**
-     * @param string $identifier
-     *
      * @return static
      */
     public function setIdentifier(string $identifier): self
@@ -82,17 +67,12 @@ class CoverUserUploadMessage
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getImageUrl(): string
     {
         return $this->imageUrl;
     }
 
     /**
-     * @param string $imageUrl
-     *
      * @return static
      */
     public function setImageUrl(string $imageUrl): self
@@ -103,8 +83,6 @@ class CoverUserUploadMessage
     }
 
     /**
-     * @param string $accrediting
-     *
      * @return static
      */
     public function setAccrediting(string $accrediting): self
@@ -114,9 +92,6 @@ class CoverUserUploadMessage
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getAccrediting(): string
     {
         return $this->accrediting;
@@ -145,7 +120,6 @@ class CoverUserUploadMessage
     /**
      * Get trace id (which is unique for the whole request).
      *
-     * @return string
      *   The trace id
      */
     public function getTraceId(): string

@@ -23,18 +23,15 @@ use Symfony\Component\Messenger\MessageBusInterface;
 #[AsCommand(name: 'app:vendor:job-test')]
 class VendorJobCommand extends Command
 {
-    private MessageBusInterface $bus;
-
     /**
      * VendorJobCommand constructor.
      *
      * @param MessageBusInterface $bus
      *   Message queue bus
      */
-    public function __construct(MessageBusInterface $bus)
-    {
-        $this->bus = $bus;
-
+    public function __construct(
+        private readonly MessageBusInterface $bus
+    ) {
         parent::__construct();
     }
 

@@ -34,7 +34,6 @@ class AmazonPublicUrlConverter
      * @param string $url
      *   The 'padmedium' image url
      *
-     * @return string
      *   The 'padlarge' image url
      */
     public static function convertSingleUrl(string $url): string

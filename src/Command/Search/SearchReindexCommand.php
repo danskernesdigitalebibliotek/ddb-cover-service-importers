@@ -26,20 +26,16 @@ class SearchReindexCommand extends Command
 {
     use ProgressBarTrait;
 
-    private EntityManagerInterface $em;
-    private MessageBusInterface $bus;
-
     /**
      * SearchReindexCommand constructor.
      *
-     * @param EntityManagerInterface $entityManager
+     * @param EntityManagerInterface $em
      * @param MessageBusInterface $bus
      */
-    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus)
-    {
-        $this->em = $entityManager;
-        $this->bus = $bus;
-
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly MessageBusInterface $bus
+    ) {
         parent::__construct();
     }
 

@@ -30,17 +30,13 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
     use VendorServiceTrait;
 
     protected const VENDOR_ID = 7;
-    public const LOCAL_BATCH_SIZE = 10;
+    final public const LOCAL_BATCH_SIZE = 10;
 
     // List of directories with book records
     private const VENDOR_ARCHIVES_DIRECTORIES = [
         'Recorded Books eAudio World-Wide Library Subscription',
         'Recorded Books eBook Classics Collection',
     ];
-
-    private Filesystem $local;
-    private Filesystem $ftp;
-    private CacheItemPoolInterface $cache;
 
     /**
      * RbDigitalVendorService constructor.
@@ -52,11 +48,11 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
      * @param CacheItemPoolInterface $cache
      *   Cache adapter for the application
      */
-    public function __construct(Filesystem $local, Filesystem $ftp, CacheItemPoolInterface $cache)
-    {
-        $this->local = $local;
-        $this->ftp = $ftp;
-        $this->cache = $cache;
+    public function __construct(
+        private readonly Filesystem $local,
+        private readonly Filesystem $ftp,
+        private readonly CacheItemPoolInterface $cache
+    ) {
     }
 
     /**
@@ -148,8 +144,6 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
      * @param string $mrcFileName
      *   The path and name of the records file to update
      *
-     * @return bool
-     *
      * @throws FileNotFoundException
      * @throws InvalidArgumentException
      * @throws IllegalVendorServiceException
@@ -172,8 +166,6 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
      *
      * @param string $mrcFileName
      *   The path and name of the records file to check for update to
-     *
-     * @return bool
      *
      * @throws FileNotFoundException
      * @throws InvalidArgumentException
@@ -200,8 +192,6 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
      *
      * @param string $mrcFileName
      *   The filename to get a cache key for
-     *
-     * @return string
      *
      * @throws IllegalVendorServiceException
      */

@@ -20,17 +20,14 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:cover:search')]
 class CoverStoreSearchCommand extends Command
 {
-    private CoverStoreInterface $store;
-
     /**
      * CoverStoreSearchCommand constructor.
      *
      * @param CoverStoreInterface $store
      */
-    public function __construct(CoverStoreInterface $store)
-    {
-        $this->store = $store;
-
+    public function __construct(
+        private readonly CoverStoreInterface $store
+    ) {
         parent::__construct();
     }
 

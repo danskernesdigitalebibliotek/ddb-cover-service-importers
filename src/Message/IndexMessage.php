@@ -14,7 +14,7 @@ use App\Utils\OpenPlatform\Material;
  */
 class IndexMessage extends AbstractBaseMessage
 {
-    private ?Material $material;
+    private ?Material $material = null;
 
     public function getMaterial(): Material
     {

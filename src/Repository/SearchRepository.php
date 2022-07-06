@@ -27,7 +27,6 @@ class SearchRepository extends ServiceEntityRepository
     /**
      * Find the last id.
      *
-     * @return int|null
      *   The last id or null
      */
     public function findLastId(): ?int
@@ -40,7 +39,6 @@ class SearchRepository extends ServiceEntityRepository
     /**
      * Get number of records.
      *
-     * @return int
      *   Number of records in the Search table
      *
      * @throws NoResultException

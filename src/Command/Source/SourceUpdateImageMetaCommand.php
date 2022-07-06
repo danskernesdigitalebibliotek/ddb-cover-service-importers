@@ -19,14 +19,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:source:update-image-meta')]
 class SourceUpdateImageMetaCommand extends Command
 {
-    private EntityManagerInterface $em;
-    private VendorImageValidatorService $validator;
-
-    public function __construct(EntityManagerInterface $entityManager, VendorImageValidatorService $validator)
-    {
-        $this->em = $entityManager;
-        $this->validator = $validator;
-
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly VendorImageValidatorService $validator
+    ) {
         parent::__construct();
     }
 

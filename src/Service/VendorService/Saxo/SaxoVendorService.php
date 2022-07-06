@@ -31,17 +31,15 @@ class SaxoVendorService implements VendorServiceInterface
     private const VENDOR_ARCHIVE_DIR = 'Saxo';
     private const VENDOR_ARCHIVE_NAME = 'Danske bogforsider.xlsx';
 
-    private string $resourcesDir;
-
     /**
      * SaxoVendorService constructor.
      *
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(string $resourcesDir)
-    {
-        $this->resourcesDir = $resourcesDir;
+    public function __construct(
+        private readonly string $resourcesDir
+    ) {
     }
 
     /**
@@ -104,10 +102,6 @@ class SaxoVendorService implements VendorServiceInterface
     /**
      * Get Vendors image URL from ISBN.
      *
-     * @param string $isbn
-     *
-     * @return string
-     *
      * @throws UnknownVendorServiceException
      */
     private function getVendorsImageUrl(string $isbn): string
@@ -119,8 +113,6 @@ class SaxoVendorService implements VendorServiceInterface
 
     /**
      * Get a xlsx file reader reference for the import source.
-     *
-     * @return Reader
      *
      * @throws IOException
      */

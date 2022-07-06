@@ -26,25 +26,20 @@ use Symfony\Component\Messenger\MessageBusInterface;
  */
 class SearchMessageHandler implements MessageHandlerInterface
 {
-    private EntityManagerInterface $em;
-    private MessageBusInterface $bus;
-    private LoggerInterface $logger;
-    private SearchService $searchService;
-
     /**
      * SearchProcessor constructor.
      *
-     * @param EntityManagerInterface $entityManager
+     * @param EntityManagerInterface $em
      * @param MessageBusInterface $bus
-     * @param LoggerInterface $informationLogger
+     * @param LoggerInterface $logger
      * @param SearchService $searchService
      */
-    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, LoggerInterface $informationLogger, SearchService $searchService)
-    {
-        $this->em = $entityManager;
-        $this->bus = $bus;
-        $this->logger = $informationLogger;
-        $this->searchService = $searchService;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly MessageBusInterface $bus,
+        private readonly LoggerInterface $logger,
+        private readonly SearchService $searchService
+    ) {
     }
 
     /**

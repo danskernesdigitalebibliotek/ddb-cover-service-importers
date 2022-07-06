@@ -20,18 +20,15 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:openplatform:search')]
 class OpenPlatformSearchCommand extends Command
 {
-    private SearchService $search;
-
     /**
      * OpenPlatformSearchCommand constructor.
      *
      * @param SearchService $search
      *   The open platform search service
      */
-    public function __construct(SearchService $search)
-    {
-        $this->search = $search;
-
+    public function __construct(
+        private readonly SearchService $search
+    ) {
         parent::__construct();
     }
 

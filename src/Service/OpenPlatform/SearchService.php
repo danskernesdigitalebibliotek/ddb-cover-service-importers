@@ -24,12 +24,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
  */
 class SearchService
 {
-    private ParameterBagInterface $params;
-    private CacheItemPoolInterface $cache;
-    private AuthenticationService $authenticationService;
-    private ClientInterface $client;
-
-    public const SEARCH_LIMIT = 50;
+    final public const SEARCH_LIMIT = 50;
 
     private array $fields = [
         'title',
@@ -44,10 +39,10 @@ class SearchService
         'acIdentifier',
     ];
 
-    private int $searchCacheTTL;
-    private string $searchURL;
-    private string $searchProfile;
-    private int $searchLimit;
+    private readonly int $searchCacheTTL;
+    private readonly string $searchURL;
+    private readonly string $searchProfile;
+    private readonly int $searchLimit;
 
     /**
      * SearchService constructor.
@@ -61,13 +56,12 @@ class SearchService
      * @param ClientInterface $httpClient
      *   Guzzle Client
      */
-    public function __construct(ParameterBagInterface $params, CacheItemPoolInterface $cache, AuthenticationService $authenticationService, ClientInterface $httpClient)
-    {
-        $this->params = $params;
-        $this->cache = $cache;
-        $this->authenticationService = $authenticationService;
-        $this->client = $httpClient;
-
+    public function __construct(
+        private readonly ParameterBagInterface $params,
+        private readonly CacheItemPoolInterface $cache,
+        private readonly AuthenticationService $authenticationService,
+        private readonly ClientInterface $httpClient
+    ) {
         $this->searchURL = $this->params->get('openPlatform.search.url');
         $this->searchCacheTTL = (int) $this->params->get('openPlatform.search.ttl');
         $this->searchProfile = $this->params->get('openPlatform.search.profile');
@@ -86,7 +80,6 @@ class SearchService
      * @param bool $refresh
      *   If set to TRUE the cache is by-passed. Default: FALSE.
      *
-     * @return Material
      *   Material object with the result
      *
      * @throws MaterialTypeException
@@ -146,7 +139,6 @@ class SearchService
      * @param array $result
      *   The results from the data well
      *
-     * @return Material
      *   Material with all the information collected
      *
      * @throws MaterialTypeException
@@ -159,7 +151,7 @@ class SearchService
                 case 'acIdentifier':
                     foreach ($items as $item) {
                         $faust = false;
-                        $parts = explode('|', $item);
+                        $parts = explode('|', (string) $item);
                         if (2 === count($parts)) {
                             $faust = reset($parts);
                         }
@@ -217,7 +209,7 @@ class SearchService
         }
 
         // Try to detect if this is a collection (used later on to not override existing covers).
-        $material->setCollection((!empty($result['title']) && count($result['title']) > 1));
+        $material->setCollection((!empty($result['title']) && (is_countable($result['title']) ? count($result['title']) : 0) > 1));
 
         return $material;
     }
@@ -228,7 +220,6 @@ class SearchService
      * @param string $str
      *   The string to strip
      *
-     * @return string
      *   The striped string
      */
     private function stripDashes(string $str): string
@@ -256,7 +247,6 @@ class SearchService
      * @param array $results
      *   The current results array
      *
-     * @return array
      *   The results currently found. If recursion is completed all the results.
      *
      * @throws GuzzleException
@@ -304,7 +294,7 @@ class SearchService
             }
         }
 
-        $response = $this->client->request('POST', $this->searchURL, [
+        $response = $this->httpClient->request('POST', $this->searchURL, [
             RequestOptions::JSON => [
                 'fields' => $this->fields,
                 'access_token' => $token,
@@ -318,7 +308,7 @@ class SearchService
         ]);
 
         $content = $response->getBody()->getContents();
-        $json = json_decode($content, true);
+        $json = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
         if (isset($json['hitCount']) && $json['hitCount'] > 0) {
             foreach ($json['data'] as $item) {
@@ -338,7 +328,7 @@ class SearchService
         }
 
         // If there are more results get the next chunk and results are smaller than the limit.
-        if (isset($json['hitCount']) && false !== $json['more'] && count($results['pid']) < $this->searchLimit) {
+        if (isset($json['hitCount']) && false !== $json['more'] && (is_countable($results['pid']) ? count($results['pid']) : 0) < $this->searchLimit) {
             $this->recursiveSearch($token, $identifier, $type, $query, $offset + $this::SEARCH_LIMIT, $results);
         } elseif (!isset($results['basicSearchPerformed']) && isset($results['pid']) && !$this->isBasicInArray($results['pid'])) {
             // As we are using a library's open platform access it may have a "påhængsposter/lokaleposter" which
@@ -364,7 +354,6 @@ class SearchService
      * @param string $isbn
      *   An ISBN10 or ISBN13 number
      *
-     * @return string|null
      *   The ISBN converted to the opposite format or null if conversion not possible
      */
     private function convertIsbn(string $isbn): ?string
@@ -378,7 +367,7 @@ class SearchService
             } elseif ($isbn->is10()) {
                 $extraISBN = (string) $isbn->to13();
             }
-        } catch (\Exception $exception) {
+        } catch (\Exception) {
             // Exception is thrown if the ISBN conversion fail. Fallback to setting extra ISBN to null.
             $extraISBN = null;
         }
@@ -392,13 +381,12 @@ class SearchService
      * @param array $pids
      *   Array with data well post ids
      *
-     * @return bool
      *   True if basic post id exists else false
      */
     private function isBasicInArray(array $pids): bool
     {
         foreach ($pids as $pid) {
-            if (false !== mb_strpos($pid, '870970-basis')) {
+            if (false !== mb_strpos((string) $pid, '870970-basis')) {
                 return true;
             }
         }

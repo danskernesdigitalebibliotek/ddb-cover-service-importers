@@ -26,17 +26,15 @@ class DataWellVendorService implements VendorServiceInterface
     protected const VENDOR_ID = 4;
     private const VENDOR_ARCHIVE_NAME = 'comics+';
 
-    private DataWellSearchService $datawell;
-
     /**
      * DataWellVendorService constructor.
      *
      * @param DataWellSearchService $datawell
      *   For searching the data well
      */
-    public function __construct(DataWellSearchService $datawell)
-    {
-        $this->datawell = $datawell;
+    public function __construct(
+        private readonly DataWellSearchService $datawell
+    ) {
     }
 
     /**
@@ -67,7 +65,7 @@ class DataWellVendorService implements VendorServiceInterface
                 // Convert images url from 'medium' to 'large'
                 AmazonPublicUrlConverter::convertArrayValues($pidArray);
 
-                $batchSize = \count($pidArray);
+                $batchSize = is_countable($pidArray) ? \count($pidArray) : 0;
                 $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, $batchSize);
 
                 $this->progressMessageFormatted($status);

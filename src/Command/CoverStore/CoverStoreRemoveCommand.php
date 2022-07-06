@@ -20,17 +20,14 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:cover:remove')]
 class CoverStoreRemoveCommand extends Command
 {
-    private CoverStoreInterface $store;
-
     /**
      * CoverStoreUploadCommand constructor.
      *
      * @param CoverStoreInterface $store
      */
-    public function __construct(CoverStoreInterface $store)
-    {
-        $this->store = $store;
-
+    public function __construct(
+        private readonly CoverStoreInterface $store
+    ) {
         parent::__construct();
     }
 

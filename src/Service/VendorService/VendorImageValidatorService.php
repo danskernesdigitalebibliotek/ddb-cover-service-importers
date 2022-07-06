@@ -13,22 +13,18 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class VendorImageValidatorService
 {
-    private ClientInterface $httpClient;
-
     /**
      * VendorImageValidatorService constructor.
      *
      * @param ClientInterface $httpClient
      */
-    public function __construct(ClientInterface $httpClient)
-    {
-        $this->httpClient = $httpClient;
+    public function __construct(
+        private readonly ClientInterface $httpClient
+    ) {
     }
 
     /**
      * Validate that remote image exists by sending an HTTP HEAD request.
-     *
-     * @param VendorImageItem $item
      */
     public function validateRemoteImage(VendorImageItem $item, string $httpRequestMethod = Request::METHOD_HEAD): void
     {
@@ -78,9 +74,6 @@ class VendorImageValidatorService
     /**
      * Check if a remote image has been updated since we fetched the source.
      *
-     * @param VendorImageItem $item
-     * @param Source $source
-     *
      * @throws GuzzleException
      */
     public function isRemoteImageUpdated(VendorImageItem $item, Source $source): void
@@ -105,8 +98,6 @@ class VendorImageValidatorService
      *   The image URL to query
      * @param string $httpRequestMethod
      *   The request method to use
-     *
-     * @return array
      */
     public function remoteImageHeader(string $header, string $url, string $httpRequestMethod = Request::METHOD_HEAD): array
     {

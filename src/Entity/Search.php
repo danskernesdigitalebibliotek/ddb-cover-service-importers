@@ -32,28 +32,28 @@ class Search
      *
      * @Groups({"read"})
      */
-    private ?string $isIdentifier;
+    private ?string $isIdentifier = null;
 
     /**
      * @ORM\Column(type="string", length=5)
      *
      * @Groups({"read"})
      */
-    private ?string $isType;
+    private ?string $isType = null;
 
     /**
      * @ORM\Column(type="text")
      *
      * @Groups({"read"})
      */
-    private ?string $imageUrl;
+    private ?string $imageUrl = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      *
      * @Groups({"read"})
      */
-    private ?string $imageFormat;
+    private ?string $imageFormat = null;
 
     /**
      * @ORM\Column(type="integer")
@@ -77,7 +77,7 @@ class Search
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Source", inversedBy="searches")
      */
-    private ?Source $source;
+    private ?Source $source = null;
 
     public function getId(): int
     {

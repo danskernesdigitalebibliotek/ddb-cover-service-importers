@@ -25,13 +25,8 @@ class AuthenticationService
     // Used to give the token some grace-period, so it will not expire will
     // being used. Currently, the token is valid for 30 days. So we set the
     // limit to be 1 day, so it will be refreshed before it expires.
-    public const TOKEN_EXPIRE_LIMIT = 86400;
-
-    private ParameterBagInterface $params;
-    private CacheItemPoolInterface $cache;
-    private LoggerInterface $logger;
+    final public const TOKEN_EXPIRE_LIMIT = 86400;
     private string $accessToken = '';
-    private ClientInterface $client;
 
     /**
      * Authentication constructor.
@@ -40,17 +35,17 @@ class AuthenticationService
      *   Used to get parameters form the environment
      * @param CacheItemPoolInterface $cache
      *   Cache to store access token
-     * @param LoggerInterface $informationLogger
+     * @param LoggerInterface $logger
      *   Logger object to send stats to ES
      * @param ClientInterface $httpClient
      *   Guzzle Client
      */
-    public function __construct(ParameterBagInterface $params, CacheItemPoolInterface $cache, LoggerInterface $informationLogger, ClientInterface $httpClient)
-    {
-        $this->params = $params;
-        $this->cache = $cache;
-        $this->logger = $informationLogger;
-        $this->client = $httpClient;
+    public function __construct(
+        private readonly ParameterBagInterface $params,
+        private readonly CacheItemPoolInterface $cache,
+        private readonly LoggerInterface $logger,
+        private readonly ClientInterface $httpClient
+    ) {
     }
 
     /**
@@ -62,7 +57,6 @@ class AuthenticationService
      * @param bool $refresh
      *   If TRUE refresh token. Default: FALSE.
      *
-     * @return string
      *   The access token
      *
      * @throws OpenPlatformAuthException
@@ -84,7 +78,6 @@ class AuthenticationService
      * @param bool $refresh
      *   If TRUE refresh token. Default: FALSE.
      *
-     * @return string
      *   The token if successful else the empty string,
      *
      * @throws OpenPlatformAuthException
@@ -107,7 +100,7 @@ class AuthenticationService
             return $item->get();
         } else {
             try {
-                $response = $this->client->request('POST', $this->params->get('openPlatform.auth.url'), [
+                $response = $this->httpClient->request('POST', $this->params->get('openPlatform.auth.url'), [
                     'form_params' => [
                         'grant_type' => 'password',
                         'username' => '@'.$this->params->get('openPlatform.auth.agency'),
@@ -137,7 +130,7 @@ class AuthenticationService
 
             // Get the content and parse json object as an array.
             $content = $response->getBody()->getContents();
-            $json = json_decode($content, true);
+            $json = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
             $this->logger->info('Access token acquired', [
                 'service' => 'AuthenticationService',

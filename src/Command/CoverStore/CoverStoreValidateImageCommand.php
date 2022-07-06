@@ -27,12 +27,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:cover:validate-image')]
 class CoverStoreValidateImageCommand extends Command
 {
-    private CoverStoreInterface $store;
-    private SourceRepository $sourceRepository;
-    private VendorRepository $vendorRepository;
-    private VendorImageValidatorService $imageValidatorService;
-    private EntityManagerInterface $entityManager;
-
     /**
      * CoverStoreValidateImageCommand constructor.
      *
@@ -42,14 +36,13 @@ class CoverStoreValidateImageCommand extends Command
      * @param VendorRepository $vendorRepository
      * @param VendorImageValidatorService $imageValidatorService
      */
-    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $store, SourceRepository $sourceRepository, VendorRepository $vendorRepository, VendorImageValidatorService $imageValidatorService)
-    {
-        $this->store = $store;
-        $this->sourceRepository = $sourceRepository;
-        $this->vendorRepository = $vendorRepository;
-        $this->imageValidatorService = $imageValidatorService;
-        $this->entityManager = $entityManager;
-
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly CoverStoreInterface $store,
+        private readonly SourceRepository $sourceRepository,
+        private readonly VendorRepository $vendorRepository,
+        private readonly VendorImageValidatorService $imageValidatorService
+    ) {
         parent::__construct();
     }
 

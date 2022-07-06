@@ -13,7 +13,6 @@ class CsvReaderService
      * @param $filename
      *   The file to read
      *
-     * @return \Iterator
      *   Will yield one line at a time
      */
     public function read(string $filename, string $separator = ','): \Iterator
@@ -27,7 +26,7 @@ class CsvReaderService
             }
 
             foreach ($row as &$item) {
-                $item = iconv('ISO-8859-1', 'UTF-8', $item);
+                $item = iconv('ISO-8859-1', 'UTF-8', (string) $item);
             }
 
             yield $row;

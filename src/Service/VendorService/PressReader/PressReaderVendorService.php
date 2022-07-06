@@ -29,19 +29,16 @@ class PressReaderVendorService implements VendorServiceInterface
     private const URL_PATTERN = 'https://i.prcdn.co/img?cid=%s&page=1&width=1200';
     private const MIN_IMAGE_SIZE = 40000;
 
-    private DataWellSearchService $datawell;
-    private VendorImageValidatorService $imageValidatorService;
-
     /**
      * DataWellVendorService constructor.
      *
      * @param DataWellSearchService $datawell
      *   For searching the data well
      */
-    public function __construct(DataWellSearchService $datawell, VendorImageValidatorService $imageValidatorService)
-    {
-        $this->datawell = $datawell;
-        $this->imageValidatorService = $imageValidatorService;
+    public function __construct(
+        private readonly DataWellSearchService $datawell,
+        private readonly VendorImageValidatorService $imageValidatorService
+    ) {
     }
 
     /**
@@ -74,7 +71,7 @@ class PressReaderVendorService implements VendorServiceInterface
                     $header = $this->imageValidatorService->remoteImageHeader('cf-polished', $url);
                     if (!empty($header)) {
                         $header = reset($header);
-                        list($label, $size) = explode('=', $header);
+                        [$label, $size] = explode('=', $header);
                         if ($size < $this::MIN_IMAGE_SIZE) {
                             // Size to little set it to null.
                             return false;
@@ -87,7 +84,7 @@ class PressReaderVendorService implements VendorServiceInterface
                     return true;
                 });
 
-                $batchSize = \count($pidArray);
+                $batchSize = \count((array) $pidArray);
                 $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, $batchSize);
 
                 $this->progressMessageFormatted($status);
@@ -128,7 +125,7 @@ class PressReaderVendorService implements VendorServiceInterface
     private function transformUrls(array &$pidArray): void
     {
         foreach ($pidArray as $pid => &$url) {
-            list($agency, $id) = explode(':', $pid);
+            [$agency, $id] = explode(':', $pid);
             $url = sprintf($this::URL_PATTERN, $id);
         }
     }

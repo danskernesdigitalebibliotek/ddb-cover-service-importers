@@ -25,25 +25,20 @@ use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
  */
 class DeleteMessageHandler implements MessageHandlerInterface
 {
-    private EntityManagerInterface $em;
-    private LoggerInterface $logger;
-    private CoverStoreInterface $coverStore;
-    private IndexingServiceInterface $indexingService;
-
     /**
      * DeleteProcessor constructor.
      *
-     * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $informationLogger
+     * @param EntityManagerInterface $em
+     * @param LoggerInterface $logger
      * @param CoverStoreInterface $coverStore
      * @param IndexingServiceInterface $indexingService
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $informationLogger, CoverStoreInterface $coverStore, IndexingServiceInterface $indexingService)
-    {
-        $this->em = $entityManager;
-        $this->logger = $informationLogger;
-        $this->coverStore = $coverStore;
-        $this->indexingService = $indexingService;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly LoggerInterface $logger,
+        private readonly CoverStoreInterface $coverStore,
+        private readonly IndexingServiceInterface $indexingService
+    ) {
     }
 
     /**
@@ -104,7 +99,7 @@ class DeleteMessageHandler implements MessageHandlerInterface
             } catch (\Exception $exception) {
                 $this->em->getConnection()->rollBack();
 
-                $this->logger->error('Database exception: '.get_class($exception), [
+                $this->logger->error('Database exception: '.$exception::class, [
                     'service' => 'DeleteProcessor',
                     'message' => $exception->getMessage(),
                     'identifiers' => $message->getIdentifier(),

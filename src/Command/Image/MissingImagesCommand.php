@@ -25,20 +25,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:image:missing')]
 class MissingImagesCommand extends Command
 {
-    private CoverStoreInterface $store;
-    private EntityManager $em;
-
     /**
      * MissingImagesCommand constructor.
      *
      * @param CoverStoreInterface $store
-     * @param EntityManager $entityManager
+     * @param EntityManager $em
      */
-    public function __construct(CoverStoreInterface $store, EntityManagerInterface $entityManager)
-    {
-        $this->store = $store;
-        $this->em = $entityManager;
-
+    public function __construct(
+        private readonly CoverStoreInterface $store,
+        private readonly EntityManagerInterface $em
+    ) {
         parent::__construct();
     }
 
@@ -88,7 +84,7 @@ class MissingImagesCommand extends Command
         /* @var Source $source */
         foreach ($query->toIterable() as $source) {
             // Ensure that ':' is escaped in the search query.
-            $id = 'public_id:'.$vendor->getName().'/'.str_replace(':', '\:', $source->getMatchId());
+            $id = 'public_id:'.$vendor->getName().'/'.str_replace(':', '\:', (string) $source->getMatchId());
             $items = $this->store->search($vendor->getName(), $id);
             if (!empty($items)) {
                 $item = reset($items);

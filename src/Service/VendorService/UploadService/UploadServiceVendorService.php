@@ -42,12 +42,6 @@ class UploadServiceVendorService implements VendorServiceInterface
     protected const SOURCE_FOLDER = 'BulkUpload';
     protected const DESTINATION_FOLDER = 'UploadService';
 
-    private CoverStoreInterface $store;
-    private SourceRepository $sourceRepository;
-    private MessageBusInterface $bus;
-    private EntityManagerInterface $em;
-    private LoggerInterface $logger;
-
     /**
      * CoverStoreSearchCommand constructor.
      *
@@ -59,16 +53,16 @@ class UploadServiceVendorService implements VendorServiceInterface
      *   Cover store access
      * @param SourceRepository $sourceRepository
      *   Source repository
-     * @param LoggerInterface $informationLogger
+     * @param LoggerInterface $logger
      *   Logger to send importer status information
      */
-    public function __construct(MessageBusInterface $bus, EntityManagerInterface $em, CoverStoreInterface $store, SourceRepository $sourceRepository, LoggerInterface $informationLogger)
-    {
-        $this->bus = $bus;
-        $this->em = $em;
-        $this->store = $store;
-        $this->sourceRepository = $sourceRepository;
-        $this->logger = $informationLogger;
+    public function __construct(
+        private readonly MessageBusInterface $bus,
+        private readonly EntityManagerInterface $em,
+        private readonly CoverStoreInterface $store,
+        private readonly SourceRepository $sourceRepository,
+        private readonly LoggerInterface $logger
+    ) {
     }
 
     /**
@@ -285,7 +279,6 @@ class UploadServiceVendorService implements VendorServiceInterface
      * @param string $filename
      *   The filename to validate
      *
-     * @return bool
      *   True if validated else false
      */
     private function isValidFilename(string $filename): bool
@@ -308,8 +301,6 @@ class UploadServiceVendorService implements VendorServiceInterface
     /**
      * Get filename from item id.
      *
-     * @param string $id
-     *
      * @return mixed
      */
     private function extractFilename(string $id): string
@@ -327,19 +318,18 @@ class UploadServiceVendorService implements VendorServiceInterface
      * @param string $filename
      *   The filename
      *
-     * @return string
      *   The identifier found
      */
     private function filenameToIdentifier(string $filename): string
     {
         $filename = urldecode($filename);
-        if (false !== strpos($filename, '.')) {
+        if (str_contains($filename, '.')) {
             $filename = explode('.', $filename);
             $filename = array_shift($filename);
         }
 
         // When dragging files into cover store UI it will transform '%' into '_'.
-        if (false !== strpos($filename, '_')) {
+        if (str_contains($filename, '_')) {
             $filename = preg_replace('/(_3A)|(_)/', ':', $filename);
         }
 
@@ -362,7 +352,7 @@ class UploadServiceVendorService implements VendorServiceInterface
     {
         $type = IdentifierType::ISBN;
 
-        if (false !== strpos($identifier, ':')) {
+        if (str_contains($identifier, ':')) {
             $type = IdentifierType::PID;
         }
 

@@ -16,23 +16,24 @@ class VendorServiceFactory
 {
     /** @var VendorServiceInterface[] */
     private array $vendorServices;
-    private EntityManagerInterface $em;
 
     /**
      * VendorFactoryService constructor.
      *
      * @param iterable $vendors
-     * @param EntityManagerInterface $entityManager
+     * @param EntityManagerInterface $em
      *
      * @throws DuplicateVendorServiceException
      * @throws IllegalVendorServiceException
      */
-    public function __construct(iterable $vendors, EntityManagerInterface $entityManager)
-    {
+    public function __construct(
+        iterable $vendors,
+        private readonly EntityManagerInterface $em
+    ) {
         $ids = [];
         foreach ($vendors as $vendor) {
             // We are using the classname to match to config row in vendor db table
-            $className = \get_class($vendor);
+            $className = $vendor::class;
             $this->vendorServices[$className] = $vendor;
 
             if (0 === $vendor->getVendorId() || !is_int($vendor->getVendorId())) {
@@ -43,8 +44,6 @@ class VendorServiceFactory
             }
             $ids[] = $vendor->getVendorId();
         }
-
-        $this->em = $entityManager;
     }
 
     /**
@@ -95,8 +94,6 @@ class VendorServiceFactory
 
     /**
      * Get all vendor services.
-     *
-     * @return array
      */
     public function getVendorServices(): array
     {
@@ -107,8 +104,6 @@ class VendorServiceFactory
      * Get names of all vendor services that have been detected.
      *
      * Only vendors that implements the VendorServiceInterface.
-     *
-     * @return array
      *
      * @psalm-return list<mixed>
      */
@@ -125,10 +120,6 @@ class VendorServiceFactory
     /**
      * Get the vendor service from class name.
      *
-     * @param string $class
-     *
-     * @return VendorServiceInterface
-     *
      * @throws UnknownVendorServiceException
      */
     public function getVendorServiceByClass(string $class): VendorServiceInterface
@@ -142,10 +133,6 @@ class VendorServiceFactory
 
     /**
      * Get the vendor service from vendor name.
-     *
-     * @param string $name
-     *
-     * @return VendorServiceInterface
      *
      * @throws UnknownVendorServiceException
      */

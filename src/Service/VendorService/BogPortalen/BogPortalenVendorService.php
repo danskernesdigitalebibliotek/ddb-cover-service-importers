@@ -27,9 +27,6 @@ class BogPortalenVendorService implements VendorServiceInterface
     private const VENDOR_ID = 1;
     private const VENDOR_ARCHIVE_NAMES = ['BOP-ProductAll.zip', 'BOP-ProductAll-EXT.zip', 'BOP-Actual.zip', 'BOP-Actual-EXT.zip'];
 
-    private Filesystem $local;
-    private Filesystem $ftp;
-
     /**
      * BogPortalenVendorService constructor.
      *
@@ -38,10 +35,10 @@ class BogPortalenVendorService implements VendorServiceInterface
      * @param filesystem $ftp
      *   Flysystem adapter for remote ftp server
      */
-    public function __construct(Filesystem $local, Filesystem $ftp)
-    {
-        $this->local = $local;
-        $this->ftp = $ftp;
+    public function __construct(
+        private readonly Filesystem $local,
+        private readonly Filesystem $ftp
+    ) {
     }
 
     /**
@@ -133,12 +130,9 @@ class BogPortalenVendorService implements VendorServiceInterface
     /**
      * Build array of image urls keyed by isbn.
      *
-     * @param array $isbnList
-     *
      * @return string[]
      *
      * @throws UnknownVendorServiceException
-     *
      * @psalm-return array<string, string>
      */
     private function buildIsbnImageUrlArray(array &$isbnList): array
@@ -153,10 +147,6 @@ class BogPortalenVendorService implements VendorServiceInterface
 
     /**
      * Get Vendors image URL from ISBN.
-     *
-     * @param string $isbn
-     *
-     * @return string
      *
      * @throws UnknownVendorServiceException
      */
@@ -173,8 +163,6 @@ class BogPortalenVendorService implements VendorServiceInterface
      * @param string $archive
      *   Filename for the archive
      *
-     * @return bool
-     *
      * @throws \League\Flysystem\FileNotFoundException
      */
     private function updateArchive(string $archive): bool
@@ -188,8 +176,6 @@ class BogPortalenVendorService implements VendorServiceInterface
      *
      * @param $path
      *   The path of the archive in the local filesystem
-     *
-     * @return array
      *
      * @throws FileNotFoundException
      */
@@ -218,10 +204,7 @@ class BogPortalenVendorService implements VendorServiceInterface
     /**
      * Get valid and unique ISBNs from list of paths.
      *
-     * @param array $filePaths
-     *
      * @return string[]
-     *
      * @psalm-return array<int, string>
      */
     private function getIsbnNumbers(array &$filePaths): array
@@ -230,7 +213,7 @@ class BogPortalenVendorService implements VendorServiceInterface
 
         foreach ($filePaths as $filePath) {
             // Example path: 'Archive/DBK-7003718/DBK-7003718-9788799933815.xml'
-            $pathParts = pathinfo($filePath);
+            $pathParts = pathinfo((string) $filePath);
             $fileName = $pathParts['filename'];
             $nameParts = explode('-', $fileName);
             $isbn = array_pop($nameParts);

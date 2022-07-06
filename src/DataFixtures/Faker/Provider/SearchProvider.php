@@ -9,9 +9,6 @@ final class SearchProvider extends BaseProvider
 {
     private const IS_TYPE_PROVIDER = [IdentifierType::PID, IdentifierType::ISBN];
 
-    /**
-     * @return string
-     */
     public function pid(): string
     {
         $libraryNumber = self::numberBetween(70000, 90000) * 10;

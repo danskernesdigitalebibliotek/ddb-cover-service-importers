@@ -21,13 +21,8 @@ use Symfony\Component\Lock\LockInterface;
  */
 class PopulateService
 {
-    public const BATCH_SIZE = 1000;
-
-    private SearchRepository $searchRepository;
-    private EntityManagerInterface $entityManager;
-    private LockFactory $lockFactory;
+    final public const BATCH_SIZE = 1000;
     private LockInterface $lock;
-    private IndexingServiceInterface $indexingService;
 
     /**
      * PopulateService constructor.
@@ -36,12 +31,12 @@ class PopulateService
      * @param SearchRepository $searchRepository
      * @param LockFactory $lockFactory
      */
-    public function __construct(EntityManagerInterface $entityManager, SearchRepository $searchRepository, LockFactory $lockFactory, IndexingServiceInterface $indexingService)
-    {
-        $this->searchRepository = $searchRepository;
-        $this->entityManager = $entityManager;
-        $this->lockFactory = $lockFactory;
-        $this->indexingService = $indexingService;
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SearchRepository $searchRepository,
+        private readonly LockFactory $lockFactory,
+        private readonly IndexingServiceInterface $indexingService
+    ) {
     }
 
     /**
@@ -55,8 +50,6 @@ class PopulateService
      * @throws NoResultException
      * @throws NonUniqueResultException
      * @throws SearchIndexException
-     *
-     * @return \Generator
      */
     public function populate(int $record_id = -1, bool $force = false): \Generator
     {
@@ -132,7 +125,6 @@ class PopulateService
      * @param bool $force
      *  Force execution ignoring locks (default false)
      *
-     * @return bool
      *   If lock acquired true else false
      */
     private function acquireLock(bool $force = false): bool

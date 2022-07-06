@@ -22,10 +22,8 @@ class TheMovieDatabaseSearchService
 {
     private const SEARCH_LIMIT = 50;
 
-    private ClientInterface $client;
-
-    private string $agency;
-    private string $profile;
+    private readonly string $agency;
+    private readonly string $profile;
     private string $searchURL;
     private string $password;
     private string $user;
@@ -38,9 +36,10 @@ class TheMovieDatabaseSearchService
      * @param ClientInterface $httpClient
      *   The http client
      */
-    public function __construct(ParameterBagInterface $params, ClientInterface $httpClient)
-    {
-        $this->client = $httpClient;
+    public function __construct(
+        ParameterBagInterface $params,
+        private readonly ClientInterface $httpClient
+    ) {
         $this->agency = $params->get('datawell.vendor.agency');
         $this->profile = $params->get('datawell.vendor.profile');
     }
@@ -103,7 +102,7 @@ class TheMovieDatabaseSearchService
         $pidArray = [];
 
         try {
-            $response = $this->client->request(
+            $response = $this->httpClient->request(
                 'POST',
                 $this->searchURL,
                 [
@@ -133,7 +132,7 @@ class TheMovieDatabaseSearchService
             );
 
             $content = $response->getBody()->getContents();
-            $jsonResponse = json_decode($content, true);
+            $jsonResponse = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
             if (array_key_exists('searchResult', $jsonResponse['searchResponse']['result'])) {
                 if ($jsonResponse['searchResponse']['result']['hitCount']['$']) {
@@ -158,7 +157,6 @@ class TheMovieDatabaseSearchService
      * @param array $result
      *   Array of the json decoded data
      *
-     * @return array
      *   Array of all pid => url pairs found in response
      */
     private function extractData(array $result): array
@@ -198,13 +196,13 @@ class TheMovieDatabaseSearchService
      *
      * @return false|string The original year or null
      */
-    private function getOriginalYear(array $descriptions)
+    private function getOriginalYear(array $descriptions): false|string
     {
         $matches = [];
 
         foreach ($descriptions as $description) {
             $descriptionMatches = [];
-            $match = preg_match('/(\d{4})/u', $description, $descriptionMatches);
+            $match = preg_match('/(\d{4})/u', (string) $description, $descriptionMatches);
 
             if ($match) {
                 $matches = array_unique(array_merge($matches, $descriptionMatches));
@@ -235,7 +233,6 @@ class TheMovieDatabaseSearchService
      * @param array $creators
      *   Search array of creators
      *
-     * @return string|null
      *   The director or null
      */
     private function getDirector(array $creators): ?string

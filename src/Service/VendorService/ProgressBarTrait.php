@@ -19,8 +19,6 @@ trait ProgressBarTrait
 
     /**
      * Set the progressbar to write to.
-     *
-     * @param ProgressBar $progressBar
      */
     public function setProgressBar(ProgressBar $progressBar): void
     {
@@ -29,8 +27,6 @@ trait ProgressBarTrait
 
     /**
      * Start progress.
-     *
-     * @param string $message
      */
     private function progressStart(string $message): void
     {
@@ -53,8 +49,6 @@ trait ProgressBarTrait
 
     /**
      * Set progress bar message.
-     *
-     * @param string $message
      */
     private function progressMessage(string $message): void
     {

@@ -32,11 +32,6 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
     use VendorServiceTrait;
 
     protected const VENDOR_ID = 6;
-
-    private EntityManagerInterface $em;
-    private MessageBusInterface $bus;
-    private TheMovieDatabaseSearchService $dataWell;
-    private TheMovieDatabaseApiService $api;
     private array $queries = [
         'phrase.type="blu-ray" and facet.typeCategory="film"',
         'phrase.type="dvd" and facet.typeCategory="film"',
@@ -54,12 +49,12 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
      * @param TheMovieDatabaseApiService $api
      *   The movie api service
      */
-    public function __construct(EntityManagerInterface $em, MessageBusInterface $bus, TheMovieDatabaseSearchService $dataWell, TheMovieDatabaseApiService $api)
-    {
-        $this->em = $em;
-        $this->bus = $bus;
-        $this->dataWell = $dataWell;
-        $this->api = $api;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly MessageBusInterface $bus,
+        private readonly TheMovieDatabaseSearchService $dataWell,
+        private readonly TheMovieDatabaseApiService $api
+    ) {
     }
 
     /**
@@ -93,9 +88,7 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
 
                     // This is a hack to get the 'processBatch' working below.
                     $pidArray = array_map(
-                        function ($value) {
-                            return '';
-                        },
+                        fn ($value) => '',
                         $resultArray
                     );
 
@@ -115,8 +108,8 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
                         $this->postProcess($insertedIdentifiers, $resultArray);
 
                         // Update status.
-                        $status->addUpdated(count($updatedIdentifiers));
-                        $status->addInserted(count($insertedIdentifiers));
+                        $status->addUpdated(is_countable($updatedIdentifiers) ? count($updatedIdentifiers) : 0);
+                        $status->addInserted(is_countable($insertedIdentifiers) ? count($insertedIdentifiers) : 0);
                         $status->addRecords(count($batch));
 
                         $batchOffset += $batchSize;
@@ -170,8 +163,6 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
      * @throws IllegalVendorServiceException
      * @throws UnknownVendorServiceException
      * @throws GuzzleException
-     *
-     * @return void
      */
     private function postProcess(array $pids, array $searchResults): void
     {

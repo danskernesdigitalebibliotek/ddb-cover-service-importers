@@ -34,10 +34,7 @@ class AarhusKommuneMbuVendorService extends AbstractTsvVendorService
     protected string $fieldDelimiter = ' ';
     protected bool $sheetHasHeaderRow = false;
     protected array $sheetFields = ['ppid' => 0, 'url' => 1];
-
-    private ClientInterface $httpClient;
-    private Filesystem $local;
-    private string $location;
+    private readonly string $location;
 
     /**
      * HerningBibVendorService constructor.
@@ -45,15 +42,15 @@ class AarhusKommuneMbuVendorService extends AbstractTsvVendorService
      * @param ClientInterface $httpClient
      * @param Filesystem $local
      */
-    public function __construct(ClientInterface $httpClient, Filesystem $local, CsvReaderService $csvReaderService)
-    {
+    public function __construct(
+        private readonly ClientInterface $httpClient,
+        private readonly Filesystem $local,
+        CsvReaderService $csvReaderService
+    ) {
         // Resource files is loaded from online location
         parent::__construct('', $csvReaderService);
 
         $this->location = $this->vendorArchiveDir.'/'.$this->vendorArchiveName;
-
-        $this->httpClient = $httpClient;
-        $this->local = $local;
     }
 
     /**
@@ -94,7 +91,7 @@ class AarhusKommuneMbuVendorService extends AbstractTsvVendorService
                         if (!empty($basisPid) && !empty($imageUrl) && filter_var($imageUrl, FILTER_VALIDATE_URL)) {
                             // This is a hack as this vendor uses katalog PID, but want to be able to search on faust,
                             // so we index them by faust and will make the mapping to katalog in no-hit processing.
-                            if (preg_match('/^300751-katalog:(\d+)/', $basisPid, $matches)) {
+                            if (preg_match('/^300751-katalog:(\d+)/', (string) $basisPid, $matches)) {
                                 $faustArray[$matches[1]] = $imageUrl;
                             }
                         }

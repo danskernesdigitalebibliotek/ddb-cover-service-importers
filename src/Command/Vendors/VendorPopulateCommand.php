@@ -20,17 +20,14 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 #[AsCommand(name: 'app:vendor:populate')]
 class VendorPopulateCommand extends Command
 {
-    private VendorServiceFactory $vendorFactory;
-
     /**
      * VendorPopulateCommand constructor.
      *
      * @param VendorServiceFactory $vendorFactory
      */
-    public function __construct(VendorServiceFactory $vendorFactory)
-    {
-        $this->vendorFactory = $vendorFactory;
-
+    public function __construct(
+        private readonly VendorServiceFactory $vendorFactory
+    ) {
         parent::__construct();
     }
 

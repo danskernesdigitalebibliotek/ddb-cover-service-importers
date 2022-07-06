@@ -29,9 +29,6 @@ class OverDriveBooksVendorService implements VendorServiceInterface
 
     protected const VENDOR_ID = 14;
 
-    private $apiClient;
-    private $httpClient;
-
     /**
      * OverDriveBooksVendorService constructor.
      *
@@ -40,10 +37,10 @@ class OverDriveBooksVendorService implements VendorServiceInterface
      * @param Client $apiClient
      *   Api client for the OverDrive API
      */
-    public function __construct(ClientInterface $httpClient, Client $apiClient)
-    {
-        $this->httpClient = $httpClient;
-        $this->apiClient = $apiClient;
+    public function __construct(
+        private readonly ClientInterface $httpClient,
+        private readonly Client $apiClient
+    ) {
     }
 
     /**
@@ -80,7 +77,7 @@ class OverDriveBooksVendorService implements VendorServiceInterface
 
                     foreach ($product->formats as $format) {
                         foreach ($format->identifiers as $identifier) {
-                            if (IdentifierType::ISBN === strtolower($identifier->type)) {
+                            if (IdentifierType::ISBN === strtolower((string) $identifier->type)) {
                                 if (!empty($identifier->value)) {
                                     $isbnImageUrlArray[$identifier->value] = $coverImageUrl;
                                 }

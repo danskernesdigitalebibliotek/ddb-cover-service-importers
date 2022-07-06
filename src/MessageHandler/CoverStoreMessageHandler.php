@@ -30,25 +30,20 @@ use Symfony\Component\Messenger\MessageBusInterface;
  */
 class CoverStoreMessageHandler implements MessageHandlerInterface
 {
-    private EntityManagerInterface $em;
-    private MessageBusInterface $bus;
-    private LoggerInterface $logger;
-    private CoverStoreInterface $coverStore;
-
     /**
      * CoverStoreProcessor constructor.
      *
-     * @param EntityManagerInterface $entityManager
+     * @param EntityManagerInterface $em
      * @param MessageBusInterface $bus
-     * @param LoggerInterface $informationLogger
+     * @param LoggerInterface $logger
      * @param CoverStoreInterface $coverStore
      */
-    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, LoggerInterface $informationLogger, CoverStoreInterface $coverStore)
-    {
-        $this->em = $entityManager;
-        $this->bus = $bus;
-        $this->logger = $informationLogger;
-        $this->coverStore = $coverStore;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly MessageBusInterface $bus,
+        private readonly LoggerInterface $logger,
+        private readonly CoverStoreInterface $coverStore
+    ) {
     }
 
     /**

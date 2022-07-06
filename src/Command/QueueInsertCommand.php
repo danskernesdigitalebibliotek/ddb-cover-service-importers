@@ -24,17 +24,14 @@ use Symfony\Component\Messenger\MessageBusInterface;
 #[AsCommand(name: 'app:queue:insert')]
 class QueueInsertCommand extends Command
 {
-    private MessageBusInterface $bus;
-
     /**
      * QueueInsertCommand constructor.
      *
      * @param MessageBusInterface $bus
      */
-    public function __construct(MessageBusInterface $bus)
-    {
-        $this->bus = $bus;
-
+    public function __construct(
+        private readonly MessageBusInterface $bus
+    ) {
         parent::__construct();
     }
 

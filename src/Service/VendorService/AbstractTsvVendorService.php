@@ -26,9 +26,7 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
     protected string $fieldDelimiter = "\t";
     protected bool $sheetHasHeaderRow = true;
     protected array $sheetFields = [];
-    protected string $resourcesDir;
     protected int $tsvBatchSize = 100;
-    protected CsvReaderService $csvReaderService;
 
     /**
      * AbstractTsvVendorService constructor.
@@ -36,10 +34,10 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(string $resourcesDir, CsvReaderService $csvReaderService)
-    {
-        $this->resourcesDir = $resourcesDir;
-        $this->csvReaderService = $csvReaderService;
+    public function __construct(
+        protected string $resourcesDir,
+        protected CsvReaderService $csvReaderService
+    ) {
     }
 
     /**
@@ -134,9 +132,7 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
      */
     protected function findCellName(array $fields): array
     {
-        $fields = array_map(function ($field) {
-            return mb_strtolower($field);
-        }, $fields);
+        $fields = array_map(fn ($field) => mb_strtolower((string) $field), $fields);
 
         return array_flip($fields);
     }

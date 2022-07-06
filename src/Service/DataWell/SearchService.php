@@ -18,15 +18,13 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
  */
 class SearchService
 {
-    public const SEARCH_LIMIT = 50;
+    final public const SEARCH_LIMIT = 50;
 
-    private ClientInterface $client;
-
-    private string $agency;
-    private string $profile;
-    private string $searchURL;
-    private string $password;
-    private string $user;
+    private readonly string $agency;
+    private readonly string $profile;
+    private readonly string $searchURL;
+    private readonly string $password;
+    private readonly string $user;
 
     /**
      * SearchService constructor.
@@ -34,10 +32,10 @@ class SearchService
      * @param ParameterBagInterface $params
      * @param ClientInterface $httpClient
      */
-    public function __construct(ParameterBagInterface $params, ClientInterface $httpClient)
-    {
-        $this->client = $httpClient;
-
+    public function __construct(
+        ParameterBagInterface $params,
+        private readonly ClientInterface $httpClient
+    ) {
         $this->agency = $params->get('datawell.vendor.agency');
         $this->profile = $params->get('datawell.vendor.profile');
         $this->searchURL = $params->get('datawell.vendor.search_url');
@@ -47,11 +45,6 @@ class SearchService
 
     /**
      * Perform data well search for given ac source.
-     *
-     * @param string $query
-     * @param int $offset
-     *
-     * @return array
      *
      * @throws DataWellVendorException Throws DataWellVendorException on network error
      *
@@ -67,7 +60,7 @@ class SearchService
         $pidArray = [];
 
         try {
-            $response = $this->client->request('POST', $this->searchURL, [
+            $response = $this->httpClient->request('POST', $this->searchURL, [
                 RequestOptions::BODY => '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/opensearch">
                  <soapenv:Header/>
                  <soapenv:Body>
@@ -93,7 +86,7 @@ class SearchService
             ]);
 
             $content = $response->getBody()->getContents();
-            $jsonResponse = json_decode($content, true);
+            $jsonResponse = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
             if (array_key_exists('searchResult', $jsonResponse['searchResponse']['result'])) {
                 if ($jsonResponse['searchResponse']['result']['hitCount']['$']) {
@@ -118,7 +111,6 @@ class SearchService
      * @param array $json
      *   Array of the json decoded data
      *
-     * @return array
      *   Array of all pid => url pairs found in response
      */
     public function mergeData(array $json): array

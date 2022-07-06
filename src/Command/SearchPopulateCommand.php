@@ -23,16 +23,14 @@ class SearchPopulateCommand extends Command
 {
     use ProgressBarTrait;
 
-    private PopulateService $populateService;
-
     /**
      * SearchPopulateCommand constructor.
      *
      * @param PopulateService $populateService
      */
-    public function __construct(PopulateService $populateService)
-    {
-        $this->populateService = $populateService;
+    public function __construct(
+        private readonly PopulateService $populateService
+    ) {
         parent::__construct();
     }
 

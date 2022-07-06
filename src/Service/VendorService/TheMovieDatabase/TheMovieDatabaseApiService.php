@@ -19,10 +19,6 @@ class TheMovieDatabaseApiService
     private const SEARCH_URL = 'https://api.themoviedb.org/3/search/movie';
     private const BASE_IMAGE_PATH = 'https://image.tmdb.org/t/p/original';
 
-    private string $apiKey;
-    private ClientInterface $client;
-    private LoggerInterface $logger;
-
     /**
      * TheMovieDatabaseApiService constructor.
      *
@@ -30,11 +26,11 @@ class TheMovieDatabaseApiService
      * @param \GuzzleHttp\ClientInterface $httpClient
      * @param \Psr\Log\LoggerInterface    $logger
      */
-    public function __construct(string $apiKey, ClientInterface $httpClient, LoggerInterface $logger)
-    {
-        $this->apiKey = $apiKey;
-        $this->client = $httpClient;
-        $this->logger = $logger;
+    public function __construct(
+        private readonly string          $apiKey,
+        private readonly ClientInterface $httpClient,
+        private readonly LoggerInterface $logger
+    ) {
     }
 
     /**
@@ -80,7 +76,7 @@ class TheMovieDatabaseApiService
             if ($result) {
                 $posterUrl = $this->getPosterUrl($result);
             }
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             // Catch all exceptions to avoid crashing.
             $posterUrl = null;
         }
@@ -98,7 +94,6 @@ class TheMovieDatabaseApiService
      * @param string $director
      *   The director of the item
      *
-     * @return \stdClass|null
      *   The matching result or null
      */
     private function getResultFromSet(array $results, string $title, string $director): ?\stdClass
@@ -110,7 +105,7 @@ class TheMovieDatabaseApiService
 
         foreach ($results as $result) {
             // Validate title against result->title or result->original_title.
-            if (mb_strtolower($result->title, 'UTF-8') === $lowercaseResultTitle || mb_strtolower($result->original_title, 'UTF-8') === $lowercaseResultTitle) {
+            if (mb_strtolower((string) $result->title, 'UTF-8') === $lowercaseResultTitle || mb_strtolower((string) $result->original_title, 'UTF-8') === $lowercaseResultTitle) {
                 // Validate director.
                 try {
                     // https://developers.themoviedb.org/3/movies/get-movie-credits
@@ -119,7 +114,7 @@ class TheMovieDatabaseApiService
 
                     $directors = array_reduce($responseData->crew, function ($carry, $item) {
                         if ('Director' === $item->job) {
-                            $carry[] = mb_strtolower($item->name, 'UTF-8');
+                            $carry[] = mb_strtolower((string) $item->name, 'UTF-8');
                         }
 
                         return $carry;
@@ -132,9 +127,7 @@ class TheMovieDatabaseApiService
                         }
                         $chosenResult = $result;
                     }
-                } catch (GuzzleException $e) {
-                    // Ignore error.
-                } catch (\Exception $e) {
+                } catch (GuzzleException|\Exception $e) {
                     // Ignore error.
                 }
             }
@@ -146,10 +139,7 @@ class TheMovieDatabaseApiService
     /**
      * Get the poster url for a search result.
      *
-     * @param \stdClass $result
      *   The result to create poster url from
-     *
-     * @return string|null
      *   The poster url or null
      */
     private function getPosterUrl(\stdClass $result): ?string
@@ -167,8 +157,6 @@ class TheMovieDatabaseApiService
      * @param string $method
      *   The request method
      *
-     * @return \stdClass
-     *
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Exception
      */
@@ -184,7 +172,7 @@ class TheMovieDatabaseApiService
         }
 
         // Send the request to The Movie Database.
-        $response = $this->client->request($method, $queryUrl, $query);
+        $response = $this->httpClient->request($method, $queryUrl, $query);
 
         // Respect api rate limits: https://developers.themoviedb.org/3/getting-started/request-rate-limiting
         // If 429 rate limit has been hit. Retry request after Retry-After.
@@ -207,7 +195,7 @@ class TheMovieDatabaseApiService
             }
 
             // Retry request.
-            $response = $this->client->request($method, $queryUrl, $query);
+            $response = $this->httpClient->request($method, $queryUrl, $query);
         }
 
         // Get the response content.
@@ -215,7 +203,7 @@ class TheMovieDatabaseApiService
 
         try {
             return json_decode($content, false, 512, JSON_THROW_ON_ERROR);
-        } catch (\Exception $exception) {
+        } catch (\Exception) {
             return new \stdClass();
         }
     }

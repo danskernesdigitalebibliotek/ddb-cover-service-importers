@@ -19,32 +19,32 @@ class Image
     /**
      * @ORM\Column(type="string", length=4, nullable=true)
      */
-    private ?string $imageFormat;
+    private ?string $imageFormat = null;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private ?int $size;
+    private ?int $size = null;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private ?int $width;
+    private ?int $width = null;
 
     /**
      * @ORM\Column(type="integer")
      */
-    private ?int $height;
+    private ?int $height = null;
 
     /**
      * @ORM\Column(type="text", nullable=false)
      */
-    private ?string $coverStoreURL;
+    private ?string $coverStoreURL = null;
 
     /**
      * @ORM\OneToOne(targetEntity="Source", mappedBy="image", cascade={"persist", "remove"})
      */
-    private ?Source $source;
+    private ?Source $source = null;
 
     public function getId(): int
     {

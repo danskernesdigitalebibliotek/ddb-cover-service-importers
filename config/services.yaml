@@ -29,18 +29,6 @@ services:
         bind:
             $projectDir: '%kernel.project_dir%'
             $resourcesDir: '%kernel.project_dir%/resources'
-            $bindTraceId: '%env(traceId:HTTP_X_REQUEST_ID)%'
-            $cloudinaryTransformations: '%env(yml:file:resolve:CLOUDINARY_CONFIG_FILE)%'
-
-            $bindIndexingUrl: '%env(INDEXING_URL)%'
-            $bindIndexingAlias: '%env(INDEXING_ALIAS)%'
-
-            $bindMetricsHost: '%env(string:METRICS_HOST)%'
-            $bindMetricsPort: '%env(int:METRICS_PORT)%'
-
-            $bindCloudinaryCloudName: '%env(string:CLOUDINARY_CLOUD_NAME)%'
-            $bindCloudinaryApiKey: '%env(string:CLOUDINARY_API_KEY)%'
-            $bindCloudinaryApiSecret: '%env(string:CLOUDINARY_API_SECRET)%'
 
     _instanceof:
         App\Service\VendorService\VendorServiceInterface:
@@ -71,6 +59,8 @@ services:
         class: Monolog\Formatter\JsonFormatter
 
     App\Logger\TraceIdProcessor:
+        arguments:
+            $traceId: '%env(traceId:HTTP_X_REQUEST_ID)%'
         tags:
             - { name: monolog.processor }
 
@@ -90,3 +80,17 @@ services:
     App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiService:
         arguments:
             $apiKey: '%env(THEMOVIEDATABASE_APIKEY)%'
+
+    App\Service\CoverStore\CloudinaryCoverStoreService:
+        arguments:
+            $cloudinaryCloudName: '%env(string:CLOUDINARY_CLOUD_NAME)%'
+            $cloudinaryApiKey: '%env(string:CLOUDINARY_API_KEY)%'
+            $cloudinaryApiSecret: '%env(string:CLOUDINARY_API_SECRET)%'
+
+    App\Service\Indexing\IndexingElasticService:
+        arguments:
+            $indexAliasName: '%env(INDEXING_ALIAS)%'
+
+    App\Service\CoverStore\CloudinaryTransformationService:
+        arguments:
+            $transformations: '%env(yml:file:resolve:CLOUDINARY_CONFIG_FILE)%'

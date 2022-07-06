@@ -31,8 +31,6 @@ class Client
     private string $libraryAccountEndpoint;
     private string $clientId;
     private string $clientSecret;
-    private CacheItemPoolInterface $cache;
-    private ClientInterface $httpClient;
     private AccessTokenInterface $accessToken;
     private string $productsEndpoint;
 
@@ -44,10 +42,10 @@ class Client
      * @param ClientInterface $httpClient
      *   Http client for api calls
      */
-    public function __construct(CacheItemPoolInterface $cache, ClientInterface $httpClient)
-    {
-        $this->cache = $cache;
-        $this->httpClient = $httpClient;
+    public function __construct(
+        private readonly CacheItemPoolInterface $cache,
+        private readonly ClientInterface $httpClient
+    ) {
     }
 
     /**
@@ -88,7 +86,6 @@ class Client
      * @param string $crossRefId
      *   The OverDrive 'crossRefId'
      *
-     * @return string|null
      *   The cover url or null
      *
      * @throws GuzzleException
@@ -118,7 +115,7 @@ class Client
                 // Check for the product and images keys.
                 $product = isset($json->products) && is_array($json->products) ? array_shift($json->products) : null;
                 $images = $product->images ?? null;
-            } catch (GuzzleException|\JsonException $exception) {
+            } catch (GuzzleException|\JsonException) {
                 // Ignore
                 $images = null;
             }
@@ -137,7 +134,6 @@ class Client
      * @param int $offset
      *   The offset to fetch from
      *
-     * @return array
      *   Array of 'products' serialized as stdClass
      *
      * @throws AccountException
@@ -157,7 +153,7 @@ class Client
             $content = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
 
             return $content->products ?? [];
-        } catch (GuzzleException|\JsonException $exception) {
+        } catch (GuzzleException|\JsonException) {
             // Ignore
         }
 
@@ -167,7 +163,6 @@ class Client
     /**
      * Get the total number of products from the overdrive api ('totalItems' field in the response).
      *
-     * @return int
      *   The total number of products
      *
      * @throws AccountException
@@ -186,7 +181,7 @@ class Client
             $content = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
 
             return $content->totalItems ?? 0;
-        } catch (GuzzleException|\JsonException $exception) {
+        } catch (GuzzleException|\JsonException) {
             // Ignore
         }
 
@@ -217,7 +212,6 @@ class Client
     /**
      * Get products endpoint for the account used.
      *
-     * @return string
      *   The complete URI for the products endpoint
      *
      * @throws AccountException
@@ -240,7 +234,6 @@ class Client
      *
      * @see https://developer.overdrive.com/apis/library-account
      *
-     * @return string
      *   The complete URI for the products endpoint
      *
      * @throws GuzzleException
@@ -283,7 +276,6 @@ class Client
      *
      * @see https://developer.overdrive.com/apis/client-auth
      *
-     * @return AccessTokenInterface
      *   The access token
      *
      * @throws AuthException
@@ -325,7 +317,6 @@ class Client
      * If not in local cache an request to OverDrive for a new authorization will
      * be executed.
      *
-     * @return AccessTokenInterface
      *   The value for the authentication header
      *
      * @throws GuzzleException
@@ -345,7 +336,6 @@ class Client
     /**
      * Get OverDrive OAuth authentication provider.
      *
-     * @return GenericProvider
      *   The authentication provider
      *
      * @throws AuthException

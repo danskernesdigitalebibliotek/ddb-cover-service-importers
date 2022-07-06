@@ -31,9 +31,6 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
     private const VENDOR_SEARCH_TERM = 'facet.acSource="ereolen magazines"';
     private const VENDOR_MAGAZINE_URL_BASE = 'https://link.overdrive.com/';
 
-    private SearchService $searchService;
-    private Client $apiClient;
-
     /**
      * OverDriveMagazinesVendorService constructor.
      *
@@ -42,10 +39,10 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
      * @param Client $apiClient
      *   Api client for the OverDrive API
      */
-    public function __construct(SearchService $searchService, Client $apiClient)
-    {
-        $this->searchService = $searchService;
-        $this->apiClient = $apiClient;
+    public function __construct(
+        private readonly SearchService $searchService,
+        private readonly Client $apiClient
+    ) {
     }
 
     /**
@@ -129,7 +126,6 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
      * @param array $result
      *   A data well result array
      *
-     * @return string|null
      *   Title url or null
      */
     private function getTitleUrlFromDatableIdentifiers(array $result): ?string
@@ -139,7 +135,7 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
         // Loop through identifiers to look for urls starting with 'http://link.overdrive.com/'
         // E.g. http://link.overdrive.com/?websiteID=100515&titleID=5849553
         foreach ($identifiers as $identifier) {
-            $pos = strpos($identifier['$'], self::VENDOR_MAGAZINE_URL_BASE);
+            $pos = strpos((string) $identifier['$'], self::VENDOR_MAGAZINE_URL_BASE);
             if (false !== $pos) {
                 return $identifier['$'];
             }
@@ -154,7 +150,6 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
      * @param string $url
      *   The OverDrive title url
      *
-     * @return string|null
      *   The title id or null
      */
     private function getTitleIdFromUrl(string $url): ?string
@@ -173,7 +168,6 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
      * @param string $crossRefID
      *   The OverDrive crossRefID
      *
-     * @return string|null
      *   The cover url or null
      *
      * @throws Api\Exception\AuthException

@@ -27,20 +27,16 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class VendorLoadCommand extends Command
 {
     // The default fallback date for the --with-updates-date parameter to the command.
-    public const DEFAULT_DATE = '1970-01-01';
-
-    private VendorServiceFactory $vendorFactory;
-    private MetricsService $metricsService;
+    final public const DEFAULT_DATE = '1970-01-01';
 
     /**
      * VendorLoadCommand constructor.
      */
-    public function __construct(VendorServiceFactory $vendorFactory, MetricsService $metricsService)
-    {
-        $this->vendorFactory = $vendorFactory;
-
+    public function __construct(
+        private readonly VendorServiceFactory $vendorFactory,
+        private readonly MetricsService $metricsService
+    ) {
         parent::__construct();
-        $this->metricsService = $metricsService;
     }
 
     /**
@@ -86,7 +82,7 @@ class VendorLoadCommand extends Command
             $withUpdatesDate = new \DateTime();
             try {
                 $withUpdatesDate->sub(new \DateInterval('P'.(int) $daysAgo.'D'));
-            } catch (\Exception $e) {
+            } catch (\Exception) {
                 $output->writeln('<error>Fail to parse the days-ago option</error>');
 
                 return 1;
@@ -144,9 +140,6 @@ class VendorLoadCommand extends Command
     /**
      * Output question about which vendor to load.
      *
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     *
      * @return mixed
      */
     private function askForVendor(InputInterface $input, OutputInterface $output)
@@ -157,7 +150,7 @@ class VendorLoadCommand extends Command
 
         $question = new ChoiceQuestion(
             'Please choose the vendor to load:',
-            array_merge(['none'], $names, ['all']),
+            [...['none'], ...$names, ...['all']],
             0
         );
         $question->setErrorMessage('Vendor %s is invalid.');
@@ -167,9 +160,6 @@ class VendorLoadCommand extends Command
 
     /**
      * Output formatted table with one row per service load() result.
-     *
-     * @param array $results
-     * @param OutputInterface $output
      */
     private function outputTable(array $results, OutputInterface $output): void
     {
@@ -195,7 +185,6 @@ class VendorLoadCommand extends Command
      *
      * @return string
      *   The emoji base on success parameter
-     *
      * @psalm-return '✅'|'❌'
      */
     private function getSuccessString(bool $success): string

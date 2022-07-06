@@ -20,8 +20,6 @@ class DataWellSearchService
 {
     private const SEARCH_LIMIT = 50;
 
-    private $client;
-
     private $agency;
     private $profile;
     private $searchURL;
@@ -34,17 +32,16 @@ class DataWellSearchService
      * @param ParameterBagInterface $params
      * @param ClientInterface $httpClient
      */
-    public function __construct(ParameterBagInterface $params, ClientInterface $httpClient)
-    {
-        $this->client = $httpClient;
+    public function __construct(
+        ParameterBagInterface $params,
+        private readonly ClientInterface $httpClient
+    ) {
         $this->agency = $params->get('datawell.vendor.agency');
         $this->profile = $params->get('datawell.vendor.profile');
     }
 
     /**
      * Set search url.
-     *
-     * @param string $searchURL
      */
     public function setSearchUrl(string $searchURL): void
     {
@@ -53,8 +50,6 @@ class DataWellSearchService
 
     /**
      * Set user name to access the datawell.
-     *
-     * @param string $user
      */
     public function setUser(string $user): void
     {
@@ -63,8 +58,6 @@ class DataWellSearchService
 
     /**
      * Set password for the datawel l.
-     *
-     * @param string $password
      */
     public function setPassword(string $password): void
     {
@@ -93,7 +86,7 @@ class DataWellSearchService
 
         $pidArray = [];
         try {
-            $response = $this->client->request('POST', $this->searchURL, [
+            $response = $this->httpClient->request('POST', $this->searchURL, [
                 RequestOptions::BODY => '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/opensearch">
                  <soapenv:Header/>
                  <soapenv:Body>
@@ -119,7 +112,7 @@ class DataWellSearchService
             ]);
 
             $content = $response->getBody()->getContents();
-            $jsonResponse = json_decode($content, true);
+            $jsonResponse = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
             if (array_key_exists('searchResult', $jsonResponse['searchResponse']['result'])) {
                 if ($jsonResponse['searchResponse']['result']['hitCount']['$']) {
@@ -144,7 +137,6 @@ class DataWellSearchService
      * @param array $json
      *   Array of the json decoded data
      *
-     * @return array
      *   Array of all pid => url pairs found in response
      */
     public function extractData(array $json): array
