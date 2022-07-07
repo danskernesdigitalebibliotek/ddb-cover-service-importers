@@ -23,6 +23,8 @@ use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 
 /**
  * Class SearchServiceTest.
@@ -65,7 +67,7 @@ class SearchServiceTest extends TestCase
     }
 
     /**
-     * Build mocks to ingject into the search service.
+     * Build mocks to inject into the search service.
      *
      * @param bool $cacheHit
      *   Should we use the cache
@@ -112,30 +114,10 @@ class SearchServiceTest extends TestCase
             ->method('getAccessToken')
             ->willReturn($this::TOKEN);
 
-        return new SearchService($parameters, $cache, $authentication, $this->mockHttpClient($body));
-    }
+        $client = new MockHttpClient([
+            new MockResponse($body, ['http_code' => empty($body) ? 500 : 200]),
+        ]);
 
-    /**
-     * Mock guzzle http client.
-     *
-     * @param $body
-     *   The response to the authentication request
-     *
-     * @return client
-     *   Http mock client
-     */
-    private function mockHttpClient($body): Client
-    {
-        $mock = new MockHandler();
-
-        if (empty($body)) {
-            $mock->append(new RequestException('Error Communicating with Server', new Request('POST', '/')));
-        } else {
-            $mock->append(new Response(200, [], $body));
-        }
-
-        $handler = HandlerStack::create($mock);
-
-        return new Client(['handler' => $handler]);
+        return new SearchService($parameters, $cache, $authentication, $client);
     }
 }

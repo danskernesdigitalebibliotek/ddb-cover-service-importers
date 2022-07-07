@@ -59,7 +59,9 @@ class AuthenticationService
      *
      *   The access token
      *
-     * @throws OpenPlatformAuthException
+      * @throws OpenPlatformAuthException
+     * @throws \JsonException
+     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function getAccessToken(bool $refresh = false): string
     {
@@ -79,8 +81,8 @@ class AuthenticationService
      *   The token if successful else the empty string,
      *
      * @throws OpenPlatformAuthException
-     * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Psr\Cache\InvalidArgumentException
+     * @throws \JsonException
      */
     private function authenticate(bool $refresh = false): string
     {
@@ -99,12 +101,12 @@ class AuthenticationService
         } else {
             try {
                 $response = $this->httpClient->request('POST', $this->params->get('openPlatform.auth.url'), [
-                    'form_params' => [
+                    'body' => [
                         'grant_type' => 'password',
                         'username' => '@'.$this->params->get('openPlatform.auth.agency'),
                         'password' => '@'.$this->params->get('openPlatform.auth.agency'),
                     ],
-                    'auth' => [
+                    'auth_basic' => [
                         $this->params->get('openPlatform.auth.id'),
                         $this->params->get('openPlatform.auth.secret'),
                     ],
@@ -126,8 +128,12 @@ class AuthenticationService
                 throw new OpenPlatformAuthException($exception->getMessage(), (int) $exception->getCode(), $exception);
             }
 
+            if (200 !== $response->getStatusCode()) {
+                throw new OpenPlatformAuthException('Authentication service returned non 200 status code', (int) $response->getStatusCode());
+            }
+
             // Get the content and parse json object as an array.
-            $content = $response->getBody()->getContents();
+            $content = $response->getContent();
             $json = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
             $this->logger->info('Access token acquired', [

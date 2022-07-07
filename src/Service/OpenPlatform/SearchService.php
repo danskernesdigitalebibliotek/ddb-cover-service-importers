@@ -12,12 +12,11 @@ use App\Exception\OpenPlatformAuthException;
 use App\Exception\OpenPlatformSearchException;
 use App\Utils\OpenPlatform\Material;
 use App\Utils\Types\IdentifierType;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\RequestOptions;
 use Nicebooks\Isbn\Isbn;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class SearchService.
@@ -53,14 +52,14 @@ class SearchService
      *   Cache object to store results
      * @param AuthenticationService $authenticationService
      *   The Open Platform authentication service
-     * @param ClientInterface $httpClient
+     * @param HttpClientInterface $httpClient
      *   Guzzle Client
      */
     public function __construct(
         private readonly ParameterBagInterface $params,
         private readonly CacheItemPoolInterface $cache,
         private readonly AuthenticationService $authenticationService,
-        private readonly ClientInterface $httpClient
+        private readonly HttpClientInterface $httpClient
     ) {
         $this->searchURL = $this->params->get('openPlatform.search.url');
         $this->searchCacheTTL = (int) $this->params->get('openPlatform.search.ttl');
@@ -84,7 +83,6 @@ class SearchService
      *
      * @throws MaterialTypeException
      * @throws OpenPlatformSearchException
-     * @throws OpenPlatformAuthException
      */
     public function search(string $identifier, string $type, bool $refresh = false): Material
     {
@@ -104,8 +102,8 @@ class SearchService
             try {
                 $token = $this->authenticationService->getAccessToken();
                 $res = $this->recursiveSearch($token, $identifier, $type);
-            } catch (GuzzleException $exception) {
-                throw new OpenPlatformSearchException($exception->getMessage(), (int) $exception->getCode());
+            } catch (OpenPlatformAuthException|\JsonException|InvalidArgumentException $exception) {
+                throw new OpenPlatformSearchException($exception->getMessage(), (int) $exception->getCode(), $exception);
             }
 
             $material = $this->parseResult($res);
@@ -249,7 +247,6 @@ class SearchService
      *
      *   The results currently found. If recursion is completed all the results.
      *
-     * @throws GuzzleException
      * @throws OpenPlatformSearchException
      */
     private function recursiveSearch(string $token, string $identifier, string $type, string $query = '', int $offset = 0, array &$results = []): array
@@ -295,7 +292,7 @@ class SearchService
         }
 
         $response = $this->httpClient->request('POST', $this->searchURL, [
-            RequestOptions::JSON => [
+            'json' => [
                 'fields' => $this->fields,
                 'access_token' => $token,
                 'pretty' => false,
@@ -307,7 +304,7 @@ class SearchService
             ],
         ]);
 
-        $content = $response->getBody()->getContents();
+        $content = $response->getContent();
         $json = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
         if (isset($json['hitCount']) && $json['hitCount'] > 0) {

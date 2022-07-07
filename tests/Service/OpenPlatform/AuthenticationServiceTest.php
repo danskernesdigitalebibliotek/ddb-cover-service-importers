@@ -9,18 +9,17 @@ namespace Tests\Service\OpenPlatform;
 
 use App\Exception\OpenPlatformAuthException;
 use App\Service\OpenPlatform\AuthenticationService;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Psr7\Response;
+use JsonException;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+
 
 class AuthenticationServiceTest extends TestCase
 {
@@ -29,41 +28,57 @@ class AuthenticationServiceTest extends TestCase
     /**
      * Test that token is returned.
      *
+     * @throws InvalidArgumentException
+     * @throws JsonException
      * @throws OpenPlatformAuthException
-     * @throws GuzzleException
-     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function testGetAccessToken()
     {
-        $body = '{"token_type": "bearer", "access_token": "'.$this::TOKEN.'", "expires_in": 2592000}';
-        $service = $this->getAuthenticationService(false, $body);
+        $body = json_encode([
+            "token_type" => "bearer",
+            "access_token" => $this::TOKEN,
+            "expires_in" => 2592000
+        ]);
+
+        $client = new MockHttpClient([
+            new MockResponse($body, ['http_code' => 200]),
+        ]);
+
+        $service = $this->getAuthenticationService(false, $client);
+
         $this->assertEquals($this::TOKEN, $service->getAccessToken());
     }
 
     /**
      * Test that a token is return if cache is enabled.
      *
+     * @throws InvalidArgumentException
+     * @throws JsonException
      * @throws OpenPlatformAuthException
-     * @throws GuzzleException
-     * @throws \Psr\Cache\InvalidArgumentException
      */
     public function testGetAccessTokenCache()
     {
-        $service = $this->getAuthenticationService(true, '');
+        $client = new MockHttpClient([
+            new MockResponse('', ['http_code' => 200]),
+        ]);
+        $service = $this->getAuthenticationService(true, $client);
+
         $this->assertEquals($this::TOKEN, $service->getAccessToken());
     }
 
     /**
      * Test that PlatformAuthException is throw on client error.
      *
-     * @throws OpenPlatformAuthException
-     * @throws GuzzleException
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws OpenPlatformAuthException|InvalidArgumentException|JsonException
      */
     public function testErrorHandling()
     {
         $this->expectException(OpenPlatformAuthException::class);
-        $service = $this->getAuthenticationService(false, '');
+
+        $client = new MockHttpClient([
+            new MockResponse('{}', ['http_code' => 500]),
+        ]);
+        $service = $this->getAuthenticationService(false, $client);
         $service->getAccessToken();
     }
 
@@ -71,14 +86,11 @@ class AuthenticationServiceTest extends TestCase
      * Build service with mocked injections.
      *
      * @param bool $cacheHit
-     *   If FALSE don't hit cache
-     * @param string $body
-     *   The http request to reply with
+     * @param HttpClientInterface $client
      *
-     * @return authenticationService
-     *   The service to test
+     * @return AuthenticationService
      */
-    private function getAuthenticationService(bool $cacheHit, string $body): AuthenticationService
+    private function getAuthenticationService(bool $cacheHit, HttpClientInterface $client): AuthenticationService
     {
         $parameters = $this->createMock(ParameterBagInterface::class);
         $parameters->expects($this->any())
@@ -101,30 +113,6 @@ class AuthenticationServiceTest extends TestCase
 
         $logger = $this->createMock(LoggerInterface::class);
 
-        return new AuthenticationService($parameters, $cache, $logger, $this->mockHttpClient($body));
-    }
-
-    /**
-     * Mock guzzle http client.
-     *
-     * @param $body
-     *   The response to the authentication request
-     *
-     * @return Client
-     *   Http mock client
-     */
-    private function mockHttpClient($body): Client
-    {
-        $mock = new MockHandler();
-
-        if (empty($body)) {
-            $mock->append(new RequestException('Error Communicating with Server', new Request('POST', '/')));
-        } else {
-            $mock->append(new Response(200, [], $body));
-        }
-
-        $handler = HandlerStack::create($mock);
-
-        return new Client(['handler' => $handler]);
+        return new AuthenticationService($parameters, $cache, $logger, $client);
     }
 }
