@@ -24,8 +24,6 @@
         "eightpoints/guzzle-bundle": "^8.0",
         "elasticsearch/elasticsearch": "^8.2",
         "itk-dev/metrics-bundle": "^1.0.0",
-        "league/flysystem-bundle": "^2.2",
-        "league/flysystem-ftp": "^3.0",
         "league/oauth2-client": "^2.6",
         "nicebooks/isbn": "^0.3",
         "predis/predis": "^1.1",

@@ -67,11 +67,6 @@ services:
     App\Service\VendorService\VendorServiceFactory:
         arguments: [!tagged app.vendor.service]
 
-    App\Service\VendorService\RbDigital\RbDigitalBooksVendorService:
-        arguments:
-            $local: '@flysystem.adapter.default.storage'
-            $ftp: '@flysystem.adapter.rbdigital.storage'
-
     App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiService:
         arguments:
             $apiKey: '%env(THEMOVIEDATABASE_APIKEY)%'
