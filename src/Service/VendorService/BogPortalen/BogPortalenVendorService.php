@@ -6,8 +6,8 @@
 
 namespace App\Service\VendorService\BogPortalen;
 
-use App\Exception\DownloadFailedException;
 use App\Exception\UnknownVendorServiceException;
+use App\Service\VendorService\FtpDownloadService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
@@ -37,9 +37,11 @@ class BogPortalenVendorService implements VendorServiceInterface
      * BogPortalenVendorService constructor.
      *
      * @param string $resourcesDir
+     * @param FtpDownloadService $FTPService
      */
     public function __construct(
         protected string $resourcesDir,
+        private readonly FtpDownloadService $FTPService,
     ) {
     }
 
@@ -57,16 +59,16 @@ class BogPortalenVendorService implements VendorServiceInterface
         $this->loadConfig();
         $status = new VendorStatus();
 
-        foreach (self::VENDOR_ARCHIVE_NAMES as $archive) {
+        foreach (self::VENDOR_ARCHIVE_NAMES as $remoteArchive) {
             try {
-                $this->progressMessage('Downloading '.$archive.' archive....');
+                $this->progressMessage('Downloading '.$remoteArchive.' archive....');
                 $this->progressAdvance();
 
-                $localArchivePath = $this->resourcesDir.'/'.$this::VENDOR_ARCHIVE_DIR.'/'.$archive;
+                $localArchivePath = $this->resourcesDir.'/'.$this::VENDOR_ARCHIVE_DIR.'/'.$remoteArchive;
 
-                $this->updateArchive($localArchivePath, $archive);
+                $this->FTPService->download($this->ftpHost, $this->ftpUsername, $this->ftpPassword, self::VENDOR_ROOT_DIR, $localArchivePath, $remoteArchive);
 
-                $this->progressMessage('Getting filenames from archive: "'.$archive.'"');
+                $this->progressMessage('Getting filenames from archive: "'.$remoteArchive.'"');
                 $this->progressAdvance();
 
                 $files = $this->listZipContents($localArchivePath);
@@ -162,44 +164,6 @@ class BogPortalenVendorService implements VendorServiceInterface
     }
 
     /**
-     * Update local copy of vendors archive.
-     *
-     * @param string $localArchive
-     *   Local full file path
-     * @param string $remoteArchive
-     *   Filename for the archive
-     *
-     * @throws DownloadFailedException
-     */
-    private function updateArchive(string $localArchive, string $remoteArchive): void
-    {
-        $path = dirname($localArchive);
-        if (!is_dir($path)) {
-            mkdir($path, 0775, true);
-        }
-
-        $fh = fopen($localArchive, 'w');
-        $ftp = ftp_connect($this->ftpHost);
-        if (false !== $ftp) {
-            if (!ftp_login($ftp, $this->ftpUsername, $this->ftpPassword)) {
-                throw new DownloadFailedException('FTP login failed');
-            }
-        }
-
-        if (false !== $ftp || false !== $fh) {
-            if (!ftp_chdir($ftp, $this::VENDOR_ROOT_DIR)) {
-                throw new DownloadFailedException('FTP change dir failed: '.$this::VENDOR_ROOT_DIR);
-            }
-            if (!ftp_pasv($ftp, true)) {
-                throw new DownloadFailedException('FTP change to passive mode failed');
-            }
-            if (!ftp_fget($ftp, $fh, $remoteArchive)) {
-                throw new DownloadFailedException('FTP download failed: '.$remoteArchive);
-            }
-        }
-    }
-
-    /**
      * Get list of files in ZIP archive.
      *
      * @param $path
@@ -212,9 +176,7 @@ class BogPortalenVendorService implements VendorServiceInterface
         $fileNames = [];
 
         // Using the native PHP function to extract the file names because we
-        // don't care about metadata. This has significantly better performance
-        // then the equivalent Flysystem method because the Flysystem method
-        // also extracts metadata for all files.
+        // don't care about metadata.
         $zip = new \ZipArchive();
         $zipReader = $zip->open($path);
 
