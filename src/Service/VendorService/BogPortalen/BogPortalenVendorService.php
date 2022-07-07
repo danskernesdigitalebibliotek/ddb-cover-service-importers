@@ -6,6 +6,7 @@
 
 namespace App\Service\VendorService\BogPortalen;
 
+use App\Exception\DownloadFailedException;
 use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorServiceInterface;
@@ -13,10 +14,6 @@ use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
-use League\Flysystem\Filesystem;
-use League\Flysystem\FilesystemException;
-use League\Flysystem\Ftp\FtpAdapter;
-use League\Flysystem\Local\LocalFilesystemAdapter;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 
 /**
@@ -29,25 +26,27 @@ class BogPortalenVendorService implements VendorServiceInterface
 
     private const VENDOR_ID = 1;
     private const VENDOR_ARCHIVE_NAMES = ['BOP-ProductAll.zip', 'BOP-ProductAll-EXT.zip', 'BOP-Actual.zip', 'BOP-Actual-EXT.zip'];
+    private const VENDOR_ARCHIVE_DIR = 'BogPortalen';
+    private const VENDOR_ROOT_DIR = 'Public';
+
+    private ?string $ftpHost;
+    private ?string $ftpPassword;
+    private ?string $ftpUsername;
 
     /**
      * BogPortalenVendorService constructor.
      *
-     * @param LocalFilesystemAdapter $local
-     *   Flysystem adapter for local filesystem
-     * @param FtpAdapter $ftp
-     *   Flysystem adapter for remote ftp server
+     * @param string $resourcesDir
      */
     public function __construct(
-        private readonly LocalFilesystemAdapter $local,
-        private readonly FtpAdapter $ftp
+        protected string $resourcesDir,
     ) {
     }
 
     /**
      * {@inheritdoc}
      *
-     * @throws UnknownVendorServiceException|FilesystemException
+     * @throws UnknownVendorServiceException
      */
     public function load(): VendorImportResultMessage
     {
@@ -63,12 +62,13 @@ class BogPortalenVendorService implements VendorServiceInterface
                 $this->progressMessage('Downloading '.$archive.' archive....');
                 $this->progressAdvance();
 
-                $this->updateArchive($archive);
+                $localArchivePath = $this->resourcesDir.'/'.$this::VENDOR_ARCHIVE_DIR.'/'.$archive;
+
+                $this->updateArchive($localArchivePath, $archive);
 
                 $this->progressMessage('Getting filenames from archive: "'.$archive.'"');
                 $this->progressAdvance();
 
-                $localArchivePath = $this->local->getAdapter()->getPathPrefix().$archive;
                 $files = $this->listZipContents($localArchivePath);
                 $isbnList = $this->getIsbnNumbers($files);
 
@@ -93,7 +93,9 @@ class BogPortalenVendorService implements VendorServiceInterface
                     $offset += self::BATCH_SIZE;
                 }
 
-                $this->local->delete($archive);
+                if (file_exists($localArchivePath)) {
+                    unlink($localArchivePath);
+                }
 
                 if ($this->limit && $offset >= $this->limit) {
                     break;
@@ -121,10 +123,9 @@ class BogPortalenVendorService implements VendorServiceInterface
 
         // Set FTP adapter configuration.
         if (!empty($vendor->getDataServerUser()) && !empty($vendor->getDataServerPassword()) && !empty($vendor->getDataServerURI())) {
-            $adapter = $this->ftp->getAdapter();
-            $adapter->setUsername($vendor->getDataServerUser());
-            $adapter->setPassword($vendor->getDataServerPassword());
-            $adapter->setHost($vendor->getDataServerURI());
+            $this->ftpUsername = $vendor->getDataServerUser();
+            $this->ftpPassword = $vendor->getDataServerPassword();
+            $this->ftpHost = $vendor->getDataServerURI();
         } else {
             throw new \InvalidArgumentException('Missing configuration');
         }
@@ -163,15 +164,39 @@ class BogPortalenVendorService implements VendorServiceInterface
     /**
      * Update local copy of vendors archive.
      *
-     * @param string $archive
+     * @param string $localArchive
+     *   Local full file path
+     * @param string $remoteArchive
      *   Filename for the archive
      *
-     * @throws \League\Flysystem\FileNotFoundException
+     * @throws DownloadFailedException
      */
-    private function updateArchive(string $archive): bool
+    private function updateArchive(string $localArchive, string $remoteArchive): void
     {
-        // @TODO Error handling for missing archive
-        return $this->local->putStream($archive, $this->ftp->readStream($archive));
+        $path = dirname($localArchive);
+        if (!is_dir($path)) {
+            mkdir($path, 0775, true);
+        }
+
+        $fh = fopen($localArchive, 'w');
+        $ftp = ftp_connect($this->ftpHost);
+        if (false !== $ftp) {
+            if (!ftp_login($ftp, $this->ftpUsername, $this->ftpPassword)) {
+                throw new DownloadFailedException('FTP login failed');
+            }
+        }
+
+        if (false !== $ftp || false !== $fh) {
+            if (!ftp_chdir($ftp, $this::VENDOR_ROOT_DIR)) {
+                throw new DownloadFailedException('FTP change dir failed: '.$this::VENDOR_ROOT_DIR);
+            }
+            if (!ftp_pasv($ftp, true)) {
+                throw new DownloadFailedException('FTP change to passive mode failed');
+            }
+            if (!ftp_fget($ftp, $fh, $remoteArchive)) {
+                throw new DownloadFailedException('FTP download failed: '.$remoteArchive);
+            }
+        }
     }
 
     /**

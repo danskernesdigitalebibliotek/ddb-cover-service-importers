@@ -5,14 +5,6 @@ flysystem:
             adapter: 'local'
             options:
                 directory: '%kernel.project_dir%/resources'
-        bogportalen.storage:
-            adapter: 'ftp'
-            options:
-                host: ''
-                username: ''
-                password: ''
-                root: 'Public'
-                ssl: false
         rbdigital.storage:
             adapter: 'ftp'
             options:

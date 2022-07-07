@@ -150,6 +150,11 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
     {
         $response = $this->httpClient->request('GET', $url);
 
+        $path = dirname($location);
+        if (!is_dir($path)) {
+            mkdir($path, 0775, true);
+        }
+
         $dest = fopen($location, 'w');
         stream_copy_to_stream(StreamWrapper::createResource($response, $this->httpClient), $dest);
         fclose($dest);

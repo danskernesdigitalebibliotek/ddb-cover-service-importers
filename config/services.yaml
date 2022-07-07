@@ -67,11 +67,6 @@ services:
     App\Service\VendorService\VendorServiceFactory:
         arguments: [!tagged app.vendor.service]
 
-    App\Service\VendorService\BogPortalen\BogPortalenVendorService:
-        arguments:
-            $local: '@flysystem.adapter.default.storage'
-            $ftp: '@flysystem.adapter.bogportalen.storage'
-
     App\Service\VendorService\RbDigital\RbDigitalBooksVendorService:
         arguments:
             $local: '@flysystem.adapter.default.storage'
