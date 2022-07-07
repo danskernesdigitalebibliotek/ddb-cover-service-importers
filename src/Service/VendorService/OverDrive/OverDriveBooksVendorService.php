@@ -15,8 +15,6 @@ use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
 use Psr\Cache\InvalidArgumentException;
 
 /**
@@ -32,13 +30,10 @@ class OverDriveBooksVendorService implements VendorServiceInterface
     /**
      * OverDriveBooksVendorService constructor.
      *
-     * @param ClientInterface $httpClient
-     *   Http client to send api requests
      * @param Client $apiClient
      *   Api client for the OverDrive API
      */
     public function __construct(
-        private readonly ClientInterface $httpClient,
         private readonly Client $apiClient
     ) {
     }
@@ -46,7 +41,6 @@ class OverDriveBooksVendorService implements VendorServiceInterface
     /**
      * {@inheritdoc}
      *
-     * @throws GuzzleException
      * @throws InvalidArgumentException
      * @throws UnknownVendorServiceException
      */

@@ -8,10 +8,9 @@
 namespace App\Service\DataWell;
 
 use App\Exception\DataWellVendorException;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\RequestOptions;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class SearchService.
@@ -30,11 +29,11 @@ class SearchService
      * SearchService constructor.
      *
      * @param ParameterBagInterface $params
-     * @param ClientInterface $httpClient
+     * @param HttpClientInterface $httpClient
      */
     public function __construct(
         ParameterBagInterface $params,
-        private readonly ClientInterface $httpClient
+        private readonly HttpClientInterface $httpClient
     ) {
         $this->agency = $params->get('datawell.vendor.agency');
         $this->profile = $params->get('datawell.vendor.profile');
@@ -46,7 +45,8 @@ class SearchService
     /**
      * Perform data well search for given ac source.
      *
-     * @throws DataWellVendorException Throws DataWellVendorException on network error
+     * @throws \JsonException
+     * @throws DataWellVendorException
      *
      * @psalm-return array{0: array, 1: bool, 2: int}
      */
@@ -61,31 +61,31 @@ class SearchService
 
         try {
             $response = $this->httpClient->request('POST', $this->searchURL, [
-                RequestOptions::BODY => '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/opensearch">
-                 <soapenv:Header/>
-                 <soapenv:Body>
-                    <open:searchRequest>
-                       <open:query>'.$query.'</open:query>
-                       <open:agency>'.$this->agency.'</open:agency>
-                       <open:profile>'.$this->profile.'</open:profile>
-                       <open:allObjects>0</open:allObjects>
-                       <open:authentication>
-                          <open:groupIdAut>'.$this->agency.'</open:groupIdAut>
-                          <open:passwordAut>'.$this->password.'</open:passwordAut>
-                          <open:userIdAut>'.$this->user.'</open:userIdAut>
-                       </open:authentication>
-                       <open:objectFormat>dkabm</open:objectFormat>
-                       <open:start>'.$offset.'</open:start>
-                       <open:stepValue>'.$this::SEARCH_LIMIT.'</open:stepValue>
-                       <open:allRelations>1</open:allRelations>
-                    <open:relationData>uri</open:relationData>
-                    <outputType>json</outputType>
-                    </open:searchRequest>
-                 </soapenv:Body>
-              </soapenv:Envelope>',
+                'body' => '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/opensearch">
+                <soapenv:Header/>
+                <soapenv:Body>
+                <open:searchRequest>
+                   <open:query>'.$query.'</open:query>
+                   <open:agency>'.$this->agency.'</open:agency>
+                   <open:profile>'.$this->profile.'</open:profile>
+                   <open:allObjects>0</open:allObjects>
+                   <open:authentication>
+                      <open:groupIdAut>'.$this->agency.'</open:groupIdAut>
+                      <open:passwordAut>'.$this->password.'</open:passwordAut>
+                      <open:userIdAut>'.$this->user.'</open:userIdAut>
+                   </open:authentication>
+                   <open:objectFormat>dkabm</open:objectFormat>
+                   <open:start>'.$offset.'</open:start>
+                   <open:stepValue>'.$this::SEARCH_LIMIT.'</open:stepValue>
+                   <open:allRelations>1</open:allRelations>
+                <open:relationData>uri</open:relationData>
+                <outputType>json</outputType>
+                </open:searchRequest>
+                </soapenv:Body>
+                </soapenv:Envelope>',
             ]);
 
-            $content = $response->getBody()->getContents();
+            $content = $response->getContent();
             $jsonResponse = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
             if (array_key_exists('searchResult', $jsonResponse['searchResponse']['result'])) {
@@ -98,7 +98,7 @@ class SearchService
             } else {
                 $more = false;
             }
-        } catch (GuzzleException $exception) {
+        } catch (TransportExceptionInterface $exception) {
             throw new DataWellVendorException($exception->getMessage(), (int) $exception->getCode());
         }
 

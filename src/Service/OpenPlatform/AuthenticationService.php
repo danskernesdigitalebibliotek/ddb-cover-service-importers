@@ -38,7 +38,7 @@ class AuthenticationService
      * @param LoggerInterface $logger
      *   Logger object to send stats to ES
      * @param HttpClientInterface $httpClient
-     *   Guzzle Client
+     *   Http Client
      */
     public function __construct(
         private readonly ParameterBagInterface $params,
@@ -59,7 +59,7 @@ class AuthenticationService
      *
      *   The access token
      *
-      * @throws OpenPlatformAuthException
+     * @throws OpenPlatformAuthException
      * @throws \JsonException
      * @throws \Psr\Cache\InvalidArgumentException
      */

@@ -24,10 +24,8 @@ use App\Utils\Types\VendorState;
 use Doctrine\DBAL\ConnectionException;
 use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Exception\GuzzleException;
 use ItkDev\MetricsBundle\Service\MetricsService;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
@@ -166,13 +164,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
 
                         $item = new VendorImageItem();
                         $item->setOriginalFile($source->getOriginalFile());
-                        try {
-                            $this->validatorService->validateRemoteImage($item);
-                        } catch (GuzzleException) {
-                            // Just remove this job from the queue, on fetch errors. This will ensure that the job is not
-                            // re-queue in infinity loop.
-                            throw new UnrecoverableMessageHandlingException('Image fetch error in validation');
-                        }
+                        $this->validatorService->validateRemoteImage($item);
 
                         if ($item->isFound()) {
                             $this->metricsService->counter('no_hit_without_image_new', 'No-hit source found with new image', 1, ['type' => 'nohit']);

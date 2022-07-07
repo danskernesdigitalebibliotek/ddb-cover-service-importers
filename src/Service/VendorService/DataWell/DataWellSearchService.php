@@ -8,10 +8,12 @@
 namespace App\Service\VendorService\DataWell;
 
 use App\Exception\DataWellVendorException;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\RequestOptions;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class SearchService.
@@ -20,21 +22,21 @@ class DataWellSearchService
 {
     private const SEARCH_LIMIT = 50;
 
-    private $agency;
-    private $profile;
-    private $searchURL;
-    private $password;
-    private $user;
+    private string $agency;
+    private string $profile;
+    private string $searchURL;
+    private string $password;
+    private string $user;
 
     /**
      * DataWellSearchService constructor.
      *
      * @param ParameterBagInterface $params
-     * @param ClientInterface $httpClient
+     * @param HttpClientInterface $httpClient
      */
     public function __construct(
         ParameterBagInterface $params,
-        private readonly ClientInterface $httpClient
+        private readonly HttpClientInterface $httpClient
     ) {
         $this->agency = $params->get('datawell.vendor.agency');
         $this->profile = $params->get('datawell.vendor.profile');
@@ -49,7 +51,7 @@ class DataWellSearchService
     }
 
     /**
-     * Set user name to access the datawell.
+     * Set username to access the datawell.
      */
     public function setUser(string $user): void
     {
@@ -57,7 +59,7 @@ class DataWellSearchService
     }
 
     /**
-     * Set password for the datawel l.
+     * Set password for the datawell.
      */
     public function setPassword(string $password): void
     {
@@ -70,12 +72,10 @@ class DataWellSearchService
      * @param string $acSource
      * @param int $offset
      *
-     * @return (array|bool|mixed)[]
+     * @return array (array|bool|mixed)[]
      *
-     * @throws DataWellVendorException
-     *   Throws DataWellVendorException on network error
-     *
-     * @psalm-return array{0: array, 1: bool, 2: mixed}
+     * @throws DataWellVendorException Throws DataWellVendorException on network error
+     * @throws \JsonException
      */
     public function search(string $acSource, int $offset = 1): array
     {
@@ -87,7 +87,7 @@ class DataWellSearchService
         $pidArray = [];
         try {
             $response = $this->httpClient->request('POST', $this->searchURL, [
-                RequestOptions::BODY => '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/opensearch">
+                'body' => '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/opensearch">
                  <soapenv:Header/>
                  <soapenv:Body>
                     <open:searchRequest>
@@ -111,7 +111,7 @@ class DataWellSearchService
               </soapenv:Envelope>',
             ]);
 
-            $content = $response->getBody()->getContents();
+            $content = $response->getContent();
             $jsonResponse = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
             if (array_key_exists('searchResult', $jsonResponse['searchResponse']['result'])) {
@@ -124,8 +124,8 @@ class DataWellSearchService
             } else {
                 $more = false;
             }
-        } catch (GuzzleException $exception) {
-            throw new DataWellVendorException($exception->getMessage(), (int) $exception->getCode());
+        } catch (TransportExceptionInterface|RedirectionExceptionInterface|ClientExceptionInterface|ServerExceptionInterface $exception) {
+            throw new DataWellVendorException($exception->getMessage(), (int) $exception->getCode(), $exception);
         }
 
         return [$pidArray, $more, $offset + $this::SEARCH_LIMIT];

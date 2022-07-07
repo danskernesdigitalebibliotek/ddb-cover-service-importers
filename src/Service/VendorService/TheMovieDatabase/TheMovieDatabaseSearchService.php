@@ -8,10 +8,12 @@
 namespace App\Service\VendorService\TheMovieDatabase;
 
 use App\Exception\DataWellVendorException;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
-use GuzzleHttp\RequestOptions;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class SearchService.
@@ -33,12 +35,12 @@ class TheMovieDatabaseSearchService
      *
      * @param ParameterBagInterface $params
      *   The parameter bag
-     * @param ClientInterface $httpClient
+     * @param HttpClientInterface $httpClient
      *   The http client
      */
     public function __construct(
         ParameterBagInterface $params,
-        private readonly ClientInterface $httpClient
+        private readonly HttpClientInterface $httpClient
     ) {
         $this->agency = $params->get('datawell.vendor.agency');
         $this->profile = $params->get('datawell.vendor.profile');
@@ -82,15 +84,13 @@ class TheMovieDatabaseSearchService
      *
      * @param string $query
      *   The query to send
-     * @param int    $offset
+     * @param int $offset
      *   Result offset
      *
-     * @return (array|bool|int)[]
+     * @return array (array|bool|int)[]
      *
      * @throws DataWellVendorException
-     *   Throws DataWellVendorException on network error
-     *
-     * @psalm-return array{0: array, 1: bool, 2: int}
+     * @throws \JsonException
      */
     public function search(string $query, int $offset = 1): array
     {
@@ -106,7 +106,7 @@ class TheMovieDatabaseSearchService
                 'POST',
                 $this->searchURL,
                 [
-                    RequestOptions::BODY => '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/opensearch">
+                    'body' => '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:open="http://oss.dbc.dk/ns/opensearch">
                              <soapenv:Header/>
                              <soapenv:Body>
                                  <open:searchRequest>
@@ -131,7 +131,7 @@ class TheMovieDatabaseSearchService
                 ]
             );
 
-            $content = $response->getBody()->getContents();
+            $content = $response->getContent();
             $jsonResponse = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
             if (array_key_exists('searchResult', $jsonResponse['searchResponse']['result'])) {
@@ -144,7 +144,7 @@ class TheMovieDatabaseSearchService
             } else {
                 $more = false;
             }
-        } catch (GuzzleException $exception) {
+        } catch (TransportExceptionInterface|ClientExceptionInterface|RedirectionExceptionInterface|ServerExceptionInterface $exception) {
             throw new DataWellVendorException($exception->getMessage(), (int) $exception->getCode());
         }
 

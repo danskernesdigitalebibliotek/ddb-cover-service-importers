@@ -14,7 +14,6 @@ use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Exception\GuzzleException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
@@ -43,8 +42,6 @@ class VendorImageMessageHandler implements MessageHandlerInterface
 
     /**
      * @param VendorImageMessage $message
-     *
-     * @throws GuzzleException
      */
     public function __invoke(VendorImageMessage $message)
     {
@@ -128,8 +125,6 @@ class VendorImageMessageHandler implements MessageHandlerInterface
 
     /**
      * Handle image updates. Send update to cover store processor only if vendor image is updated.
-     *
-     * @throws GuzzleException
      */
     private function processUpdate(VendorImageMessage $message, Source $source): void
     {

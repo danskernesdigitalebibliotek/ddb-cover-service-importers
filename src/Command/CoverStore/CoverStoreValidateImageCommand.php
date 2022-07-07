@@ -10,7 +10,6 @@ namespace App\Command\CoverStore;
 use App\Entity\Source;
 use App\Repository\SourceRepository;
 use App\Repository\VendorRepository;
-use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
 use Doctrine\ORM\EntityManagerInterface;
@@ -31,14 +30,12 @@ class CoverStoreValidateImageCommand extends Command
      * CoverStoreValidateImageCommand constructor.
      *
      * @param EntityManagerInterface $entityManager
-     * @param CoverStoreInterface $store
      * @param SourceRepository $sourceRepository
      * @param VendorRepository $vendorRepository
      * @param VendorImageValidatorService $imageValidatorService
      */
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly CoverStoreInterface $store,
         private readonly SourceRepository $sourceRepository,
         private readonly VendorRepository $vendorRepository,
         private readonly VendorImageValidatorService $imageValidatorService
@@ -59,8 +56,6 @@ class CoverStoreValidateImageCommand extends Command
 
     /**
      * {@inheritdoc}
-     *
-     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

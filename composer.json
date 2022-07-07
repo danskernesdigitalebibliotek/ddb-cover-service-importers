@@ -21,7 +21,6 @@
         "doctrine/doctrine-bundle": "^2.4",
         "doctrine/doctrine-migrations-bundle": "^3.0",
         "doctrine/orm": "^2.10",
-        "eightpoints/guzzle-bundle": "^8.0",
         "elasticsearch/elasticsearch": "^8.2",
         "itk-dev/metrics-bundle": "^1.0.0",
         "league/oauth2-client": "^2.6",

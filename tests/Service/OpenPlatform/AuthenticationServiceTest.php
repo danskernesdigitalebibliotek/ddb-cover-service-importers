@@ -20,7 +20,6 @@ use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-
 class AuthenticationServiceTest extends TestCase
 {
     public const TOKEN = 'fde1432d66d33e4cq66e5ad04757811e47864329';
@@ -35,9 +34,9 @@ class AuthenticationServiceTest extends TestCase
     public function testGetAccessToken()
     {
         $body = json_encode([
-            "token_type" => "bearer",
-            "access_token" => $this::TOKEN,
-            "expires_in" => 2592000
+            'token_type' => 'bearer',
+            'access_token' => $this::TOKEN,
+            'expires_in' => 2592000,
         ]);
 
         $client = new MockHttpClient([

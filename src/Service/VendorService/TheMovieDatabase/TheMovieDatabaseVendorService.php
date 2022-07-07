@@ -20,7 +20,6 @@ use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use App\Utils\Types\VendorStatus;
 use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
@@ -60,7 +59,6 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
     /**
      * @{@inheritdoc}
      *
-     * @throws GuzzleException
      * @throws UnknownVendorServiceException
      */
     public function load(): VendorImportResultMessage
@@ -162,7 +160,6 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
      *
      * @throws IllegalVendorServiceException
      * @throws UnknownVendorServiceException
-     * @throws GuzzleException
      */
     private function postProcess(array $pids, array $searchResults): void
     {

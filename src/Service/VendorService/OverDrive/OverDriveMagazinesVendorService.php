@@ -15,7 +15,6 @@ use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
-use GuzzleHttp\Exception\GuzzleException;
 use Psr\Cache\InvalidArgumentException;
 
 /**
@@ -29,7 +28,7 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
     protected const VENDOR_ID = 16;
 
     private const VENDOR_SEARCH_TERM = 'facet.acSource="ereolen magazines"';
-    private const VENDOR_MAGAZINE_URL_BASE = 'https://link.overdrive.com/';
+    private const VENDOR_MAGAZINE_URL_BASE = 'link.overdrive.com';
 
     /**
      * OverDriveMagazinesVendorService constructor.
@@ -70,12 +69,15 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
 
                 // Get the OverDrive APIs title urls from the results
                 $pidTitleUrlArray = array_map('self::getTitleUrlFromDatableIdentifiers', $pidResultArray);
+                $pidTitleUrlArray = array_filter($pidTitleUrlArray);
 
                 // Get the OverDrive APIs crossRefIds from the results
                 $pidTitleIdArray = array_map('self::getTitleIdFromUrl', $pidTitleUrlArray);
+                $pidTitleIdArray = array_filter($pidTitleIdArray);
 
                 // Get the OverDrive cover urls
                 $pidCoverUrlArray = array_map('self::getCoverUrl', $pidTitleIdArray);
+                $pidCoverUrlArray = array_filter($pidCoverUrlArray);
 
                 // Remove null values
                 array_filter($pidCoverUrlArray);
@@ -171,7 +173,6 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
      *   The cover url or null
      *
      * @throws Api\Exception\AuthException
-     * @throws GuzzleException
      * @throws InvalidArgumentException
      */
     private function getCoverUrl(string $crossRefID): ?string

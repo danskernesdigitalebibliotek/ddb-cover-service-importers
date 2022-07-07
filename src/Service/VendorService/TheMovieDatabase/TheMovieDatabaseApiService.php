@@ -7,9 +7,9 @@
 
 namespace App\Service\VendorService\TheMovieDatabase;
 
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
 use Psr\Log\LoggerInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class TheMovieDatabaseApiService.
@@ -23,12 +23,12 @@ class TheMovieDatabaseApiService
      * TheMovieDatabaseApiService constructor.
      *
      * @param string $apiKey
-     * @param \GuzzleHttp\ClientInterface $httpClient
-     * @param \Psr\Log\LoggerInterface $logger
+     * @param HttpClientInterface $httpClient
+     * @param LoggerInterface $logger
      */
     public function __construct(
         private readonly string $apiKey,
-        private readonly ClientInterface $httpClient,
+        private readonly HttpClientInterface $httpClient,
         private readonly LoggerInterface $logger
     ) {
     }
@@ -45,8 +45,6 @@ class TheMovieDatabaseApiService
      *
      * @return string|null
      *   The poster url or null
-     *
-     * @throws GuzzleException
      */
     public function searchPosterUrl(string $title = null, string $originalYear = null, string $director = null): ?string
     {
@@ -54,7 +52,7 @@ class TheMovieDatabaseApiService
 
         // Bail out if the required information is not supplied.
         if (null === $title || null === $originalYear || null === $director) {
-            return $posterUrl;
+            return null;
         }
 
         $query = [
@@ -78,7 +76,6 @@ class TheMovieDatabaseApiService
             }
         } catch (\Exception) {
             // Catch all exceptions to avoid crashing.
-            $posterUrl = null;
         }
 
         return $posterUrl;
@@ -94,6 +91,7 @@ class TheMovieDatabaseApiService
      * @param string $director
      *   The director of the item
      *
+     * @return \stdClass|null
      *   The matching result or null
      */
     private function getResultFromSet(array $results, string $title, string $director): ?\stdClass
@@ -127,7 +125,7 @@ class TheMovieDatabaseApiService
                         }
                         $chosenResult = $result;
                     }
-                } catch (GuzzleException|\Exception $e) {
+                } catch (TransportExceptionInterface|\Exception $e) {
                     // Ignore error.
                 }
             }
@@ -152,13 +150,14 @@ class TheMovieDatabaseApiService
      *
      * @param string $queryUrl
      *   The query url
-     * @param array  $query
+     * @param array|null $query
      *   The query. Remember to add the api key to the query
      * @param string $method
      *   The request method
      *
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Exception
+     * @return \stdClass
+     *
+     * @throws TransportExceptionInterface
      */
     private function sendRequest(string $queryUrl, array $query = null, string $method = 'GET'): \stdClass
     {
@@ -177,7 +176,8 @@ class TheMovieDatabaseApiService
         // Respect api rate limits: https://developers.themoviedb.org/3/getting-started/request-rate-limiting
         // If 429 rate limit has been hit. Retry request after Retry-After.
         if (429 === $response->getStatusCode()) {
-            $retryAfterHeader = $response->getHeader('Retry-After');
+            $headers = $response->getHeaders();
+            $retryAfterHeader = $headers['retry-after'];
             $retryAfterHeader = reset($retryAfterHeader);
             if (is_numeric($retryAfterHeader)) {
                 $retryAfter = (int) $retryAfterHeader;
@@ -199,7 +199,7 @@ class TheMovieDatabaseApiService
         }
 
         // Get the response content.
-        $content = $response->getBody()->getContents();
+        $content = $response->getContent();
 
         try {
             return json_decode($content, false, 512, JSON_THROW_ON_ERROR);

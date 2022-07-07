@@ -144,18 +144,6 @@
             "config/packages/dev/easy_log_handler.yaml"
         ]
     },
-    "eightpoints/guzzle-bundle": {
-        "version": "8.2",
-        "recipe": {
-            "repo": "github.com/symfony/recipes-contrib",
-            "branch": "master",
-            "version": "7.0",
-            "ref": "7babb21a3928e44e485391907e3abc346804e0d2"
-        },
-        "files": [
-            "config/packages/eight_points_guzzle.yaml"
-        ]
-    },
     "elastic/transport": {
         "version": "v8.1.0"
     },
@@ -475,9 +463,6 @@
     },
     "symfony/event-dispatcher-contracts": {
         "version": "v2.4.0"
-    },
-    "symfony/expression-language": {
-        "version": "v5.3.7"
     },
     "symfony/filesystem": {
         "version": "v5.3.4"

@@ -53,7 +53,7 @@ class SearchService
      * @param AuthenticationService $authenticationService
      *   The Open Platform authentication service
      * @param HttpClientInterface $httpClient
-     *   Guzzle Client
+     *   Http Client
      */
     public function __construct(
         private readonly ParameterBagInterface $params,
