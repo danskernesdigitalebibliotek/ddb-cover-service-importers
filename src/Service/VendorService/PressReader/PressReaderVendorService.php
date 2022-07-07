@@ -68,11 +68,10 @@ class PressReaderVendorService implements VendorServiceInterface
                 // cover. See https://i.prcdn.co/img?cid=9L09&page=1&width=1200, but the size will be under 40Kb, so we have
                 // this extra test.
                 $pidArray = array_filter($pidArray, function ($url) {
-                    $header = $this->imageValidatorService->remoteImageHeader('cf-polished', $url);
-                    if (!empty($header)) {
-                        $header = reset($header);
-                        [$label, $size] = explode('=', $header);
-                        if ($size < $this::MIN_IMAGE_SIZE) {
+                    $headers = $this->imageValidatorService->remoteImageHeader('content-length', $url);
+                    if (!empty($headers)) {
+                        $header = reset($headers);
+                        if ($header < $this::MIN_IMAGE_SIZE) {
                             // Size to little set it to null.
                             return false;
                         }

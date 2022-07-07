@@ -101,11 +101,7 @@ class VendorImageValidatorService
     {
         $headerContent = [];
         try {
-            $response = $this->httpClient->request($httpRequestMethod, $url, [
-                'allow_redirects' => [
-                    'strict' => true,   // use "strict" RFC compliant redirects to avoid 30x redirects resulting in GET calls
-                ],
-            ]);
+            $response = $this->httpClient->request($httpRequestMethod, $url);
             $headers = $response->getHeaders();
 
             $headerContent = $headers[$header];
