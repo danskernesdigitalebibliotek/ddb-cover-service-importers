@@ -33,7 +33,7 @@ class SearchRepository extends ServiceEntityRepository
     {
         $lastEntity = $this->findOneBy([], ['id' => 'DESC']);
 
-        return $lastEntity->getId() ?? null;
+        return $lastEntity?->getId() ?? null;
     }
 
     /**

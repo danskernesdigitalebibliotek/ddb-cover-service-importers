@@ -11,9 +11,14 @@
 namespace App\Service\OpenPlatform;
 
 use App\Exception\OpenPlatformAuthException;
+use JsonException;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -60,8 +65,8 @@ class AuthenticationService
      *   The access token
      *
      * @throws OpenPlatformAuthException
-     * @throws \JsonException
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws JsonException
+     * @throws InvalidArgumentException
      */
     public function getAccessToken(bool $refresh = false): string
     {
@@ -81,8 +86,12 @@ class AuthenticationService
      *   The token if successful else the empty string,
      *
      * @throws OpenPlatformAuthException
-     * @throws \Psr\Cache\InvalidArgumentException
-     * @throws \JsonException
+     * @throws TransportExceptionInterface
+     * @throws JsonException
+     * @throws InvalidArgumentException
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
      */
     private function authenticate(bool $refresh = false): string
     {
@@ -129,7 +138,7 @@ class AuthenticationService
             }
 
             if (200 !== $response->getStatusCode()) {
-                throw new OpenPlatformAuthException('Authentication service returned non 200 status code', (int) $response->getStatusCode());
+                throw new OpenPlatformAuthException('Authentication service returned non 200 status code', $response->getStatusCode());
             }
 
             // Get the content and parse json object as an array.

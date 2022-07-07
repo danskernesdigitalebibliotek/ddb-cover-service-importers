@@ -65,7 +65,7 @@ class DataWellVendorService implements VendorServiceInterface
                 // Convert images url from 'medium' to 'large'
                 AmazonPublicUrlConverter::convertArrayValues($pidArray);
 
-                $batchSize = is_countable($pidArray) ? \count($pidArray) : 0;
+                $batchSize = count($pidArray);
                 $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, $batchSize);
 
                 $this->progressMessageFormatted($status);

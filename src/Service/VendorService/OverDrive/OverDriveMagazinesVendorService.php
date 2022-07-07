@@ -82,7 +82,7 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
                 // Remove null values
                 array_filter($pidCoverUrlArray);
 
-                $batchSize = \count($pidCoverUrlArray);
+                $batchSize = count($pidCoverUrlArray);
                 $this->vendorCoreService->updateOrInsertMaterials($status, $pidCoverUrlArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, $batchSize);
 
                 $this->progressMessageFormatted($status);

@@ -52,6 +52,10 @@ class DeleteMessageHandler implements MessageHandlerInterface
         $vendorRepos = $this->em->getRepository(Vendor::class);
         $vendor = $vendorRepos->find($message->getVendorId());
 
+        if (null === $vendor) {
+            throw new UnrecoverableMessageHandlingException('Error vendor was not found');
+        }
+
         try {
             // There may exist a race condition when multiple queues are
             // running. To ensure we delete consistently we need to

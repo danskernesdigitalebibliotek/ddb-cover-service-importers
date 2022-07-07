@@ -90,7 +90,7 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
                         $resultArray
                     );
 
-                    $batchSize = \count($pidArray);
+                    $batchSize = count($pidArray);
 
                     // @TODO: this should be handled in updateOrInsertMaterials, which should take which event and job
                     //        it should call. Default is now CoverStore (upload image), which we do not know yet.
@@ -106,8 +106,8 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
                         $this->postProcess($insertedIdentifiers, $resultArray);
 
                         // Update status.
-                        $status->addUpdated(is_countable($updatedIdentifiers) ? count($updatedIdentifiers) : 0);
-                        $status->addInserted(is_countable($insertedIdentifiers) ? count($insertedIdentifiers) : 0);
+                        $status->addUpdated(count($updatedIdentifiers));
+                        $status->addInserted(count($insertedIdentifiers));
                         $status->addRecords(count($batch));
 
                         $batchOffset += $batchSize;

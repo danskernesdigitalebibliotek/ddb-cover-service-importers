@@ -34,6 +34,7 @@ class IndexMessageHandler implements MessageHandlerInterface
      * @param LoggerInterface $logger
      * @param ManagerRegistry $registry
      * @param MetricsService $metricsService
+     * @param IndexingServiceInterface $indexingService
      */
     public function __construct(
         private readonly EntityManagerInterface $em,

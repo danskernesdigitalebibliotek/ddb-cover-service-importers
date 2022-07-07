@@ -120,7 +120,7 @@ abstract class AbstractTsvVendorService implements VendorServiceInterface
         $resourceDirectories = [$this->resourcesDir.'/'.$this->vendorArchiveDir];
 
         $fileLocator = new FileLocator($resourceDirectories);
-        $filePath = $fileLocator->locate($this->vendorArchiveName, null, true);
+        $filePath = $fileLocator->locate($this->vendorArchiveName);
 
         return $this->csvReaderService->read($filePath, $this->fieldDelimiter);
     }

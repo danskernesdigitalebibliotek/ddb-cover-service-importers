@@ -161,7 +161,7 @@ final class VendorCoreService
         $offset = 0;
         $inserted = 0;
         $updated = 0;
-        $count = \count($identifierImageUrlArray);
+        $count = count($identifierImageUrlArray);
         $status->addRecords($count);
 
         while ($offset < $count) {
@@ -177,8 +177,8 @@ final class VendorCoreService
             }
 
             // Update status counts.
-            $inserted += is_countable($insertedIdentifiers) ? count($insertedIdentifiers) : 0;
-            $updated += is_countable($updatedIdentifiers) ? count($updatedIdentifiers) : 0;
+            $inserted += count($insertedIdentifiers);
+            $updated += count($updatedIdentifiers);
 
             $offset += $batchSize;
         }

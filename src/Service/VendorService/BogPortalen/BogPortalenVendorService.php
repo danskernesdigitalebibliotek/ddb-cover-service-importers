@@ -29,9 +29,9 @@ class BogPortalenVendorService implements VendorServiceInterface
     private const VENDOR_ARCHIVE_DIR = 'BogPortalen';
     private const VENDOR_ROOT_DIR = 'Public';
 
-    private ?string $ftpHost;
-    private ?string $ftpPassword;
-    private ?string $ftpUsername;
+    private string $ftpHost;
+    private string $ftpPassword;
+    private string $ftpUsername;
 
     /**
      * BogPortalenVendorService constructor.
@@ -81,7 +81,7 @@ class BogPortalenVendorService implements VendorServiceInterface
                 // $deleted = $this->deleteRemovedMaterials($isbnList);
 
                 $offset = 0;
-                $count = $this->limit ?: \count($isbnList);
+                $count = $this->limit ?: count($isbnList);
 
                 while ($offset < $count) {
                     $isbnBatch = \array_slice($isbnList, $offset, self::BATCH_SIZE, true);
@@ -124,10 +124,13 @@ class BogPortalenVendorService implements VendorServiceInterface
         $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
 
         // Set FTP adapter configuration.
-        if (!empty($vendor->getDataServerUser()) && !empty($vendor->getDataServerPassword()) && !empty($vendor->getDataServerURI())) {
-            $this->ftpUsername = $vendor->getDataServerUser();
-            $this->ftpPassword = $vendor->getDataServerPassword();
-            $this->ftpHost = $vendor->getDataServerURI();
+        $ftpUsername = $vendor->getDataServerUser();
+        $ftpPassword = $vendor->getDataServerPassword();
+        $ftpHost = $vendor->getDataServerURI();
+        if (!empty($ftpUsername) && !empty($ftpPassword) && !empty($ftpHost)) {
+            $this->ftpUsername = $ftpUsername;
+            $this->ftpPassword = $ftpPassword;
+            $this->ftpHost = $ftpHost;
         } else {
             throw new \InvalidArgumentException('Missing configuration');
         }

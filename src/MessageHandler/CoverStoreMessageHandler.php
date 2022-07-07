@@ -57,6 +57,7 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
     {
         // Look up vendor to get information about image server.
         $vendorRepos = $this->em->getRepository(Vendor::class);
+        /** @var Vendor $vendor */
         $vendor = $vendorRepos->find($message->getVendorId());
 
         // Look up source to get source url and link it to the image.
@@ -65,6 +66,10 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
             'matchId' => $message->getIdentifier(),
             'vendor' => $vendor,
         ]);
+
+        if (null === $source) {
+            throw new UnrecoverableMessageHandlingException('Source was not defined');
+        }
 
         try {
             $identifier = $message->getIdentifier();

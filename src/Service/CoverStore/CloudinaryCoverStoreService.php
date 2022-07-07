@@ -194,7 +194,7 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
      * @return coverStoreAlreadyExistsException|CoverStoreCredentialException|CoverStoreException|CoverStoreNotFoundException|CoverStoreTooLargeFileException|CoverStoreUnexpectedException|CoverStoreInvalidResourceException
      *   Exception based on the error inputted
      */
-    private function createCloudinaryException(\Exception $error): \coverStoreAlreadyExistsException|CoverStoreCredentialException|CoverStoreException|CoverStoreNotFoundException|CoverStoreTooLargeFileException|CoverStoreUnexpectedException|CoverStoreInvalidResourceException
+    private function createCloudinaryException(\Exception $error): coverStoreAlreadyExistsException|CoverStoreCredentialException|CoverStoreException|CoverStoreNotFoundException|CoverStoreTooLargeFileException|CoverStoreUnexpectedException|CoverStoreInvalidResourceException
     {
         $message = $error->getMessage();
 

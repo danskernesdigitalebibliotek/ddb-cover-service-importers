@@ -86,7 +86,7 @@ class SearchReindexCommand extends Command
             if (!($inputDate && $inputDate->format($format) == $lastIndexedDate)) {
                 $output->writeln('<error>Lasted indexed date should have the format "m-d-Y"</error>');
 
-                return -1;
+                return Command::FAILURE;
             }
         }
 

@@ -83,7 +83,7 @@ class PressReaderVendorService implements VendorServiceInterface
                     return true;
                 });
 
-                $batchSize = \count((array) $pidArray);
+                $batchSize = count($pidArray);
                 $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, $batchSize);
 
                 $this->progressMessageFormatted($status);
