@@ -20,7 +20,6 @@ use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use App\Utils\Types\VendorStatus;
 use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
@@ -32,11 +31,6 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
     use VendorServiceTrait;
 
     protected const VENDOR_ID = 6;
-
-    private EntityManagerInterface $em;
-    private MessageBusInterface $bus;
-    private TheMovieDatabaseSearchService $dataWell;
-    private TheMovieDatabaseApiService $api;
     private array $queries = [
         'phrase.type="blu-ray" and facet.typeCategory="film"',
         'phrase.type="dvd" and facet.typeCategory="film"',
@@ -54,18 +48,17 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
      * @param TheMovieDatabaseApiService $api
      *   The movie api service
      */
-    public function __construct(EntityManagerInterface $em, MessageBusInterface $bus, TheMovieDatabaseSearchService $dataWell, TheMovieDatabaseApiService $api)
-    {
-        $this->em = $em;
-        $this->bus = $bus;
-        $this->dataWell = $dataWell;
-        $this->api = $api;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly MessageBusInterface $bus,
+        private readonly TheMovieDatabaseSearchService $dataWell,
+        private readonly TheMovieDatabaseApiService $api
+    ) {
     }
 
     /**
      * @{@inheritdoc}
      *
-     * @throws GuzzleException
      * @throws UnknownVendorServiceException
      */
     public function load(): VendorImportResultMessage
@@ -93,13 +86,11 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
 
                     // This is a hack to get the 'processBatch' working below.
                     $pidArray = array_map(
-                        function ($value) {
-                            return '';
-                        },
+                        fn ($value) => '',
                         $resultArray
                     );
 
-                    $batchSize = \count($pidArray);
+                    $batchSize = count($pidArray);
 
                     // @TODO: this should be handled in updateOrInsertMaterials, which should take which event and job
                     //        it should call. Default is now CoverStore (upload image), which we do not know yet.
@@ -169,9 +160,6 @@ class TheMovieDatabaseVendorService implements VendorServiceInterface
      *
      * @throws IllegalVendorServiceException
      * @throws UnknownVendorServiceException
-     * @throws GuzzleException
-     *
-     * @return void
      */
     private function postProcess(array $pids, array $searchResults): void
     {

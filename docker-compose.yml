@@ -22,7 +22,7 @@ services:
       #- ENCRYPT=1 # Uncomment to enable database encryption.
 
   phpfpm:
-    image: itkdev/php7.4-fpm
+    image: itkdev/php8.1-fpm
     networks:
       - app
     environment:
@@ -33,6 +33,9 @@ services:
       - DOCKER_HOST_DOMAIN=${COMPOSE_DOMAIN}
       - PHP_IDE_CONFIG=serverName=localhost
       - COMPOSER_VERSION=2
+      # Send all container trafik though proxy, useful for testing.
+#      - HTTP_PROXY=host.docker.internal:8090
+#      - HTTPS_PROXY=host.docker.internal:8090
     depends_on:
       - mariadb
     volumes:
@@ -93,7 +96,7 @@ services:
       - app
       - frontend
     ports:
-      - 15672
+      - '15672'
     environment:
       - RABBITMQ_DEFAULT_USER=user
       - RABBITMQ_DEFAULT_PASS=password

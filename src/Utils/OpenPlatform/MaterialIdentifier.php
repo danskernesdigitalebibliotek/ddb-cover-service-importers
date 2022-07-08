@@ -14,8 +14,7 @@ use App\Utils\Types\IdentifierType;
  */
 class MaterialIdentifier
 {
-    private string $type;
-    private string $id;
+    private readonly string $type;
 
     /**
      * MaterialIdentifier constructor.
@@ -27,8 +26,10 @@ class MaterialIdentifier
      *
      * @throws MaterialTypeException
      */
-    public function __construct(string $type, string $id)
-    {
+    public function __construct(
+        string $type,
+        private readonly string $id
+    ) {
         // Build types array.
         $obj = new \ReflectionClass(IdentifierType::class);
         $types = array_values($obj->getConstants());
@@ -39,13 +40,10 @@ class MaterialIdentifier
         }
 
         $this->type = $type;
-        $this->id = $id;
     }
 
     /**
      * Get the identifier.
-     *
-     * @return string
      */
     public function getId(): string
     {
@@ -54,8 +52,6 @@ class MaterialIdentifier
 
     /**
      * Get the type of identifier.
-     *
-     * @return string
      */
     public function getType(): string
     {

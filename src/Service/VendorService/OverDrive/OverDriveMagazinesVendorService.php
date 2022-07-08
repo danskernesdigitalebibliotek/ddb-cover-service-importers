@@ -15,7 +15,6 @@ use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
-use GuzzleHttp\Exception\GuzzleException;
 use Psr\Cache\InvalidArgumentException;
 
 /**
@@ -29,10 +28,7 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
     protected const VENDOR_ID = 16;
 
     private const VENDOR_SEARCH_TERM = 'facet.acSource="ereolen magazines"';
-    private const VENDOR_MAGAZINE_URL_BASE = 'https://link.overdrive.com/';
-
-    private SearchService $searchService;
-    private Client $apiClient;
+    private const VENDOR_MAGAZINE_URL_BASE = 'link.overdrive.com';
 
     /**
      * OverDriveMagazinesVendorService constructor.
@@ -42,10 +38,10 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
      * @param Client $apiClient
      *   Api client for the OverDrive API
      */
-    public function __construct(SearchService $searchService, Client $apiClient)
-    {
-        $this->searchService = $searchService;
-        $this->apiClient = $apiClient;
+    public function __construct(
+        private readonly SearchService $searchService,
+        private readonly Client $apiClient
+    ) {
     }
 
     /**
@@ -73,17 +69,20 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
 
                 // Get the OverDrive APIs title urls from the results
                 $pidTitleUrlArray = array_map('self::getTitleUrlFromDatableIdentifiers', $pidResultArray);
+                $pidTitleUrlArray = array_filter($pidTitleUrlArray);
 
                 // Get the OverDrive APIs crossRefIds from the results
                 $pidTitleIdArray = array_map('self::getTitleIdFromUrl', $pidTitleUrlArray);
+                $pidTitleIdArray = array_filter($pidTitleIdArray);
 
                 // Get the OverDrive cover urls
                 $pidCoverUrlArray = array_map('self::getCoverUrl', $pidTitleIdArray);
+                $pidCoverUrlArray = array_filter($pidCoverUrlArray);
 
                 // Remove null values
                 array_filter($pidCoverUrlArray);
 
-                $batchSize = \count($pidCoverUrlArray);
+                $batchSize = count($pidCoverUrlArray);
                 $this->vendorCoreService->updateOrInsertMaterials($status, $pidCoverUrlArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, $batchSize);
 
                 $this->progressMessageFormatted($status);
@@ -129,7 +128,6 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
      * @param array $result
      *   A data well result array
      *
-     * @return string|null
      *   Title url or null
      */
     private function getTitleUrlFromDatableIdentifiers(array $result): ?string
@@ -139,7 +137,7 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
         // Loop through identifiers to look for urls starting with 'http://link.overdrive.com/'
         // E.g. http://link.overdrive.com/?websiteID=100515&titleID=5849553
         foreach ($identifiers as $identifier) {
-            $pos = strpos($identifier['$'], self::VENDOR_MAGAZINE_URL_BASE);
+            $pos = strpos((string) $identifier['$'], self::VENDOR_MAGAZINE_URL_BASE);
             if (false !== $pos) {
                 return $identifier['$'];
             }
@@ -154,7 +152,6 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
      * @param string $url
      *   The OverDrive title url
      *
-     * @return string|null
      *   The title id or null
      */
     private function getTitleIdFromUrl(string $url): ?string
@@ -173,11 +170,9 @@ class OverDriveMagazinesVendorService implements VendorServiceInterface
      * @param string $crossRefID
      *   The OverDrive crossRefID
      *
-     * @return string|null
      *   The cover url or null
      *
      * @throws Api\Exception\AuthException
-     * @throws GuzzleException
      * @throws InvalidArgumentException
      */
     private function getCoverUrl(string $crossRefID): ?string

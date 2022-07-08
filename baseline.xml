@@ -1,19 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="v4.15.0@a1b5e489e6fcebe40cb804793d964e99fc347820">
+<files psalm-version="4.24.0@06dd975cb55d36af80f242561738f16c5f58264f">
   <file src="src/Command/Search/SearchReindexCommand.php">
+    <PossiblyFalseArgument occurrences="1">
+      <code>$inputDate</code>
+    </PossiblyFalseArgument>
     <UndefinedInterfaceMethod occurrences="1">
       <code>section</code>
     </UndefinedInterfaceMethod>
-  </file>
-  <file src="src/Command/Source/SourceDownloadCoversCommand.php">
-    <PossiblyNullArgument occurrences="1">
-      <code>$source-&gt;getOriginalFile()</code>
-    </PossiblyNullArgument>
-  </file>
-  <file src="src/Command/Vendors/VendorJobCommand.php">
-    <InvalidScalarArgument occurrences="1">
-      <code>$vendorId</code>
-    </InvalidScalarArgument>
   </file>
   <file src="src/Command/Vendors/VendorLoadCommand.php">
     <UndefinedInterfaceMethod occurrences="1">
@@ -55,18 +48,15 @@
       <code>$faker-&gt;width</code>
     </UndefinedMagicPropertyFetch>
   </file>
-  <file src="src/Entity/Image.php">
-    <PossiblyNullReference occurrences="1">
-      <code>getImage</code>
-    </PossiblyNullReference>
+  <file src="src/EnvVarProcessor/TraceIdEnvVarProcessor.php">
+    <UndefinedAttributeClass occurrences="1">
+      <code>ArrayShape</code>
+    </UndefinedAttributeClass>
   </file>
-  <file src="src/Entity/Source.php">
-    <InvalidNullableReturnType occurrences="1">
-      <code>Vendor</code>
-    </InvalidNullableReturnType>
-    <NullableReturnStatement occurrences="1">
-      <code>$this-&gt;vendor</code>
-    </NullableReturnStatement>
+  <file src="src/EnvVarProcessor/YmlEnvVarProcessor.php">
+    <UndefinedAttributeClass occurrences="1">
+      <code>ArrayShape</code>
+    </UndefinedAttributeClass>
   </file>
   <file src="src/Exception/XmlReaderException.php">
     <UndefinedClass occurrences="1">
@@ -74,23 +64,17 @@
     </UndefinedClass>
   </file>
   <file src="src/MessageHandler/IndexMessageHandler.php">
+    <ArgumentTypeCoercion occurrences="1">
+      <code>$search</code>
+    </ArgumentTypeCoercion>
     <PossiblyNullReference occurrences="1">
       <code>getVendor</code>
     </PossiblyNullReference>
   </file>
   <file src="src/MessageHandler/SearchNoHitsMessageHandler.php">
-    <PossiblyNullArgument occurrences="1">
-      <code>$source-&gt;getOriginalFile()</code>
-    </PossiblyNullArgument>
     <PossiblyNullReference occurrences="1">
       <code>getId</code>
     </PossiblyNullReference>
-  </file>
-  <file src="src/MessageHandler/VendorImageMessageHandler.php">
-    <PossiblyNullArgument occurrences="2">
-      <code>$source-&gt;getOriginalFile()</code>
-      <code>$source-&gt;getOriginalFile()</code>
-    </PossiblyNullArgument>
   </file>
   <file src="src/Repository/SourceRepository.php">
     <QueryBuilderSetParameter occurrences="2">
@@ -104,6 +88,9 @@
     </InvalidScalarArgument>
   </file>
   <file src="src/Service/Indexing/IndexingElasticService.php">
+    <MethodSignatureMismatch occurrences="1">
+      <code>$items</code>
+    </MethodSignatureMismatch>
     <PossiblyUndefinedMethod occurrences="9">
       <code>asArray</code>
       <code>getStatusCode</code>
@@ -116,35 +103,14 @@
       <code>getStatusCode</code>
     </PossiblyUndefinedMethod>
     <RedundantPropertyInitializationCheck occurrences="2">
-      <code>isset($this-&gt;client)</code>
+      <code>isset($this-&gt;newIndexName)</code>
       <code>isset($this-&gt;newIndexName)</code>
     </RedundantPropertyInitializationCheck>
   </file>
-  <file src="src/Service/OpenPlatform/AuthenticationService.php">
-    <InvalidThrow occurrences="2">
-      <code>\Psr\Cache\InvalidArgumentException</code>
-      <code>\Psr\Cache\InvalidArgumentException</code>
-    </InvalidThrow>
-  </file>
-  <file src="src/Service/OpenPlatform/SearchService.php">
-    <InvalidCatch occurrences="1"/>
-  </file>
-  <file src="src/Service/VendorService/AarhusKommuneMbu/AarhusKommuneMbuVendorService.php">
-    <UndefinedInterfaceMethod occurrences="2">
-      <code>get</code>
-      <code>getPathPrefix</code>
-    </UndefinedInterfaceMethod>
-  </file>
-  <file src="src/Service/VendorService/BogPortalen/BogPortalenVendorService.php">
-    <PossiblyFalseArgument occurrences="1">
-      <code>$this-&gt;ftp-&gt;readStream($archive)</code>
-    </PossiblyFalseArgument>
-    <UndefinedInterfaceMethod occurrences="4">
-      <code>getPathPrefix</code>
-      <code>setHost</code>
-      <code>setPassword</code>
-      <code>setUsername</code>
-    </UndefinedInterfaceMethod>
+  <file src="src/Service/PopulateService.php">
+    <InvalidReturnStatement occurrences="1">
+      <code>return;</code>
+    </InvalidReturnStatement>
   </file>
   <file src="src/Service/VendorService/DataWell/DataWellVendorService.php">
     <PossiblyNullArgument occurrences="3">
@@ -153,41 +119,21 @@
       <code>$vendor-&gt;getDataServerUser()</code>
     </PossiblyNullArgument>
   </file>
-  <file src="src/Service/VendorService/HerningBib/HerningBibVendorService.php">
-    <UndefinedInterfaceMethod occurrences="2">
-      <code>get</code>
-      <code>getPathPrefix</code>
-    </UndefinedInterfaceMethod>
+  <file src="src/Service/VendorService/EbookCentral/EbookCentralVendorService.php">
+    <InvalidArgument occurrences="1">
+      <code>true</code>
+    </InvalidArgument>
   </file>
   <file src="src/Service/VendorService/OverDrive/Api/Client.php">
-    <InvalidThrow occurrences="8">
-      <code>InvalidArgumentException</code>
-      <code>InvalidArgumentException</code>
-      <code>InvalidArgumentException</code>
-      <code>InvalidArgumentException</code>
-      <code>InvalidArgumentException</code>
-      <code>InvalidArgumentException</code>
-      <code>InvalidArgumentException</code>
-      <code>InvalidArgumentException</code>
-    </InvalidThrow>
+    <UndefinedAttributeClass occurrences="1">
+      <code>ArrayShape</code>
+    </UndefinedAttributeClass>
   </file>
   <file src="src/Service/VendorService/OverDrive/OverDriveBooksVendorService.php">
-    <InvalidThrow occurrences="1">
-      <code>InvalidArgumentException</code>
-    </InvalidThrow>
     <PossiblyNullArgument occurrences="3">
       <code>$clientId</code>
       <code>$clientSecret</code>
       <code>$libraryAccountEndpoint</code>
-    </PossiblyNullArgument>
-  </file>
-  <file src="src/Service/VendorService/OverDrive/OverDriveMagazinesVendorService.php">
-    <InvalidThrow occurrences="1">
-      <code>InvalidArgumentException</code>
-    </InvalidThrow>
-    <PossiblyNullArgument occurrences="2">
-      <code>$pidTitleIdArray</code>
-      <code>$pidTitleUrlArray</code>
     </PossiblyNullArgument>
   </file>
   <file src="src/Service/VendorService/PressReader/PressReaderVendorService.php">
@@ -196,42 +142,6 @@
       <code>$vendor-&gt;getDataServerURI()</code>
       <code>$vendor-&gt;getDataServerUser()</code>
     </PossiblyNullArgument>
-  </file>
-  <file src="src/Service/VendorService/Publizon/PublizonVendorService.php">
-    <PossiblyNullPropertyAssignmentValue occurrences="2">
-      <code>$vendor-&gt;getDataServerPassword()</code>
-      <code>$vendor-&gt;getDataServerURI()</code>
-    </PossiblyNullPropertyAssignmentValue>
-  </file>
-  <file src="src/Service/VendorService/Publizon/PublizonXmlReaderService.php">
-    <InvalidStaticInvocation occurrences="1">
-      <code>\XMLReader::open($apiEndpoint)</code>
-    </InvalidStaticInvocation>
-  </file>
-  <file src="src/Service/VendorService/RbDigital/RbDigitalBooksVendorService.php">
-    <InvalidThrow occurrences="2">
-      <code>InvalidArgumentException</code>
-      <code>InvalidArgumentException</code>
-    </InvalidThrow>
-    <PossiblyFalseArgument occurrences="1">
-      <code>$this-&gt;ftp-&gt;read($mrcFileName)</code>
-    </PossiblyFalseArgument>
-    <UndefinedInterfaceMethod occurrences="4">
-      <code>getPathPrefix</code>
-      <code>setHost</code>
-      <code>setPassword</code>
-      <code>setUsername</code>
-    </UndefinedInterfaceMethod>
-  </file>
-  <file src="src/Service/VendorService/UploadService/UploadServiceVendorService.php">
-    <PossiblyNullReference occurrences="1">
-      <code>setImageFormat</code>
-    </PossiblyNullReference>
-  </file>
-  <file src="src/Service/VendorService/VendorServiceFactory.php">
-    <PossiblyFalseOperand occurrences="1">
-      <code>strrpos($className, '\\')</code>
-    </PossiblyFalseOperand>
   </file>
   <file src="src/Service/VendorService/VendorServiceTrait.php">
     <UndefinedConstant occurrences="1">

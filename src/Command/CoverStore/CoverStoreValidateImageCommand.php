@@ -10,10 +10,10 @@ namespace App\Command\CoverStore;
 use App\Entity\Source;
 use App\Repository\SourceRepository;
 use App\Repository\VendorRepository;
-use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,33 +23,23 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Class CoverStoreValidateImageCommand.
  */
+#[AsCommand(name: 'app:cover:validate-image')]
 class CoverStoreValidateImageCommand extends Command
 {
-    protected static $defaultName = 'app:cover:validate-image';
-
-    private CoverStoreInterface $store;
-    private SourceRepository $sourceRepository;
-    private VendorRepository $vendorRepository;
-    private VendorImageValidatorService $imageValidatorService;
-    private EntityManagerInterface $entityManager;
-
     /**
      * CoverStoreValidateImageCommand constructor.
      *
      * @param EntityManagerInterface $entityManager
-     * @param CoverStoreInterface $store
      * @param SourceRepository $sourceRepository
      * @param VendorRepository $vendorRepository
      * @param VendorImageValidatorService $imageValidatorService
      */
-    public function __construct(EntityManagerInterface $entityManager, CoverStoreInterface $store, SourceRepository $sourceRepository, VendorRepository $vendorRepository, VendorImageValidatorService $imageValidatorService)
-    {
-        $this->store = $store;
-        $this->sourceRepository = $sourceRepository;
-        $this->vendorRepository = $vendorRepository;
-        $this->imageValidatorService = $imageValidatorService;
-        $this->entityManager = $entityManager;
-
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SourceRepository $sourceRepository,
+        private readonly VendorRepository $vendorRepository,
+        private readonly VendorImageValidatorService $imageValidatorService
+    ) {
         parent::__construct();
     }
 
@@ -66,8 +56,6 @@ class CoverStoreValidateImageCommand extends Command
 
     /**
      * {@inheritdoc}
-     *
-     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

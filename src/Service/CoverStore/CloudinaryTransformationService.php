@@ -18,20 +18,18 @@ use App\Exception\CoverStoreTransformationException;
  */
 class CloudinaryTransformationService implements CoverStoreTransformationInterface
 {
-    private array $transformations;
-
     /**
      * CloudinaryTransformationService constructor.
      *
      * The transformations available are defined in the "cloudinary.yml" file that
      * can be found in the configuration folder.
      *
-     * @param array $cloudinaryTransformations
+     * @param array $transformations
      *   The transformation available from the configuration
      */
-    public function __construct(array $cloudinaryTransformations)
-    {
-        $this->transformations = $cloudinaryTransformations;
+    public function __construct(
+        private readonly array $transformations
+    ) {
     }
 
     /**
@@ -47,7 +45,7 @@ class CloudinaryTransformationService implements CoverStoreTransformationInterfa
 
         // Insert named transformation if it exists.
         if (!empty($transformation['transformation'])) {
-            $trans = str_replace(',', '/', $transformation['transformation']);
+            $trans = str_replace(',', '/', (string) $transformation['transformation']);
             $url = str_replace('/image/upload/', '/image/upload/'.$trans.'/', $url);
         }
 

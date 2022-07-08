@@ -8,6 +8,7 @@
 namespace App\Command\CoverStore;
 
 use App\Service\CoverStore\CoverStoreInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,21 +17,17 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Class OpenPlatformAuthCommand.
  */
+#[AsCommand(name: 'app:cover:upload')]
 class CoverStoreUploadCommand extends Command
 {
-    protected static $defaultName = 'app:cover:upload';
-
-    private CoverStoreInterface $store;
-
     /**
      * CoverStoreUploadCommand constructor.
      *
      * @param CoverStoreInterface $store
      */
-    public function __construct(CoverStoreInterface $store)
-    {
-        $this->store = $store;
-
+    public function __construct(
+        private readonly CoverStoreInterface $store
+    ) {
         parent::__construct();
     }
 

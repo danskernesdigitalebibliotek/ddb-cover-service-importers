@@ -8,26 +8,26 @@ namespace App\Command\Vendors;
 
 use App\Service\VendorService\VendorServiceFactory;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+/**
+ * Class VendorPopulateCommand.
+ */
+#[AsCommand(name: 'app:vendor:populate')]
 class VendorPopulateCommand extends Command
 {
-    protected static $defaultName = 'app:vendor:populate';
-
-    private VendorServiceFactory $vendorFactory;
-
     /**
      * VendorPopulateCommand constructor.
      *
      * @param VendorServiceFactory $vendorFactory
      */
-    public function __construct(VendorServiceFactory $vendorFactory)
-    {
-        $this->vendorFactory = $vendorFactory;
-
+    public function __construct(
+        private readonly VendorServiceFactory $vendorFactory
+    ) {
         parent::__construct();
     }
 

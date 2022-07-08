@@ -27,27 +27,22 @@ use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
  */
 class IndexMessageHandler implements MessageHandlerInterface
 {
-    private EntityManagerInterface $em;
-    private LoggerInterface $logger;
-    private ManagerRegistry $registry;
-    private MetricsService $metricsService;
-    private IndexingServiceInterface $indexingService;
-
     /**
      * SearchProcessor constructor.
      *
-     * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $informationLogger
+     * @param EntityManagerInterface $em
+     * @param LoggerInterface $logger
      * @param ManagerRegistry $registry
      * @param MetricsService $metricsService
+     * @param IndexingServiceInterface $indexingService
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $informationLogger, ManagerRegistry $registry, MetricsService $metricsService, IndexingServiceInterface $indexingService)
-    {
-        $this->em = $entityManager;
-        $this->logger = $informationLogger;
-        $this->registry = $registry;
-        $this->metricsService = $metricsService;
-        $this->indexingService = $indexingService;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly LoggerInterface $logger,
+        private readonly ManagerRegistry $registry,
+        private readonly MetricsService $metricsService,
+        private readonly IndexingServiceInterface $indexingService
+    ) {
     }
 
     public function __invoke(IndexMessage $message)
@@ -125,7 +120,7 @@ class IndexMessageHandler implements MessageHandlerInterface
                 $this->metricsService->counter('index_event_unique_violation', 'Index event unique constraint violation', 1, ['type' => 'index']);
                 $this->registry->resetManager();
             } catch (\Exception $exception) {
-                $this->logger->error('Database exception: '.get_class($exception), [
+                $this->logger->error('Database exception: '.$exception::class, [
                     'service' => 'IndexEventSubscriber',
                     'message' => $exception->getMessage(),
                     'identifiers' => $material->getIdentifiers(),
@@ -152,14 +147,12 @@ class IndexMessageHandler implements MessageHandlerInterface
     /**
      * Determine if the search record should be overridden.
      *
-     * @param Material $material
      *   Material from search result
+     *
      * @param source $source
      *   Source entity used for raking
      * @param search $search
      *  Search entity used for raking
-     *
-     * @return bool
      */
     private function shouldOverride(Material $material, Source $source, Search $search): bool
     {
@@ -191,7 +184,6 @@ class IndexMessageHandler implements MessageHandlerInterface
      * @param int $imageId
      *   Database ID for the image
      *
-     * @return Image|null
      *   Image entity if found else null
      */
     private function getImage(?int $imageId): ?Image

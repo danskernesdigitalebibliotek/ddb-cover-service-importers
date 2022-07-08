@@ -32,28 +32,28 @@ class Search
      *
      * @Groups({"read"})
      */
-    private ?string $isIdentifier;
+    private ?string $isIdentifier = null;
 
     /**
      * @ORM\Column(type="string", length=5)
      *
      * @Groups({"read"})
      */
-    private ?string $isType;
+    private ?string $isType = null;
 
     /**
      * @ORM\Column(type="text")
      *
      * @Groups({"read"})
      */
-    private ?string $imageUrl;
+    private ?string $imageUrl = null;
 
     /**
      * @ORM\Column(type="string", length=255)
      *
      * @Groups({"read"})
      */
-    private ?string $imageFormat;
+    private ?string $imageFormat = null;
 
     /**
      * @ORM\Column(type="integer")
@@ -77,7 +77,7 @@ class Search
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Source", inversedBy="searches")
      */
-    private ?Source $source;
+    private ?Source $source = null;
 
     public function getId(): int
     {
@@ -89,9 +89,6 @@ class Search
         return $this->isIdentifier;
     }
 
-    /**
-     * @return static
-     */
     public function setIsIdentifier(string $isIdentifier): self
     {
         $this->isIdentifier = $isIdentifier;
@@ -104,9 +101,6 @@ class Search
         return $this->isType;
     }
 
-    /**
-     * @return static
-     */
     public function setIsType(string $isType): self
     {
         $this->isType = $isType;
@@ -119,9 +113,6 @@ class Search
         return $this->imageUrl;
     }
 
-    /**
-     * @return static
-     */
     public function setImageUrl(string $imageUrl): self
     {
         $this->imageUrl = $imageUrl;
@@ -134,9 +125,6 @@ class Search
         return $this->imageFormat;
     }
 
-    /**
-     * @return static
-     */
     public function setImageFormat(string $imageFormat): self
     {
         $this->imageFormat = $imageFormat;
@@ -149,9 +137,6 @@ class Search
         return $this->width;
     }
 
-    /**
-     * @return static
-     */
     public function setWidth(int $width): self
     {
         $this->width = $width;
@@ -164,9 +149,6 @@ class Search
         return $this->height;
     }
 
-    /**
-     * @return static
-     */
     public function setHeight(int $height): self
     {
         $this->height = $height;
@@ -179,9 +161,6 @@ class Search
         return $this->collection;
     }
 
-    /**
-     * @return static
-     */
     public function setCollection(bool $collection): self
     {
         $this->collection = $collection;
@@ -194,9 +173,6 @@ class Search
         return $this->source;
     }
 
-    /**
-     * @return static
-     */
     public function setSource(?Source $source): self
     {
         $this->source = $source;

@@ -10,13 +10,17 @@ namespace App\Service\VendorService\OverDrive\Api;
 
 use App\Service\VendorService\OverDrive\Api\Exception\AccountException;
 use App\Service\VendorService\OverDrive\Api\Exception\AuthException;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
+use JetBrains\PhpStorm\ArrayShape;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Provider\GenericProvider;
 use League\OAuth2\Client\Token\AccessTokenInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class Client.
@@ -31,23 +35,21 @@ class Client
     private string $libraryAccountEndpoint;
     private string $clientId;
     private string $clientSecret;
-    private AdapterInterface $cache;
-    private ClientInterface $httpClient;
     private AccessTokenInterface $accessToken;
     private string $productsEndpoint;
 
     /**
      * Client constructor.
      *
-     * @param AdapterInterface $cache
+     * @param CacheItemPoolInterface $cache
      *   Cache adapter for using the application cache
-     * @param ClientInterface $httpClient
+     * @param HttpClientInterface $httpClient
      *   Http client for api calls
      */
-    public function __construct(AdapterInterface $cache, ClientInterface $httpClient)
-    {
-        $this->cache = $cache;
-        $this->httpClient = $httpClient;
+    public function __construct(
+        private readonly CacheItemPoolInterface $cache,
+        private readonly HttpClientInterface $httpClient
+    ) {
     }
 
     /**
@@ -88,10 +90,8 @@ class Client
      * @param string $crossRefId
      *   The OverDrive 'crossRefId'
      *
-     * @return string|null
      *   The cover url or null
      *
-     * @throws GuzzleException
      * @throws AuthException
      * @throws InvalidArgumentException
      */
@@ -112,13 +112,13 @@ class Client
                     ],
                 ]);
 
-                $content = $response->getBody()->getContents();
+                $content = $response->getContent();
                 $json = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
 
                 // Check for the product and images keys.
                 $product = isset($json->products) && is_array($json->products) ? array_shift($json->products) : null;
                 $images = $product->images ?? null;
-            } catch (GuzzleException|\JsonException $exception) {
+            } catch (TransportExceptionInterface|\JsonException) {
                 // Ignore
                 $images = null;
             }
@@ -137,7 +137,6 @@ class Client
      * @param int $offset
      *   The offset to fetch from
      *
-     * @return array
      *   Array of 'products' serialized as stdClass
      *
      * @throws AccountException
@@ -153,11 +152,11 @@ class Client
                 'query' => ['limit' => $limit, 'offset' => $offset],
             ]);
 
-            $content = $response->getBody()->getContents();
+            $content = $response->getContent();
             $content = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
 
             return $content->products ?? [];
-        } catch (GuzzleException|\JsonException $exception) {
+        } catch (TransportExceptionInterface|\JsonException) {
             // Ignore
         }
 
@@ -167,7 +166,6 @@ class Client
     /**
      * Get the total number of products from the overdrive api ('totalItems' field in the response).
      *
-     * @return int
      *   The total number of products
      *
      * @throws AccountException
@@ -182,11 +180,11 @@ class Client
                 'headers' => $this->getHeaders(),
             ]);
 
-            $content = $response->getBody()->getContents();
+            $content = $response->getContent();
             $content = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
 
             return $content->totalItems ?? 0;
-        } catch (GuzzleException|\JsonException $exception) {
+        } catch (TransportExceptionInterface|\JsonException) {
             // Ignore
         }
 
@@ -199,12 +197,12 @@ class Client
      * @return string[] Array of headers
      *
      * @throws AuthException
-     * @throws GuzzleException
      * @throws IdentityProviderException
      * @throws InvalidArgumentException
      *
      * @psalm-return array {'User-Agent': 'cover.dandigbib.org', 'Content-Type': 'application/json', 'Authorization': string}
      */
+    #[ArrayShape(['User-Agent' => 'string', 'Content-Type' => 'string', 'Authorization' => 'string'])]
     private function getHeaders(): array
     {
         return [
@@ -217,12 +215,11 @@ class Client
     /**
      * Get products endpoint for the account used.
      *
-     * @return string
-     *   The complete URI for the products endpoint
+     * The complete URI for the products endpoint
      *
      * @throws AccountException
      * @throws AuthException
-     * @throws GuzzleException
+     * @throws IdentityProviderException
      * @throws InvalidArgumentException
      * @throws \JsonException
      */
@@ -240,15 +237,17 @@ class Client
      *
      * @see https://developer.overdrive.com/apis/library-account
      *
-     * @return string
      *   The complete URI for the products endpoint
      *
-     * @throws GuzzleException
-     * @throws InvalidArgumentException
-     * @throws AuthException
      * @throws AccountException
-     * @throws \JsonException
+     * @throws AuthException
      * @throws IdentityProviderException
+     * @throws InvalidArgumentException
+     * @throws TransportExceptionInterface
+     * @throws \JsonException
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
      */
     private function fetchProductsEndpoint(): string
     {
@@ -262,10 +261,10 @@ class Client
             }
 
             $response = $this->httpClient->request('GET', $this->libraryAccountEndpoint, [
-                    'headers' => $this->getHeaders(),
+                'headers' => $this->getHeaders(),
             ]);
 
-            $content = $response->getBody()->getContents();
+            $content = $response->getContent();
             $json = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
 
             // Store product endpoint in local cache.
@@ -283,7 +282,6 @@ class Client
      *
      * @see https://developer.overdrive.com/apis/client-auth
      *
-     * @return AccessTokenInterface
      *   The access token
      *
      * @throws AuthException
@@ -325,10 +323,8 @@ class Client
      * If not in local cache an request to OverDrive for a new authorization will
      * be executed.
      *
-     * @return AccessTokenInterface
      *   The value for the authentication header
      *
-     * @throws GuzzleException
      * @throws InvalidArgumentException
      * @throws AuthException
      * @throws IdentityProviderException
@@ -345,7 +341,6 @@ class Client
     /**
      * Get OverDrive OAuth authentication provider.
      *
-     * @return GenericProvider
      *   The authentication provider
      *
      * @throws AuthException

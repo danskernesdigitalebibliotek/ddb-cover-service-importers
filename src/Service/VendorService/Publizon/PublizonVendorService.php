@@ -25,8 +25,6 @@ class PublizonVendorService implements VendorServiceInterface
 
     protected const VENDOR_ID = 5;
 
-    private PublizonXmlReaderService $xmlReader;
-
     private string $apiEndpoint;
     private string $apiServiceKey;
 
@@ -36,9 +34,9 @@ class PublizonVendorService implements VendorServiceInterface
      * @param PublizonXmlReaderService $xmlReader
      *   XML reader service to Publizon API
      */
-    public function __construct(PublizonXmlReaderService $xmlReader)
-    {
-        $this->xmlReader = $xmlReader;
+    public function __construct(
+        private readonly PublizonXmlReaderService $xmlReader
+    ) {
     }
 
     /**
@@ -165,9 +163,12 @@ class PublizonVendorService implements VendorServiceInterface
 
             $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
         } catch (\Exception $e) {
+            $this->xmlReader->close();
+
             return VendorImportResultMessage::error($e->getMessage());
         }
 
+        $this->xmlReader->close();
         $this->progressFinish();
 
         $this->vendorCoreService->releaseLock($this->getVendorId());
@@ -183,8 +184,8 @@ class PublizonVendorService implements VendorServiceInterface
         $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
 
         if (!empty($vendor->getDataServerPassword()) && !empty($vendor->getDataServerURI())) {
-            $this->apiServiceKey = $vendor->getDataServerPassword();
-            $this->apiEndpoint = $vendor->getDataServerURI();
+            $this->apiServiceKey = (string) $vendor->getDataServerPassword();
+            $this->apiEndpoint = (string) $vendor->getDataServerURI();
         } else {
             throw new \InvalidArgumentException('Vendor api keu and end-point need to be set');
         }

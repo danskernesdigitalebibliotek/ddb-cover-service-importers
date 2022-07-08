@@ -14,26 +14,26 @@ use Doctrine\ORM\NonUniqueResultException;
  */
 class VendorServiceFactory
 {
-    private $vendorServices;
-    private $em;
-
-    private $vendors = [];
+    /** @var VendorServiceInterface[] */
+    private array $vendorServices;
 
     /**
      * VendorFactoryService constructor.
      *
      * @param iterable $vendors
-     * @param EntityManagerInterface $entityManager
+     * @param EntityManagerInterface $em
      *
      * @throws DuplicateVendorServiceException
      * @throws IllegalVendorServiceException
      */
-    public function __construct(iterable $vendors, EntityManagerInterface $entityManager)
-    {
+    public function __construct(
+        iterable $vendors,
+        private readonly EntityManagerInterface $em
+    ) {
         $ids = [];
         foreach ($vendors as $vendor) {
             // We are using the classname to match to config row in vendor db table
-            $className = \get_class($vendor);
+            $className = $vendor::class;
             $this->vendorServices[$className] = $vendor;
 
             if (0 === $vendor->getVendorId() || !is_int($vendor->getVendorId())) {
@@ -43,12 +43,7 @@ class VendorServiceFactory
                 throw new DuplicateVendorServiceException('Vendor services must have a unique VENDOR_ID. Duplicate id detected in '.$className);
             }
             $ids[] = $vendor->getVendorId();
-
-            // Store found vendors
-            $this->vendors[] = $vendor;
         }
-
-        $this->em = $entityManager;
     }
 
     /**
@@ -63,7 +58,7 @@ class VendorServiceFactory
      *
      * @psalm-return 0|positive-int
      */
-    public function populateVendors()
+    public function populateVendors(): int
     {
         $vendorRepos = $this->em->getRepository(Vendor::class);
 
@@ -76,7 +71,8 @@ class VendorServiceFactory
             $vendor = $vendorRepos->findOneByClass($className);
 
             if (!$vendor) {
-                $name = substr($className, strrpos($className, '\\') + 1);
+                $pos = strrpos($className, '\\');
+                $name = substr($className, (int) $pos + 1);
                 $name = str_replace('VendorService', '', $name);
                 $maxRank += 10;
 
@@ -98,8 +94,6 @@ class VendorServiceFactory
 
     /**
      * Get all vendor services.
-     *
-     * @return array
      */
     public function getVendorServices(): array
     {
@@ -110,8 +104,6 @@ class VendorServiceFactory
      * Get names of all vendor services that have been detected.
      *
      * Only vendors that implements the VendorServiceInterface.
-     *
-     * @return array
      *
      * @psalm-return list<mixed>
      */
@@ -128,10 +120,6 @@ class VendorServiceFactory
     /**
      * Get the vendor service from class name.
      *
-     * @param string $class
-     *
-     * @return VendorServiceInterface
-     *
      * @throws UnknownVendorServiceException
      */
     public function getVendorServiceByClass(string $class): VendorServiceInterface
@@ -145,10 +133,6 @@ class VendorServiceFactory
 
     /**
      * Get the vendor service from vendor name.
-     *
-     * @param string $name
-     *
-     * @return VendorServiceInterface
      *
      * @throws UnknownVendorServiceException
      */

@@ -7,13 +7,13 @@
 namespace App\Service\VendorService\BogPortalen;
 
 use App\Exception\UnknownVendorServiceException;
+use App\Service\VendorService\FtpDownloadService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
-use League\Flysystem\Filesystem;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 
 /**
@@ -26,22 +26,23 @@ class BogPortalenVendorService implements VendorServiceInterface
 
     private const VENDOR_ID = 1;
     private const VENDOR_ARCHIVE_NAMES = ['BOP-ProductAll.zip', 'BOP-ProductAll-EXT.zip', 'BOP-Actual.zip', 'BOP-Actual-EXT.zip'];
+    private const VENDOR_ARCHIVE_DIR = 'BogPortalen';
+    private const VENDOR_ROOT_DIR = 'Public';
 
-    private Filesystem $local;
-    private Filesystem $ftp;
+    private string $ftpHost;
+    private string $ftpPassword;
+    private string $ftpUsername;
 
     /**
      * BogPortalenVendorService constructor.
      *
-     * @param filesystem $local
-     *   Flysystem adapter for local filesystem
-     * @param filesystem $ftp
-     *   Flysystem adapter for remote ftp server
+     * @param string $resourcesDir
+     * @param FtpDownloadService $FTPService
      */
-    public function __construct(Filesystem $local, Filesystem $ftp)
-    {
-        $this->local = $local;
-        $this->ftp = $ftp;
+    public function __construct(
+        protected string $resourcesDir,
+        private readonly FtpDownloadService $FTPService,
+    ) {
     }
 
     /**
@@ -58,17 +59,18 @@ class BogPortalenVendorService implements VendorServiceInterface
         $this->loadConfig();
         $status = new VendorStatus();
 
-        foreach (self::VENDOR_ARCHIVE_NAMES as $archive) {
+        foreach (self::VENDOR_ARCHIVE_NAMES as $remoteArchive) {
             try {
-                $this->progressMessage('Downloading '.$archive.' archive....');
+                $this->progressMessage('Downloading '.$remoteArchive.' archive....');
                 $this->progressAdvance();
 
-                $this->updateArchive($archive);
+                $localArchivePath = $this->resourcesDir.'/'.$this::VENDOR_ARCHIVE_DIR.'/'.$remoteArchive;
 
-                $this->progressMessage('Getting filenames from archive: "'.$archive.'"');
+                $this->FTPService->download($this->ftpHost, $this->ftpUsername, $this->ftpPassword, self::VENDOR_ROOT_DIR, $localArchivePath, $remoteArchive);
+
+                $this->progressMessage('Getting filenames from archive: "'.$remoteArchive.'"');
                 $this->progressAdvance();
 
-                $localArchivePath = $this->local->getAdapter()->getPathPrefix().$archive;
                 $files = $this->listZipContents($localArchivePath);
                 $isbnList = $this->getIsbnNumbers($files);
 
@@ -79,7 +81,7 @@ class BogPortalenVendorService implements VendorServiceInterface
                 // $deleted = $this->deleteRemovedMaterials($isbnList);
 
                 $offset = 0;
-                $count = $this->limit ?: \count($isbnList);
+                $count = $this->limit ?: count($isbnList);
 
                 while ($offset < $count) {
                     $isbnBatch = \array_slice($isbnList, $offset, self::BATCH_SIZE, true);
@@ -93,7 +95,9 @@ class BogPortalenVendorService implements VendorServiceInterface
                     $offset += self::BATCH_SIZE;
                 }
 
-                $this->local->delete($archive);
+                if (file_exists($localArchivePath)) {
+                    unlink($localArchivePath);
+                }
 
                 if ($this->limit && $offset >= $this->limit) {
                     break;
@@ -120,11 +124,13 @@ class BogPortalenVendorService implements VendorServiceInterface
         $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
 
         // Set FTP adapter configuration.
-        if (!empty($vendor->getDataServerUser()) && !empty($vendor->getDataServerPassword()) && !empty($vendor->getDataServerURI())) {
-            $adapter = $this->ftp->getAdapter();
-            $adapter->setUsername($vendor->getDataServerUser());
-            $adapter->setPassword($vendor->getDataServerPassword());
-            $adapter->setHost($vendor->getDataServerURI());
+        $ftpUsername = $vendor->getDataServerUser();
+        $ftpPassword = $vendor->getDataServerPassword();
+        $ftpHost = $vendor->getDataServerURI();
+        if (!empty($ftpUsername) && !empty($ftpPassword) && !empty($ftpHost)) {
+            $this->ftpUsername = $ftpUsername;
+            $this->ftpPassword = $ftpPassword;
+            $this->ftpHost = $ftpHost;
         } else {
             throw new \InvalidArgumentException('Missing configuration');
         }
@@ -133,12 +139,9 @@ class BogPortalenVendorService implements VendorServiceInterface
     /**
      * Build array of image urls keyed by isbn.
      *
-     * @param array $isbnList
-     *
      * @return string[]
      *
      * @throws UnknownVendorServiceException
-     *
      * @psalm-return array<string, string>
      */
     private function buildIsbnImageUrlArray(array &$isbnList): array
@@ -154,10 +157,6 @@ class BogPortalenVendorService implements VendorServiceInterface
     /**
      * Get Vendors image URL from ISBN.
      *
-     * @param string $isbn
-     *
-     * @return string
-     *
      * @throws UnknownVendorServiceException
      */
     private function getVendorsImageUrl(string $isbn): string
@@ -168,28 +167,10 @@ class BogPortalenVendorService implements VendorServiceInterface
     }
 
     /**
-     * Update local copy of vendors archive.
-     *
-     * @param string $archive
-     *   Filename for the archive
-     *
-     * @return bool
-     *
-     * @throws \League\Flysystem\FileNotFoundException
-     */
-    private function updateArchive(string $archive): bool
-    {
-        // @TODO Error handling for missing archive
-        return $this->local->putStream($archive, $this->ftp->readStream($archive));
-    }
-
-    /**
      * Get list of files in ZIP archive.
      *
      * @param $path
      *   The path of the archive in the local filesystem
-     *
-     * @return array
      *
      * @throws FileNotFoundException
      */
@@ -198,9 +179,7 @@ class BogPortalenVendorService implements VendorServiceInterface
         $fileNames = [];
 
         // Using the native PHP function to extract the file names because we
-        // don't care about metadata. This has significantly better performance
-        // then the equivalent Flysystem method because the Flysystem method
-        // also extracts metadata for all files.
+        // don't care about metadata.
         $zip = new \ZipArchive();
         $zipReader = $zip->open($path);
 
@@ -218,10 +197,7 @@ class BogPortalenVendorService implements VendorServiceInterface
     /**
      * Get valid and unique ISBNs from list of paths.
      *
-     * @param array $filePaths
-     *
      * @return string[]
-     *
      * @psalm-return array<int, string>
      */
     private function getIsbnNumbers(array &$filePaths): array
@@ -230,7 +206,7 @@ class BogPortalenVendorService implements VendorServiceInterface
 
         foreach ($filePaths as $filePath) {
             // Example path: 'Archive/DBK-7003718/DBK-7003718-9788799933815.xml'
-            $pathParts = pathinfo($filePath);
+            $pathParts = pathinfo((string) $filePath);
             $fileName = $pathParts['filename'];
             $nameParts = explode('-', $fileName);
             $isbn = array_pop($nameParts);

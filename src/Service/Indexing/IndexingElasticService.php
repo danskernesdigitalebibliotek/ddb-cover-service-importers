@@ -11,14 +11,11 @@ use Elastic\Elasticsearch\Exception\ServerResponseException;
 class IndexingElasticService implements IndexingServiceInterface
 {
     private string $newIndexName;
-    private string $indexAliasName;
 
-    private Client $client;
-
-    public function __construct(string $bindIndexingAlias, Client $client)
-    {
-        $this->indexAliasName = $bindIndexingAlias;
-        $this->client = $client;
+    public function __construct(
+        private readonly string $indexAliasName,
+        private readonly Client $client,
+    ) {
     }
 
     /**

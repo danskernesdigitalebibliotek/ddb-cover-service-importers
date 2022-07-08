@@ -7,9 +7,9 @@
 
 namespace App\Service\VendorService\TheMovieDatabase;
 
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
 use Psr\Log\LoggerInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class TheMovieDatabaseApiService.
@@ -19,22 +19,18 @@ class TheMovieDatabaseApiService
     private const SEARCH_URL = 'https://api.themoviedb.org/3/search/movie';
     private const BASE_IMAGE_PATH = 'https://image.tmdb.org/t/p/original';
 
-    private string $apiKey;
-    private ClientInterface $client;
-    private LoggerInterface $logger;
-
     /**
      * TheMovieDatabaseApiService constructor.
      *
-     * @param string                      $apiKey
-     * @param \GuzzleHttp\ClientInterface $httpClient
-     * @param \Psr\Log\LoggerInterface    $logger
+     * @param string $apiKey
+     * @param HttpClientInterface $httpClient
+     * @param LoggerInterface $logger
      */
-    public function __construct(string $apiKey, ClientInterface $httpClient, LoggerInterface $logger)
-    {
-        $this->apiKey = $apiKey;
-        $this->client = $httpClient;
-        $this->logger = $logger;
+    public function __construct(
+        private readonly string $apiKey,
+        private readonly HttpClientInterface $httpClient,
+        private readonly LoggerInterface $logger
+    ) {
     }
 
     /**
@@ -47,10 +43,8 @@ class TheMovieDatabaseApiService
      * @param string|null $director
      *   The director of the movie
      *
-     * @return string
+     * @return string|null
      *   The poster url or null
-     *
-     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function searchPosterUrl(string $title = null, string $originalYear = null, string $director = null): ?string
     {
@@ -58,7 +52,7 @@ class TheMovieDatabaseApiService
 
         // Bail out if the required information is not supplied.
         if (null === $title || null === $originalYear || null === $director) {
-            return $posterUrl;
+            return null;
         }
 
         $query = [
@@ -80,9 +74,8 @@ class TheMovieDatabaseApiService
             if ($result) {
                 $posterUrl = $this->getPosterUrl($result);
             }
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             // Catch all exceptions to avoid crashing.
-            $posterUrl = null;
         }
 
         return $posterUrl;
@@ -110,7 +103,7 @@ class TheMovieDatabaseApiService
 
         foreach ($results as $result) {
             // Validate title against result->title or result->original_title.
-            if (mb_strtolower($result->title, 'UTF-8') === $lowercaseResultTitle || mb_strtolower($result->original_title, 'UTF-8') === $lowercaseResultTitle) {
+            if (mb_strtolower((string) $result->title, 'UTF-8') === $lowercaseResultTitle || mb_strtolower((string) $result->original_title, 'UTF-8') === $lowercaseResultTitle) {
                 // Validate director.
                 try {
                     // https://developers.themoviedb.org/3/movies/get-movie-credits
@@ -119,7 +112,7 @@ class TheMovieDatabaseApiService
 
                     $directors = array_reduce($responseData->crew, function ($carry, $item) {
                         if ('Director' === $item->job) {
-                            $carry[] = mb_strtolower($item->name, 'UTF-8');
+                            $carry[] = mb_strtolower((string) $item->name, 'UTF-8');
                         }
 
                         return $carry;
@@ -132,9 +125,7 @@ class TheMovieDatabaseApiService
                         }
                         $chosenResult = $result;
                     }
-                } catch (GuzzleException $e) {
-                    // Ignore error.
-                } catch (\Exception $e) {
+                } catch (TransportExceptionInterface|\Exception $e) {
                     // Ignore error.
                 }
             }
@@ -146,10 +137,7 @@ class TheMovieDatabaseApiService
     /**
      * Get the poster url for a search result.
      *
-     * @param \stdClass $result
      *   The result to create poster url from
-     *
-     * @return string|null
      *   The poster url or null
      */
     private function getPosterUrl(\stdClass $result): ?string
@@ -162,15 +150,14 @@ class TheMovieDatabaseApiService
      *
      * @param string $queryUrl
      *   The query url
-     * @param array  $query
+     * @param array|null $query
      *   The query. Remember to add the api key to the query
      * @param string $method
      *   The request method
      *
      * @return \stdClass
      *
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Exception
+     * @throws TransportExceptionInterface
      */
     private function sendRequest(string $queryUrl, array $query = null, string $method = 'GET'): \stdClass
     {
@@ -184,12 +171,13 @@ class TheMovieDatabaseApiService
         }
 
         // Send the request to The Movie Database.
-        $response = $this->client->request($method, $queryUrl, $query);
+        $response = $this->httpClient->request($method, $queryUrl, $query);
 
         // Respect api rate limits: https://developers.themoviedb.org/3/getting-started/request-rate-limiting
         // If 429 rate limit has been hit. Retry request after Retry-After.
         if (429 === $response->getStatusCode()) {
-            $retryAfterHeader = $response->getHeader('Retry-After');
+            $headers = $response->getHeaders();
+            $retryAfterHeader = $headers['retry-after'];
             $retryAfterHeader = reset($retryAfterHeader);
             if (is_numeric($retryAfterHeader)) {
                 $retryAfter = (int) $retryAfterHeader;
@@ -207,15 +195,15 @@ class TheMovieDatabaseApiService
             }
 
             // Retry request.
-            $response = $this->client->request($method, $queryUrl, $query);
+            $response = $this->httpClient->request($method, $queryUrl, $query);
         }
 
         // Get the response content.
-        $content = $response->getBody()->getContents();
+        $content = $response->getContent();
 
         try {
             return json_decode($content, false, 512, JSON_THROW_ON_ERROR);
-        } catch (\Exception $exception) {
+        } catch (\Exception) {
             return new \stdClass();
         }
     }

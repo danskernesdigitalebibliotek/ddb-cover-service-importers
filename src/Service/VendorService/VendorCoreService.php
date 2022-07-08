@@ -20,11 +20,6 @@ use Symfony\Component\Messenger\MessageBusInterface;
  */
 final class VendorCoreService
 {
-    private EntityManagerInterface $em;
-    private MetricsService $metricsService;
-    private MessageBusInterface $bus;
-    private LockFactory $lockFactory;
-
     private array $vendors = [];
     private array $locks = [];
 
@@ -37,21 +32,21 @@ final class VendorCoreService
     /**
      * CoreVendorService constructor.
      *
-     * @param entityManagerInterface $entityManager
+     * @param entityManagerInterface $em
      *   Doctrine entity manager
      * @param messageBusInterface $bus
      *   Job queue bus
      * @param metricsService $metricsService
      *   Metrics collection service
-     * @param LockFactory $vendorLockFactory
+     * @param LockFactory $lockFactory
      *   Vendor lock-factory used to prevent more than one instance of import at one time
      */
-    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, MetricsService $metricsService, LockFactory $vendorLockFactory)
-    {
-        $this->em = $entityManager;
-        $this->metricsService = $metricsService;
-        $this->bus = $bus;
-        $this->lockFactory = $vendorLockFactory;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly MessageBusInterface $bus,
+        private readonly MetricsService $metricsService,
+        private readonly LockFactory $lockFactory
+    ) {
     }
 
     /**
@@ -71,8 +66,6 @@ final class VendorCoreService
      * @param int $vendorId
      *   The identifier for the vendor
      *
-     * @return string
-     *
      * @throws UnknownVendorServiceException
      */
     public function getVendorName(int $vendorId): string
@@ -86,7 +79,6 @@ final class VendorCoreService
      * @param int $vendorId
      *   The identifier for the vendor
      *
-     * @return Vendor
      *   The vendor found
      *
      * @throws UnknownVendorServiceException
@@ -116,7 +108,6 @@ final class VendorCoreService
      * @param bool $ignore
      *   Ignore the lock if not acquired
      *
-     * @return bool
      *   Whether the lock had been acquired
      */
     public function acquireLock(int $vendorId, bool $ignore = false): bool
@@ -132,8 +123,6 @@ final class VendorCoreService
      *
      * @param int $vendorId
      *   The vendor ID to release
-     *
-     * @return void
      */
     public function releaseLock(int $vendorId): void
     {
@@ -145,15 +134,14 @@ final class VendorCoreService
     /**
      * Update or insert source materials.
      *
-     * @param VendorStatus $status
      *   The status counts for changes in inserts/update/delete
+     *
      * @param array $identifierImageUrlArray
      *   Array with identifier numbers => image URLs as key/value to update or insert
      * @param string $identifierType
      *   The type of identifier
      * @param int $vendorId
      *   The vendor id of the vendor to process
-     * @param \DateTime $withUpdatesDate
      *   Process updates (default: false)
      * @param bool $withoutQueue
      *   Process without add jobs to queue system
@@ -173,7 +161,7 @@ final class VendorCoreService
         $offset = 0;
         $inserted = 0;
         $updated = 0;
-        $count = \count($identifierImageUrlArray);
+        $count = count($identifierImageUrlArray);
         $status->addRecords($count);
 
         while ($offset < $count) {
@@ -206,13 +194,11 @@ final class VendorCoreService
      *
      * @param array $batch
      *   Array of identifiers to process
-     * @param SourceRepository $sourceRepo
      *   Sources repository
      * @param string $identifierType
      *   The type of identifiers in to be processed
      * @param int $vendorId
      *   The Id of the vendor to process batch for
-     * @param \DateTime $withUpdatesDate
      *   Process updates (default: false)
      *
      * @return array (int|string)[][]
@@ -270,7 +256,6 @@ final class VendorCoreService
      * @param array $identifierArray
      *   Array of found identification numbers
      *
-     * @return int
      *   The number of source materials deleted
      */
     public function deleteRemovedMaterials(array &$identifierArray): int

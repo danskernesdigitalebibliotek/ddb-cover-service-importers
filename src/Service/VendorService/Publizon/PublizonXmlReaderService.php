@@ -16,7 +16,8 @@ class PublizonXmlReaderService
 {
     private const AUTH_HEADER_NAME = 'x-service-key';
 
-    private $reader;
+    private bool $isOpen = false;
+    private \XMLReader $reader;
 
     /**
      * Open an XMLReader to the given endpoint.
@@ -35,13 +36,31 @@ class PublizonXmlReaderService
             'header' => $this::AUTH_HEADER_NAME.': '.$apiServiceKey."\r\n",
         ]];
         libxml_set_streams_context(stream_context_create($param));
-        $this->reader = \XMLReader::open($apiEndpoint);
+        $this->reader = new \XMLReader();
 
-        if ($this->reader) {
+        if ($this->reader->open($apiEndpoint)) {
+            $this->isOpen = true;
+
             return true;
         }
 
         throw new XmlReaderException('Unknown error when opening '.$apiEndpoint);
+    }
+
+    /**
+     * Close the XML reader.
+     *
+     * @return bool
+     *
+     * @throws XmlReaderException
+     */
+    public function close(): bool
+    {
+        if ($this->isOpen) {
+            return $this->reader->close();
+        }
+
+        throw new XmlReaderException();
     }
 
     /**
@@ -53,7 +72,7 @@ class PublizonXmlReaderService
      */
     public function read(): bool
     {
-        if ($this->reader) {
+        if ($this->isOpen) {
             return $this->reader->read();
         }
 
@@ -64,20 +83,32 @@ class PublizonXmlReaderService
      * Get the type of the current element.
      *
      * @return int
+     *
+     * @throws XmlReaderException
      */
     public function getNodeType(): int
     {
-        return $this->reader->nodeType;
+        if ($this->isOpen) {
+            return $this->reader->nodeType;
+        }
+
+        throw new XmlReaderException();
     }
 
     /**
      * Get the name of the current element.
      *
      * @return string
+     *
+     * @throws XmlReaderException
      */
     public function getName(): string
     {
-        return $this->reader->name;
+        if ($this->isOpen) {
+            return $this->reader->name;
+        }
+
+        throw new XmlReaderException();
     }
 
     /**
@@ -91,7 +122,7 @@ class PublizonXmlReaderService
      */
     public function readUntilElementEnd(string $element): bool
     {
-        if ($this->reader) {
+        if ($this->isOpen) {
             $this->reader->read();
 
             return $this->notAtElementEnd($element);
@@ -109,7 +140,7 @@ class PublizonXmlReaderService
      */
     public function getNextElementValue(): string
     {
-        if ($this->reader) {
+        if ($this->isOpen) {
             $this->reader->read();
 
             return $this->reader->value;
@@ -129,7 +160,7 @@ class PublizonXmlReaderService
      */
     public function isAtElementStart(string $elementName): bool
     {
-        if ($this->reader) {
+        if ($this->isOpen) {
             return \XMLReader::ELEMENT === $this->reader->nodeType && $this->reader->name === $elementName;
         }
 
@@ -147,7 +178,7 @@ class PublizonXmlReaderService
      */
     public function notAtElementEnd(string $elementName): bool
     {
-        if ($this->reader) {
+        if ($this->isOpen) {
             return !(\XMLReader::END_ELEMENT === $this->reader->nodeType && $this->reader->name === $elementName);
         }
 

@@ -12,7 +12,7 @@ use App\Exception\MaterialTypeException;
 /**
  * Class Material.
  */
-class Material
+class Material implements \Stringable
 {
     private string $title = 'Unknown';
     private string $creator = 'Unknown';
@@ -21,7 +21,7 @@ class Material
     private array $identifiers = [];
     private bool $collection = false;
 
-    public function __toString()
+    public function __toString(): string
     {
         $output = [];
 
@@ -48,8 +48,6 @@ class Material
 
     /**
      * Get the material title.
-     *
-     * @return string
      */
     public function getTitle(): string
     {
@@ -58,8 +56,6 @@ class Material
 
     /**
      * Set the material title.
-     *
-     * @param string $title
      *
      * @return $this
      */
@@ -72,8 +68,6 @@ class Material
 
     /**
      * Get the creator.
-     *
-     * @return string
      */
     public function getCreator(): string
     {
@@ -82,8 +76,6 @@ class Material
 
     /**
      * Set the material creators name.
-     *
-     * @param string $creator
      *
      * @return $this
      */
@@ -96,8 +88,6 @@ class Material
 
     /**
      * Get the date.
-     *
-     * @return string
      */
     public function getDate(): string
     {
@@ -106,8 +96,6 @@ class Material
 
     /**
      * Set the material date.
-     *
-     * @param string $date
      *
      * @return $this
      */
@@ -120,8 +108,6 @@ class Material
 
     /**
      * Get the publisher.
-     *
-     * @return string
      */
     public function getPublisher(): string
     {
@@ -130,8 +116,6 @@ class Material
 
     /**
      * Set the publisher.
-     *
-     * @param string $publisher
      *
      * @return $this
      */
@@ -162,9 +146,7 @@ class Material
      */
     public function getIdentifierByType(string $type): array
     {
-        return array_filter($this->identifiers, function (MaterialIdentifier $identifier) use ($type) {
-            return $identifier->getType() === $type;
-        });
+        return array_filter($this->identifiers, fn (MaterialIdentifier $identifier) => $identifier->getType() === $type);
     }
 
     /**
@@ -175,7 +157,6 @@ class Material
      * @param string $identifier
      *   The identifier to check for
      *
-     * @return bool
      *   TRUE if it exists else FALSE
      */
     public function hasIdentifier(string $type, string $identifier): bool
@@ -231,7 +212,6 @@ class Material
      * Can be used to determined if an book cover should be overridden by a collection from the same vendor or another
      * vendor.
      *
-     * @return bool
      *   If true it is an collection. Default false.
      */
     public function isCollection(): bool
@@ -253,7 +233,6 @@ class Material
     /**
      * Check if this was a zero-hit-object.
      *
-     * @return bool
      *   TRUE if no identifiers was found else FALSE
      */
     public function isEmpty(): bool
@@ -267,7 +246,6 @@ class Material
      * @param string $pid
      *   The pid to translate
      *
-     * @return string
      *   The faust number
      */
     public static function translatePidToFaust(string $pid): string

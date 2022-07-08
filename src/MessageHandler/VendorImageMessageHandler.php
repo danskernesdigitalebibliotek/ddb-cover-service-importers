@@ -14,7 +14,6 @@ use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Exception\GuzzleException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
@@ -25,31 +24,24 @@ use Symfony\Component\Messenger\MessageBusInterface;
  */
 class VendorImageMessageHandler implements MessageHandlerInterface
 {
-    private EntityManagerInterface $em;
-    private VendorImageValidatorService $imageValidator;
-    private MessageBusInterface $bus;
-    private LoggerInterface $logger;
-
     /**
      * VendorImageMessageHandler constructor.
      *
-     * @param EntityManagerInterface $entityManager
+     * @param EntityManagerInterface $em
      * @param VendorImageValidatorService $imageValidator
      * @param MessageBusInterface $bus
-     * @param LoggerInterface $informationLogger
+     * @param LoggerInterface $logger
      */
-    public function __construct(EntityManagerInterface $entityManager, VendorImageValidatorService $imageValidator, MessageBusInterface $bus, LoggerInterface $informationLogger)
-    {
-        $this->em = $entityManager;
-        $this->imageValidator = $imageValidator;
-        $this->bus = $bus;
-        $this->logger = $informationLogger;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly VendorImageValidatorService $imageValidator,
+        private readonly MessageBusInterface $bus,
+        private readonly LoggerInterface $logger
+    ) {
     }
 
     /**
      * @param VendorImageMessage $message
-     *
-     * @throws GuzzleException
      */
     public function __invoke(VendorImageMessage $message)
     {
@@ -89,11 +81,6 @@ class VendorImageMessageHandler implements MessageHandlerInterface
 
     /**
      * Handle image inserts. Send update to cover store processor only if vendor image exists.
-     *
-     * @param VendorImageMessage $message
-     * @param Source $source
-     *
-     * @return void
      */
     private function processInsert(VendorImageMessage $message, Source $source): void
     {
@@ -138,13 +125,6 @@ class VendorImageMessageHandler implements MessageHandlerInterface
 
     /**
      * Handle image updates. Send update to cover store processor only if vendor image is updated.
-     *
-     * @param VendorImageMessage $message
-     * @param Source $source
-     *
-     * @throws GuzzleException
-     *
-     * @return void
      */
     private function processUpdate(VendorImageMessage $message, Source $source): void
     {

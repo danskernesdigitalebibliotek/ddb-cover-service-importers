@@ -18,6 +18,8 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 - Updated MariaDB version to 10.6 in doctrine config.
 - Switched to ElasticSearch 8.2 from version 6.x.
 - Upgraded elasticsearch/elasticsearch to 8.2.
+- Deprecated DRbDigitalBooksVendor
+- Removed flysystem
 
 ### Removed
 - Removed FOS elasticsearch bundle and Elastica library.

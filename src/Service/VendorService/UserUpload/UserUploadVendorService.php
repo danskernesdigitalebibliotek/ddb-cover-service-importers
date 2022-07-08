@@ -33,7 +33,6 @@ class UserUploadVendorService implements VendorServiceInterface
     /**
      * Get entity for this vendor.
      *
-     * @return Vendor
      *   Vendor entity
      *
      * @throws \App\Exception\UnknownVendorServiceException
