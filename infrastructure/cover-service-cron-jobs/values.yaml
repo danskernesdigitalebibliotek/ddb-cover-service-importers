@@ -35,3 +35,4 @@ app:
     server: "k8s-ddf-prod.mariadb.database.azure.com"
     port: "3306"
     database: "cover-service"
+    version: "mariadb-10.6.7"
