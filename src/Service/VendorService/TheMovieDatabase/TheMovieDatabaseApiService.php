@@ -182,7 +182,7 @@ class TheMovieDatabaseApiService
             if (is_numeric($retryAfterHeader)) {
                 $retryAfter = (int) $retryAfterHeader;
             } else {
-                $retryAfter = (int) ((new \DateTime((string) $retryAfterHeader))->format('U')) - time();
+                $retryAfter = (int) (new \DateTime((string) $retryAfterHeader))->format('U') - time();
             }
 
             // Rate limit hit. Wait until 'Retry-After' header, then retry.
