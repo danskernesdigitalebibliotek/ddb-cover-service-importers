@@ -20,6 +20,7 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 - Upgraded elasticsearch/elasticsearch to 8.2.
 - Deprecated DRbDigitalBooksVendor
 - Removed flysystem
+- Fixed http client options error in vendor image validation service
 
 ### Removed
 - Removed FOS elasticsearch bundle and Elastica library.

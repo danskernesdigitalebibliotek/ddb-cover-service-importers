@@ -9,6 +9,7 @@ namespace App\Command;
 use App\Message\CoverUserUploadMessage;
 use App\Message\SearchMessage;
 use App\Message\SearchNoHitsMessage;
+use App\Message\VendorImageMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -83,6 +84,14 @@ class QueueInsertCommand extends Command
                     $message = new SearchNoHitsMessage();
                     $message->setIdentifier('9788799239535')
                         ->setIdentifierType(IdentifierType::ISBN);
+                    break;
+
+                case 'vendorImage':
+                    $message = new VendorImageMessage();
+                    $message->setIdentifier('870971-tsart:88613635')
+                        ->setIdentifierType(IdentifierType::PID)
+                        ->setOperation(VendorState::UPDATE)
+                        ->setVendorId('15');
                     break;
 
                 default:
