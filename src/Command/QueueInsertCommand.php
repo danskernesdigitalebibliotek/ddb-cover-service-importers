@@ -66,7 +66,7 @@ class QueueInsertCommand extends Command
                     $message = new CoverUserUploadMessage();
                     $message->setIdentifierType(IdentifierType::PID);
                     $message->setIdentifier('1234567890');
-                    $message->setVendorId('15');
+                    $message->setVendorId(15);
                     $message->setImageUrl('https://images.bogportalen.dk/images/9788740050134.jpg');
                     $message->setOperation($vendorState ?? VendorState::INSERT);
                     break;
@@ -91,7 +91,7 @@ class QueueInsertCommand extends Command
                     $message->setIdentifier('870971-tsart:88613635')
                         ->setIdentifierType(IdentifierType::PID)
                         ->setOperation(VendorState::UPDATE)
-                        ->setVendorId('15');
+                        ->setVendorId(15);
                     break;
 
                 default:
