@@ -8,7 +8,8 @@ app:
   image:
     version: latest
     imagePullPolicy: IfNotPresent
-  elastic_url: "http://es-elasticsearch-coordinating-only.cover-service.svc.cluster.local:9200"
+  indexing:
+    url: "http://es-elasticsearch.cover-service.svc.cluster.local:9200"
   no_hits_ttl: 3600
   redis:
     server: "redis-master.cover-service.svc.cluster.local"
@@ -35,8 +36,9 @@ app:
     server: "k8s-ddf-prod.mariadb.database.azure.com"
     port: "3306"
     database: "cover-service"
+    version: "mariadb-10.6.7"
 
 nginx:
   image:
-    version: 1.20.1-alpine
+    version: 1.23-alpine
     imagePullPolicy: IfNotPresent

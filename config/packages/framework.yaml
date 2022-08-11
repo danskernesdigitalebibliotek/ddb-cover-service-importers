@@ -17,6 +17,12 @@ framework:
     php_errors:
         log: true
 
+#    Disable SSL cert verification, used to test request through proxy.
+#    http_client:
+#        default_options:
+#            verify_peer: false
+#            verify_host: false
+
 parameters:
     env(CLOUDINARY_CONFIG_FILE): '%kernel.project_dir%/config/cloudinary.yml'
 

@@ -8,6 +8,7 @@
 namespace App\Command\OpenPlatform;
 
 use App\Service\OpenPlatform\SearchService;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -16,22 +17,18 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Class OpenPlatformSearchCommand.
  */
+#[AsCommand(name: 'app:openplatform:search')]
 class OpenPlatformSearchCommand extends Command
 {
-    protected static $defaultName = 'app:openplatform:search';
-
-    private SearchService $search;
-
     /**
      * OpenPlatformSearchCommand constructor.
      *
      * @param SearchService $search
      *   The open platform search service
      */
-    public function __construct(SearchService $search)
-    {
-        $this->search = $search;
-
+    public function __construct(
+        private readonly SearchService $search
+    ) {
         parent::__construct();
     }
 
@@ -59,8 +56,8 @@ class OpenPlatformSearchCommand extends Command
         $withOutSearchCache = $input->getOption('without-search-cache');
 
         $material = $this->search->search($is, $type, $withOutSearchCache);
-        $output->writeln($material);
+        $output->writeln((string) $material);
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

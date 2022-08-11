@@ -13,6 +13,7 @@ use App\Repository\SourceRepository;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -20,26 +21,21 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
+#[AsCommand(name: 'app:search:reindex')]
 class SearchReindexCommand extends Command
 {
     use ProgressBarTrait;
 
-    protected static $defaultName = 'app:search:reindex';
-
-    private EntityManagerInterface $em;
-    private MessageBusInterface $bus;
-
     /**
      * SearchReindexCommand constructor.
      *
-     * @param EntityManagerInterface $entityManager
+     * @param EntityManagerInterface $em
      * @param MessageBusInterface $bus
      */
-    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus)
-    {
-        $this->em = $entityManager;
-        $this->bus = $bus;
-
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly MessageBusInterface $bus
+    ) {
         parent::__construct();
     }
 
@@ -63,9 +59,9 @@ class SearchReindexCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $vendorId = (int) $input->getOption('vendor-id');
-        $cleanUp = (bool) $input->getOption('clean-up');
+        $cleanUp = $input->getOption('clean-up');
         $identifier = $input->getOption('identifier');
-        $withOutSearchCache = (bool) $input->getOption('without-search-cache');
+        $withOutSearchCache = $input->getOption('without-search-cache');
         $lastIndexedDate = $input->getOption('last-indexed-date');
         $limit = (int) $input->getOption('limit');
 
@@ -90,7 +86,7 @@ class SearchReindexCommand extends Command
             if (!($inputDate && $inputDate->format($format) == $lastIndexedDate)) {
                 $output->writeln('<error>Lasted indexed date should have the format "m-d-Y"</error>');
 
-                return -1;
+                return Command::FAILURE;
             }
         }
 
@@ -132,6 +128,6 @@ class SearchReindexCommand extends Command
 
         $this->progressFinish();
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

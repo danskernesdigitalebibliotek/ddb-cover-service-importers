@@ -7,7 +7,7 @@
 
 namespace App\Service\VendorService\DataWell;
 
-use App\Service\VendorService\DataWell\DataConverter\IversePublicUrlConverter;
+use App\Service\VendorService\DataWell\DataConverter\AmazonPublicUrlConverter;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
@@ -26,17 +26,15 @@ class DataWellVendorService implements VendorServiceInterface
     protected const VENDOR_ID = 4;
     private const VENDOR_ARCHIVE_NAME = 'comics+';
 
-    private DataWellSearchService $datawell;
-
     /**
      * DataWellVendorService constructor.
      *
      * @param DataWellSearchService $datawell
      *   For searching the data well
      */
-    public function __construct(DataWellSearchService $datawell)
-    {
-        $this->datawell = $datawell;
+    public function __construct(
+        private readonly DataWellSearchService $datawell
+    ) {
     }
 
     /**
@@ -65,9 +63,9 @@ class DataWellVendorService implements VendorServiceInterface
                 $pidArray = array_filter($pidArray);
 
                 // Convert images url from 'medium' to 'large'
-                IversePublicUrlConverter::convertArrayValues($pidArray);
+                AmazonPublicUrlConverter::convertArrayValues($pidArray);
 
-                $batchSize = \count($pidArray);
+                $batchSize = count($pidArray);
                 $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, $batchSize);
 
                 $this->progressMessageFormatted($status);
@@ -87,7 +85,7 @@ class DataWellVendorService implements VendorServiceInterface
     }
 
     /**
-     * Set config fro service from DB vendor object.
+     * Set config from service from DB vendor object.
      */
     private function loadConfig(): void
     {

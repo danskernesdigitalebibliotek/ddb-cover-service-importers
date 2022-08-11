@@ -19,7 +19,6 @@ class TraceIdService
      *
      * @param bool $refresh
      *
-     * @return string
      *   The generated trace id
      *
      * @throws \Exception

@@ -7,12 +7,13 @@
 namespace App\Service\VendorService\DataWell\DataConverter;
 
 /**
- * Class IversePublicUrlConverter.
+ * Class AmazonPublicUrlConverter.
  */
-class IversePublicUrlConverter
+class AmazonPublicUrlConverter
 {
-    private const PADMEDIUM_URL_STRING = '/iverse_public/store/cover/padmedium/';
-    private const PADLARGE_URL_STRING = '/iverse_public/store/cover/padlarge/';
+    // URL example: https://cdpmm-public.s3.amazonaws.com/store/cover/padlarge/153C407C3C7.png
+    private const PADMEDIUM_URL_STRING = '/cover/padmedium/';
+    private const PADLARGE_URL_STRING = '/cover/padlarge/';
 
     /**
      * Convert array value 'Iverse' URLs from 'medium' to 'large'.
@@ -33,7 +34,6 @@ class IversePublicUrlConverter
      * @param string $url
      *   The 'padmedium' image url
      *
-     * @return string
      *   The 'padlarge' image url
      */
     public static function convertSingleUrl(string $url): string

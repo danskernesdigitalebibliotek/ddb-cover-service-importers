@@ -42,12 +42,6 @@ class UploadServiceVendorService implements VendorServiceInterface
     protected const SOURCE_FOLDER = 'BulkUpload';
     protected const DESTINATION_FOLDER = 'UploadService';
 
-    private CoverStoreInterface $store;
-    private SourceRepository $sourceRepository;
-    private MessageBusInterface $bus;
-    private EntityManagerInterface $em;
-    private LoggerInterface $logger;
-
     /**
      * CoverStoreSearchCommand constructor.
      *
@@ -59,20 +53,22 @@ class UploadServiceVendorService implements VendorServiceInterface
      *   Cover store access
      * @param SourceRepository $sourceRepository
      *   Source repository
-     * @param LoggerInterface $informationLogger
+     * @param LoggerInterface $logger
      *   Logger to send importer status information
      */
-    public function __construct(MessageBusInterface $bus, EntityManagerInterface $em, CoverStoreInterface $store, SourceRepository $sourceRepository, LoggerInterface $informationLogger)
-    {
-        $this->bus = $bus;
-        $this->em = $em;
-        $this->store = $store;
-        $this->sourceRepository = $sourceRepository;
-        $this->logger = $informationLogger;
+    public function __construct(
+        private readonly MessageBusInterface $bus,
+        private readonly EntityManagerInterface $em,
+        private readonly CoverStoreInterface $store,
+        private readonly SourceRepository $sourceRepository,
+        private readonly LoggerInterface $logger
+    ) {
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @throws \App\Exception\UnknownVendorServiceException
      */
     public function load(): VendorImportResultMessage
     {
@@ -88,7 +84,6 @@ class UploadServiceVendorService implements VendorServiceInterface
             'vendorId' => $this->getVendorId(),
         ];
 
-        $inserted = 0;
         foreach ($items as $item) {
             $filename = $this->extractFilename($item->getId());
             if (!$this->isValidFilename($filename)) {
@@ -195,19 +190,30 @@ class UploadServiceVendorService implements VendorServiceInterface
                 continue;
             }
 
-            if (VendorState::INSERT === $state) {
-                // Create new entity.
-                $image = new Image();
-                $source = new Source();
-            } else {
-                /** @var Source $source */
+            // Create new entity.
+            $image = new Image();
+            $source = new Source();
+
+            if (VendorState::INSERT !== $state) {
+                /** @var Source|null $source */
                 $source = $this->sourceRepository->findOneBy([
                     'matchType' => $type,
                     'matchId' => $identifier,
                     'vendor' => $this->vendorCoreService->getVendor($this->getVendorId()),
                 ]);
-                if (false !== $source) {
+                if (null !== $source) {
                     $image = $source->getImage();
+                    if (null === $image) {
+                        $this->logger->error($this->getVendorName().' error loading image', [
+                            'service' => self::class,
+                            'type' => $type,
+                            'identifier' => $identifier,
+                        ]);
+                        $this->vendorCoreService->getMetricsService()->counter('coverstore_loading_image_total', 'Cover store total loading image', 1, $labels);
+                        $this->vendorCoreService->getMetricsService()->counter('coverstore_error_total', 'Cover store error', 1, $labels);
+                        continue;
+                    }
+                    $this->vendorCoreService->getMetricsService()->counter('coverstore_loading_image_total', 'Cover store total loading image', 1, $labels);
                 } else {
                     // Something un-expected happen here.
                     $this->logger->error($this->getVendorName().' error loading source', [
@@ -215,10 +221,11 @@ class UploadServiceVendorService implements VendorServiceInterface
                         'type' => $type,
                         'identifier' => $identifier,
                     ]);
-                    $this->vendorCoreService->getMetricsService()->counter('coverstore_loading_source_total', 'Cover store error loading source', 1, $labels);
+                    $this->vendorCoreService->getMetricsService()->counter('coverstore_loading_source_total', 'Cover store total loading source', 1, $labels);
                     $this->vendorCoreService->getMetricsService()->counter('coverstore_error_total', 'Cover store error', 1, $labels);
                     continue;
                 }
+                $this->vendorCoreService->getMetricsService()->counter('coverstore_loading_source_total', 'Cover store total loading source', 1, $labels);
             }
 
             // Set image information.
@@ -243,6 +250,12 @@ class UploadServiceVendorService implements VendorServiceInterface
             // Make it stick.
             $this->em->flush();
 
+            // Update UI with progress information.
+            $status->addInserted(1);
+            $status->addRecords(1);
+            $this->progressMessageFormatted($status);
+            $this->progressAdvance();
+
             // Create queue message.
             $message = new VendorImageMessage();
             $message->setOperation($state)
@@ -253,12 +266,6 @@ class UploadServiceVendorService implements VendorServiceInterface
 
             // Send message into queue system into the search part.
             $this->bus->dispatch($message);
-
-            // Update UI with progress information.
-            $status->addInserted(1);
-            $status->addRecords(1);
-            $this->progressMessageFormatted($status);
-            $this->progressAdvance();
         }
 
         $this->progressFinish();
@@ -272,10 +279,9 @@ class UploadServiceVendorService implements VendorServiceInterface
      * @param string $filename
      *   The filename to validate
      *
-     * @return bool
      *   True if validated else false
      */
-    private function isValidFilename($filename): bool
+    private function isValidFilename(string $filename): bool
     {
         $identifier = $this->filenameToIdentifier($filename);
 
@@ -295,8 +301,6 @@ class UploadServiceVendorService implements VendorServiceInterface
     /**
      * Get filename from item id.
      *
-     * @param string $id
-     *
      * @return mixed
      */
     private function extractFilename(string $id): string
@@ -314,19 +318,18 @@ class UploadServiceVendorService implements VendorServiceInterface
      * @param string $filename
      *   The filename
      *
-     * @return string
      *   The identifier found
      */
     private function filenameToIdentifier(string $filename): string
     {
         $filename = urldecode($filename);
-        if (false !== strpos($filename, '.')) {
+        if (str_contains($filename, '.')) {
             $filename = explode('.', $filename);
             $filename = array_shift($filename);
         }
 
         // When dragging files into cover store UI it will transform '%' into '_'.
-        if (false !== strpos($filename, '_')) {
+        if (str_contains($filename, '_')) {
             $filename = preg_replace('/(_3A)|(_)/', ':', $filename);
         }
 
@@ -349,7 +352,7 @@ class UploadServiceVendorService implements VendorServiceInterface
     {
         $type = IdentifierType::ISBN;
 
-        if (false !== strpos($identifier, ':')) {
+        if (str_contains($identifier, ':')) {
             $type = IdentifierType::PID;
         }
 

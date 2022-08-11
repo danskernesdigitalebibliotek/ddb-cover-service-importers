@@ -8,6 +8,7 @@
 namespace App\Command\CoverStore;
 
 use App\Service\CoverStore\CoverStoreInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -16,10 +17,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Class CoverStoreMoveCommand.
  */
+#[AsCommand(name: 'app:cover:move')]
 class CoverStoreMoveCommand extends Command
 {
-    protected static $defaultName = 'app:cover:move';
-
     private CoverStoreInterface $store;
 
     /**
@@ -55,8 +55,8 @@ class CoverStoreMoveCommand extends Command
         $item = $this->store->move($source, $destination);
 
         // If not moved exceptions should have been thrown.
-        $output->writeln($item);
+        $output->writeln((string) $item);
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

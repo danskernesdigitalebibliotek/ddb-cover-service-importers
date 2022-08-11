@@ -30,25 +30,20 @@ use Symfony\Component\Messenger\MessageBusInterface;
  */
 class CoverStoreMessageHandler implements MessageHandlerInterface
 {
-    private EntityManagerInterface $em;
-    private MessageBusInterface $bus;
-    private LoggerInterface $logger;
-    private CoverStoreInterface $coverStore;
-
     /**
      * CoverStoreProcessor constructor.
      *
-     * @param EntityManagerInterface $entityManager
+     * @param EntityManagerInterface $em
      * @param MessageBusInterface $bus
-     * @param LoggerInterface $informationLogger
+     * @param LoggerInterface $logger
      * @param CoverStoreInterface $coverStore
      */
-    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, LoggerInterface $informationLogger, CoverStoreInterface $coverStore)
-    {
-        $this->em = $entityManager;
-        $this->bus = $bus;
-        $this->logger = $informationLogger;
-        $this->coverStore = $coverStore;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly MessageBusInterface $bus,
+        private readonly LoggerInterface $logger,
+        private readonly CoverStoreInterface $coverStore
+    ) {
     }
 
     /**
@@ -62,6 +57,7 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
     {
         // Look up vendor to get information about image server.
         $vendorRepos = $this->em->getRepository(Vendor::class);
+        /** @var Vendor $vendor */
         $vendor = $vendorRepos->find($message->getVendorId());
 
         // Look up source to get source url and link it to the image.
@@ -70,6 +66,10 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
             'matchId' => $message->getIdentifier(),
             'vendor' => $vendor,
         ]);
+
+        if (null === $source) {
+            throw new UnrecoverableMessageHandlingException('Source was not defined');
+        }
 
         try {
             $identifier = $message->getIdentifier();
@@ -174,5 +174,8 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
             ->setVendorId($message->getVendorId())
             ->setUseSearchCache($message->useSearchCache());
         $this->bus->dispatch($searchMessage);
+
+        // Free memory.
+        $this->em->clear();
     }
 }

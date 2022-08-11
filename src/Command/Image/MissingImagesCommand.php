@@ -13,6 +13,7 @@ use App\Entity\Vendor;
 use App\Service\CoverStore\CoverStoreInterface;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -21,24 +22,19 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Class MissingImagesCommand.
  */
+#[AsCommand(name: 'app:image:missing')]
 class MissingImagesCommand extends Command
 {
-    protected static $defaultName = 'app:image:missing';
-
-    private CoverStoreInterface $store;
-    private EntityManager $em;
-
     /**
      * MissingImagesCommand constructor.
      *
      * @param CoverStoreInterface $store
-     * @param EntityManager $entityManager
+     * @param EntityManager $em
      */
-    public function __construct(CoverStoreInterface $store, EntityManagerInterface $entityManager)
-    {
-        $this->store = $store;
-        $this->em = $entityManager;
-
+    public function __construct(
+        private readonly CoverStoreInterface $store,
+        private readonly EntityManagerInterface $em
+    ) {
         parent::__construct();
     }
 
@@ -76,7 +72,7 @@ class MissingImagesCommand extends Command
             } else {
                 $output->writeln('<error>Missing vendor id required in combination with identifier</error>');
 
-                return 1;
+                return Command::FAILURE;
             }
         }
         if (!is_null($vendorId)) {
@@ -88,7 +84,7 @@ class MissingImagesCommand extends Command
         /* @var Source $source */
         foreach ($query->toIterable() as $source) {
             // Ensure that ':' is escaped in the search query.
-            $id = 'public_id:'.$vendor->getName().'/'.str_replace(':', '\:', $source->getMatchId());
+            $id = 'public_id:'.$vendor->getName().'/'.str_replace(':', '\:', (string) $source->getMatchId());
             $items = $this->store->search($vendor->getName(), $id);
             if (!empty($items)) {
                 $item = reset($items);
@@ -104,6 +100,6 @@ class MissingImagesCommand extends Command
             }
         }
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

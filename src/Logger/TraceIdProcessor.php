@@ -12,16 +12,14 @@ namespace App\Logger;
  */
 class TraceIdProcessor
 {
-    private string $traceId;
-
     /**
      * TraceIdProcessor constructor.
      *
-     * @param string $bindTraceId
+     * @param string $traceId
      */
-    public function __construct(string $bindTraceId)
-    {
-        $this->traceId = $bindTraceId;
+    public function __construct(
+        private readonly string $traceId
+    ) {
     }
 
     /**

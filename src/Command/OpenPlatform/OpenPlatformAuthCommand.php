@@ -8,6 +8,7 @@
 namespace App\Command\OpenPlatform;
 
 use App\Service\OpenPlatform\AuthenticationService;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,11 +17,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Class OpenPlatformAuthCommand.
  */
+#[AsCommand(name: 'app:openplatform:auth')]
 class OpenPlatformAuthCommand extends Command
 {
-    protected static $defaultName = 'app:openplatform:auth';
-
-    private AuthenticationService $authentication;
     private bool $refresh = false;
 
     /**
@@ -29,10 +28,9 @@ class OpenPlatformAuthCommand extends Command
      * @param AuthenticationService $authentication
      *   Open Platform authentication service
      */
-    public function __construct(AuthenticationService $authentication)
-    {
-        $this->authentication = $authentication;
-
+    public function __construct(
+        private readonly AuthenticationService $authentication
+    ) {
         parent::__construct();
     }
 
@@ -64,6 +62,6 @@ class OpenPlatformAuthCommand extends Command
         $output->writeln(' Access token: '.$token);
         $output->writeln($separator);
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

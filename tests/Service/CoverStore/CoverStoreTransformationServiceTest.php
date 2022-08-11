@@ -34,7 +34,7 @@ class CoverStoreTransformationServiceTest extends TestCase
      */
     public function testNamedTransformation()
     {
-        $output = 'https://res.cloudinary.com/dandigbib/image/upload/t_ddb_cover,q_auto/v1544766159/publizon/9788711672051.jpg';
+        $output = 'https://res.cloudinary.com/dandigbib/image/upload/t_ddb_cover/q_auto/v1544766159/publizon/9788711672051.jpg';
         $service = $this->getService();
         $this->assertEquals($service->transform($this->url, 't1'), $output);
     }
@@ -67,7 +67,7 @@ class CoverStoreTransformationServiceTest extends TestCase
         $output = [
             'original' => $this->url,
             'default' => 'https://res.cloudinary.com/dandigbib/image/upload/t_ddb_cover/v1544766159/publizon/9788711672051.jpg',
-            't1' => 'https://res.cloudinary.com/dandigbib/image/upload/t_ddb_cover,q_auto/v1544766159/publizon/9788711672051.jpg',
+            't1' => 'https://res.cloudinary.com/dandigbib/image/upload/t_ddb_cover/q_auto/v1544766159/publizon/9788711672051.jpg',
             't2' => 'https://res.cloudinary.com/dandigbib/image/upload/q_auto/v1544766159/publizon/9788711672051.png',
             't3' => 'https://res.cloudinary.com/dandigbib/image/upload/v1544766159/publizon/9788711672051.jpg',
         ];

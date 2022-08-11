@@ -7,7 +7,7 @@
 
 namespace App\Utils\CoverVendor;
 
-class VendorImageItem
+class VendorImageItem implements \Stringable
 {
     private bool $found = false;
     private bool $updated = false;
@@ -16,7 +16,7 @@ class VendorImageItem
     private \DateTime $originalLastModified;
     private int $originalContentLength;
 
-    public function __toString()
+    public function __toString(): string
     {
         $output = [];
 
@@ -28,17 +28,12 @@ class VendorImageItem
         return implode("\n", $output);
     }
 
-    /**
-     * @return bool
-     */
     public function isFound(): bool
     {
         return $this->found;
     }
 
     /**
-     * @param bool $found
-     *
      * @return static
      */
     public function setFound(bool $found): self
@@ -48,17 +43,12 @@ class VendorImageItem
         return $this;
     }
 
-    /**
-     * @return bool
-     */
     public function isUpdated(): bool
     {
         return $this->updated;
     }
 
     /**
-     * @param bool $updated
-     *
      * @return static
      */
     public function setUpdated(bool $updated): self
@@ -68,9 +58,6 @@ class VendorImageItem
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getVendor(): string
     {
         return $this->vendor;
@@ -97,8 +84,6 @@ class VendorImageItem
     }
 
     /**
-     * @param string $originalFile
-     *
      * @return static
      */
     public function setOriginalFile(string $originalFile): self

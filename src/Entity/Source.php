@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Exception\UninitializedPropertyException;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -36,7 +37,7 @@ class Source
      * @ORM\ManyToOne(targetEntity="App\Entity\Vendor", inversedBy="sources")
      * @ORM\JoinColumn(nullable=false)
      */
-    private Vendor $vendor;
+    private ?Vendor $vendor;
 
     /**
      * @ORM\Column(type="string", length=50)
@@ -66,7 +67,7 @@ class Source
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Image", inversedBy="source", cascade={"persist", "remove"})
      */
-    private ?Image $image;
+    private ?Image $image = null;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Search", mappedBy="source")
@@ -78,9 +79,6 @@ class Source
      */
     private \DateTime $lastIndexed;
 
-    /**
-     * @return Collection
-     */
     public function getSearches(): Collection
     {
         return $this->searches;
@@ -96,9 +94,6 @@ class Source
         return $this->date;
     }
 
-    /**
-     * @return static
-     */
     public function setDate(\DateTimeInterface $date): self
     {
         $this->date = $date;
@@ -106,17 +101,15 @@ class Source
         return $this;
     }
 
-    /**
-     * @return Vendor
-     */
     public function getVendor(): Vendor
     {
+        if (null === $this->vendor) {
+            throw new UninitializedPropertyException('Vendor is not initialized');
+        }
+
         return $this->vendor;
     }
 
-    /**
-     * @return static
-     */
     public function setVendor(?Vendor $vendor): self
     {
         $this->vendor = $vendor;
@@ -124,17 +117,11 @@ class Source
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getMatchId(): string
     {
         return $this->matchId;
     }
 
-    /**
-     * @return static
-     */
     public function setMatchId(string $matchId): self
     {
         $this->matchId = $matchId;
@@ -142,17 +129,11 @@ class Source
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getMatchType(): string
     {
         return $this->matchType;
     }
 
-    /**
-     * @return static
-     */
     public function setMatchType(string $matchType): self
     {
         $this->matchType = $matchType;
@@ -160,17 +141,11 @@ class Source
         return $this;
     }
 
-    /**
-     * @return Image|null
-     */
     public function getImage(): ?Image
     {
         return $this->image;
     }
 
-    /**
-     * @return static
-     */
     public function setImage(?Image $image): self
     {
         $this->image = $image;
@@ -178,17 +153,15 @@ class Source
         return $this;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getOriginalFile(): ?string
+    public function getOriginalFile(): string
     {
+        if (null === $this->originalFile) {
+            throw new UninitializedPropertyException('Original file is not initialized');
+        }
+
         return $this->originalFile;
     }
 
-    /**
-     * @return static
-     */
     public function setOriginalFile(?string $originalFile): self
     {
         $this->originalFile = $originalFile;
@@ -196,17 +169,11 @@ class Source
         return $this;
     }
 
-    /**
-     * @return \DateTime|null
-     */
     public function getOriginalLastModified(): ?\DateTime
     {
         return $this->originalLastModified;
     }
 
-    /**
-     * @return static
-     */
     public function setOriginalLastModified(?\DateTime $originalLastModified): self
     {
         $this->originalLastModified = $originalLastModified;
@@ -214,17 +181,11 @@ class Source
         return $this;
     }
 
-    /**
-     * @return int|null
-     */
     public function getOriginalContentLength(): ?int
     {
         return $this->originalContentLength;
     }
 
-    /**
-     * @return static
-     */
     public function setOriginalContentLength(?int $originalContentLength): self
     {
         $this->originalContentLength = $originalContentLength;
@@ -232,9 +193,6 @@ class Source
         return $this;
     }
 
-    /**
-     * @return static
-     */
     public function addSearch(Search $search): self
     {
         if (!$this->searches->contains($search)) {
@@ -245,9 +203,6 @@ class Source
         return $this;
     }
 
-    /**
-     * @return static
-     */
     public function removeSearch(Search $search): self
     {
         if ($this->searches->contains($search)) {
@@ -261,19 +216,11 @@ class Source
         return $this;
     }
 
-    /**
-     * @return \DateTime
-     */
     public function getLastIndexed(): ?\DateTime
     {
         return $this->lastIndexed;
     }
 
-    /**
-     * @param \DateTime $lastIndexed
-     *
-     * @return $this
-     */
     public function setLastIndexed(\DateTime $lastIndexed): self
     {
         $this->lastIndexed = $lastIndexed;

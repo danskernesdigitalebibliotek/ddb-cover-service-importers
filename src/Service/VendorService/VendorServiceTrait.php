@@ -35,7 +35,6 @@ trait VendorServiceTrait
     /**
      * Get vendor id.
      *
-     * @return int
      *   The ID of the current loaded vendor
      */
     public function getVendorId(): int
@@ -46,7 +45,6 @@ trait VendorServiceTrait
     /**
      * Get name of the currently loaded vendor.
      *
-     * @return string
      *   Vendor name
      *
      * @throws UnknownVendorServiceException
@@ -83,7 +81,6 @@ trait VendorServiceTrait
     /**
      * Update all vendor records during import.
      *
-     * @param \DateTime $date
      *   Updated all records found after this date
      *
      * @return void

@@ -10,6 +10,7 @@ namespace App\Command\Vendors;
 use App\Message\DeleteMessage;
 use App\Message\VendorImageMessage;
 use App\Utils\Types\VendorState;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,22 +20,18 @@ use Symfony\Component\Messenger\MessageBusInterface;
 /**
  * Class VendorJobCommand.
  */
+#[AsCommand(name: 'app:vendor:job-test')]
 class VendorJobCommand extends Command
 {
-    protected static $defaultName = 'app:vendor:job-test';
-
-    private MessageBusInterface $bus;
-
     /**
      * VendorJobCommand constructor.
      *
      * @param MessageBusInterface $bus
      *   Message queue bus
      */
-    public function __construct(MessageBusInterface $bus)
-    {
-        $this->bus = $bus;
-
+    public function __construct(
+        private readonly MessageBusInterface $bus
+    ) {
         parent::__construct();
     }
 
@@ -58,7 +55,7 @@ class VendorJobCommand extends Command
         $operation = $input->getArgument('operation');
         $identifier = $input->getArgument('identifier');
         $type = $input->getArgument('type');
-        $vendorId = $input->getArgument('vendorId');
+        $vendorId = (int) $input->getArgument('vendorId');
 
         switch ($operation) {
             case VendorState::INSERT:
@@ -73,7 +70,7 @@ class VendorJobCommand extends Command
             default:
                 $output->writeln('Unknown event type given as input.');
 
-                return 1;
+                return Command::FAILURE;
         }
 
         $message->setOperation($operation)
@@ -82,6 +79,6 @@ class VendorJobCommand extends Command
             ->setIdentifierType($type);
         $this->bus->dispatch($message);
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

@@ -10,29 +10,30 @@ namespace Tests\Service\VendorService;
 use App\Entity\Source;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
-use GuzzleHttp\Client;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 
 class VendorImageValidatorServiceTest extends TestCase
 {
-    private $lastModified = 'Wed, 05 Dec 2018 07:28:00 GMT';
-    private $contentLength = 12345;
-    private $url = 'http://test.cover/image.jpg';
+    private string $lastModified = 'Wed, 05 Dec 2018 07:28:00 GMT';
+    private int $contentLength = 12345;
+    private string $url = 'http://test.cover/image.jpg';
 
     /**
      * Test that remote image exists.
-     *
-     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function testValidateRemoteImage()
     {
-        $client = $this->mockHttpClient(200, [
-            'Content-Length' => $this->contentLength,
-            'Last-Modified' => $this->lastModified,
-        ], '');
+        $client = new MockHttpClient([
+            new MockResponse('', [
+                'http_code' => 200,
+                'response_headers' => [
+                    'Content-Length' => $this->contentLength,
+                    'Last-Modified' => $this->lastModified,
+                ],
+            ]),
+        ]);
 
         $item = new VendorImageItem();
         $item->setOriginalFile($this->url);
@@ -48,12 +49,15 @@ class VendorImageValidatorServiceTest extends TestCase
 
     /**
      * Test that missing image is detected.
-     *
-     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function testValidateRemoteImageMissing()
     {
-        $client = $this->mockHttpClient(404, [], '');
+        $client = new MockHttpClient([
+            new MockResponse('', [
+                'http_code' => 404,
+                'response_headers' => [],
+            ]),
+        ]);
 
         $item = new VendorImageItem();
         $item->setOriginalFile($this->url);
@@ -66,15 +70,18 @@ class VendorImageValidatorServiceTest extends TestCase
 
     /**
      * Test that image is not modified.
-     *
-     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function testIsRemoteImageUpdatedNotModified()
     {
-        $client = $this->mockHttpClient(200, [
-            'Content-Length' => $this->contentLength,
-            'Last-Modified' => $this->lastModified,
-        ], '');
+        $client = new MockHttpClient([
+            new MockResponse('', [
+                'http_code' => 200,
+                'response_headers' => [
+                    'Content-Length' => $this->contentLength,
+                    'Last-Modified' => $this->lastModified,
+                ],
+            ]),
+        ]);
 
         $timezone = new \DateTimeZone('UTC');
         $lastModifiedDateTime = \DateTime::createFromFormat('D, d M Y H:i:s \G\M\T', $this->lastModified, $timezone);
@@ -97,15 +104,18 @@ class VendorImageValidatorServiceTest extends TestCase
 
     /**
      * Test that changes in the image is detected.
-     *
-     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function testIsRemoteImageUpdatedModified()
     {
-        $client = $this->mockHttpClient(200, [
-            'Content-Length' => $this->contentLength,
-            'Last-Modified' => $this->lastModified,
-        ], '');
+        $client = new MockHttpClient([
+            new MockResponse('', [
+                'http_code' => 200,
+                'response_headers' => [
+                    'Content-Length' => $this->contentLength,
+                    'Last-Modified' => $this->lastModified,
+                ],
+            ]),
+        ]);
 
         $timezone = new \DateTimeZone('UTC');
         $lastModifiedDateTime = \DateTime::createFromFormat('D, d M Y H:i:s \G\M\T', $this->lastModified, $timezone);
@@ -129,40 +139,21 @@ class VendorImageValidatorServiceTest extends TestCase
 
     /**
      * Test remoteImageHeader parser.
-     *
-     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function testRemoteImageHeader()
     {
-        $client = $this->mockHttpClient(200, [
-            'cf-polished' => 'origFmt=png, origSize=25272',
-        ], '');
+        $client = new MockHttpClient([
+            new MockResponse('', [
+                'http_code' => 200,
+                'response_headers' => [
+                    'cf-polished' => 'origFmt=png, origSize=25272',
+                ],
+            ]),
+        ]);
 
         $service = new VendorImageValidatorService($client);
         $headers = $service->remoteImageHeader('cf-polished', $this->url);
 
         $this->assertEquals(['origFmt=png, origSize=25272'], $headers);
-    }
-
-    /**
-     * Helper function to mock http client.
-     *
-     * @param $status
-     *   HTTP status code
-     * @param $headers
-     *   HTTP headers
-     * @param $body
-     *   Body content
-     *
-     * @return Client
-     */
-    private function mockHttpClient($status, $headers, $body)
-    {
-        $mock = new MockHandler();
-        $mock->append(new Response($status, $headers, $body));
-
-        $handler = HandlerStack::create($mock);
-
-        return new Client(['handler' => $handler]);
     }
 }
