@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Exception\HasCoverException;
 use App\Service\OpenPlatform\AuthenticationService;
 use ItkDev\MetricsBundle\Service\MetricsService;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -12,23 +13,18 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class HasCoverService
 {
-    private HttpClientInterface $client;
-    private string $hasCoverServiceUrl;
-    private MetricsService $metricsService;
-    private AuthenticationService $authenticationService;
-
     /**
      * @param HttpClientInterface $client
-     * @param string $bindHasCoverServiceUrl
+     * @param string $hasCoverServiceUrl
      * @param MetricsService $metricsService
      * @param AuthenticationService $authenticationService
      */
-    public function __construct(HttpClientInterface $client, string $bindHasCoverServiceUrl, MetricsService $metricsService, AuthenticationService $authenticationService)
-    {
-        $this->client = $client;
-        $this->hasCoverServiceUrl = $bindHasCoverServiceUrl;
-        $this->metricsService = $metricsService;
-        $this->authenticationService = $authenticationService;
+    public function __construct(
+        private readonly HttpClientInterface $client,
+        private readonly string $hasCoverServiceUrl,
+        private readonly MetricsService $metricsService,
+        private readonly AuthenticationService $authenticationService
+    ) {
     }
 
     /**
@@ -40,10 +36,9 @@ class HasCoverService
      *   The cover state for the PID given
      *
      * @throws HasCoverException
-     * @throws \Psr\Cache\InvalidArgumentException
-     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+     * @throws TransportExceptionInterface
      */
-    public function post(string $pid, bool $coverExists)
+    public function post(string $pid, bool $coverExists): void
     {
         $labels = [
             'type' => 'hasCover',

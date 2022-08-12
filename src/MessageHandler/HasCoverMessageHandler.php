@@ -2,35 +2,34 @@
 
 namespace App\MessageHandler;
 
+use App\Exception\HasCoverException;
 use App\Message\HasCoverMessage;
 use App\Service\HasCoverService;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 /**
  * Class HasCoverMessageHandler.
  */
 class HasCoverMessageHandler implements MessageHandlerInterface
 {
-    private HasCoverService $hasCoverService;
-
     /**
      * HasCoverMessageHandler constructor.
      *
      * @param HasCoverService $hasCoverService
      */
-    public function __construct(HasCoverService $hasCoverService)
-    {
-        $this->hasCoverService = $hasCoverService;
+    public function __construct(
+        private readonly HasCoverService $hasCoverService
+    ) {
     }
 
     /**
      * @param HasCoverMessage $message
      *
-     * @throws \App\Exception\HasCoverException
-     * @throws \Psr\Cache\InvalidArgumentException
-     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+     * @throws HasCoverException
+     * @throws TransportExceptionInterface
      */
-    public function __invoke(HasCoverMessage $message)
+    public function __invoke(HasCoverMessage $message): void
     {
         $this->hasCoverService->post($message->getPid(), $message->getCoverExists());
     }

@@ -30,8 +30,6 @@ services:
             $projectDir: '%kernel.project_dir%'
             $resourcesDir: '%kernel.project_dir%/resources'
 
-            $bindHasCoverServiceUrl: '%env(string:HAS_COVER_SERVICE_URL)%'
-
     _instanceof:
         App\Service\VendorService\VendorServiceInterface:
             tags: [app.vendor.service]
@@ -78,6 +76,10 @@ services:
             $cloudinaryCloudName: '%env(string:CLOUDINARY_CLOUD_NAME)%'
             $cloudinaryApiKey: '%env(string:CLOUDINARY_API_KEY)%'
             $cloudinaryApiSecret: '%env(string:CLOUDINARY_API_SECRET)%'
+
+    App\Service\HasCoverService:
+        arguments:
+            $hasCoverServiceUrl: '%env(string:HAS_COVER_SERVICE_URL)%'
 
     App\Service\Indexing\IndexingElasticService:
         arguments:

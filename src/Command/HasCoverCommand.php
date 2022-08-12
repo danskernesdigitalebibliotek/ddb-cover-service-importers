@@ -12,6 +12,7 @@ use App\Repository\SearchRepository;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Types\IdentifierType;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -22,13 +23,12 @@ use Symfony\Component\Messenger\MessageBusInterface;
 /**
  * Class HasCoverCommand.
  */
+#[AsCommand(name: 'app:hascover:batch')]
 class HasCoverCommand extends Command
 {
     use ProgressBarTrait;
 
     private MessageBusInterface $bus;
-
-    protected static $defaultName = 'app:hascover:batch';
     private SearchRepository $searchRepository;
     private EntityManagerInterface $em;
 
