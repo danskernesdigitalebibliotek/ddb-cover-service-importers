@@ -48,32 +48,36 @@ External Services:
 
 ### Messaging
 
-For performance reasons both parts are designed around a messaging-based
-architecture to allow for asynchronous handling of tasks.  For the API this
-means that any task not strictly needed for the response such as various logging
-tasks are deferred and handled after the request/response. For the import engine
-only the initial read from source is done synchronously. For each imported cover
-image individual index and upload jobs are created and run later.
+For performance reasons both parts are designed around a messaging-based architecture to allow for asynchronous handling
+of tasks. For the API this means that any task not strictly needed for the response such as various logging tasks are
+deferred and handled after the request/response. For the import engine only the initial read from source is done
+synchronously. For each imported cover image individual index and upload jobs are created and run later.
 
 ### Services and Dependency Injection
 
-All internal functionality is defined as individual services. These are
-autowired through dependency injection by [Symfony's Service
-Container](https://symfony.com/doc/current/service_container.html)
+All internal functionality is defined as individual services. These are autowired through dependency injection
+by [Symfony's Service Container](https://symfony.com/doc/current/service_container.html)
 
 ### Persistence
 
-The import engine defines a number of entities for storing relevant data on
-imports and images. These are mapped to and persisted in the database through
-doctrine. Further a 'search' entity is defined with the fields exposed by the
-REST API. This entity is mapped one-to-one to an index in ElasticSearch.
+The import engine defines a number of entities for storing relevant data on imports and images. These are mapped to and
+persisted in the database through doctrine. Further a 'search' entity is defined with the fields exposed by the REST
+API. This entity is mapped one-to-one to an index in ElasticSearch.
 
 ### Logging and Statistics
 
-The application logs to ElasticSearch to allow debugging and monitoring. A
-`stats_dd-mm-yyyy` is created daily. To ensure that Elastic chooses the right
-type for the index fields a dynamic index template must be added to Elastic.
-This can be done with the `app:elastic:create-stats-template` command.
+The application logs to ElasticSearch to allow debugging and monitoring. A `stats_dd-mm-yyyy` is created daily. To
+ensure that Elastic chooses the right type for the index fields a dynamic index template must be added to Elastic. This
+can be done with the `app:elastic:create-stats-template` command.
+
+### Low disk
+
+If you have less than 10% disk space left elastic search will not index content and switchs into read-only mode. This
+command will disable this behaviour:
+
+```shell
+curl -XPUT http://0.0.0.0:<PORT>/_cluster/settings -H 'Content-Type: application/json' -d '{"transient":{"cluster.routing.allocation.disk.threshold_enabled":fals }}'
+```
 
 ## Implementation Overview
 
@@ -81,71 +85,64 @@ This can be done with the `app:elastic:create-stats-template` command.
 
 The overall flow of the consist of import -> upload -> index:
 
-1. For each Vendor the full list of available materials is read. Each found
-   material is saved as `Source` and a `ProcessMessage` is generated with
-   `VendorImageTopic` and `id => image URL`
-2. Each image URL is validated and it's verified that the remote image
-   exists. If the image is found the `ProcessMessage` is forwarded with a
-   `CoverStoreTopic` and `Source` is updated with relevant metadata.
-3. Each image is added to Cloudinary through their API. This enables us to just
-   instruct Cloudinary to fetch the image from the image URL and add to the
-   Media Library. An `Image` is created containing Cloudinary metadata and an
-   `ProcessMessage` with `SearchTopic`is sent.
-4. A search is made in Open Search to determine what id 'aliases' the image
-   should be indexed under. We know the ISxx from the Vendor but to build index
-   entries for PID and FAUST we need to match these through Open Search. For
-   each id a new `Search` entry is made which is automatically synced to
-   ElasticSearch.
+1. For each Vendor the full list of available materials is read. Each found material is saved as `Source` and
+   a `ProcessMessage` is generated with `VendorImageTopic` and `id => image URL`
+2. Each image URL is validated and it's verified that the remote image exists. If the image is found
+   the `ProcessMessage` is forwarded with a `CoverStoreTopic` and `Source` is updated with relevant metadata.
+3. Each image is added to Cloudinary through their API. This enables us to just instruct Cloudinary to fetch the image
+   from the image URL and add to the Media Library. An `Image` is created containing Cloudinary metadata and
+   an `ProcessMessage` with `SearchTopic`is sent.
+4. A search is made in Open Search to determine what id 'aliases' the image should be indexed under. We know the ISxx
+   from the Vendor but to build index entries for PID and FAUST we need to match these through Open Search. For each id
+   a new `Search` entry is made which is automatically synced to ElasticSearch.
 
 #### Vendors
 
-The application needs to import covers from a number of different vendors
-through their exposed access protocols. This means we need to support various
-strategies such as crawling zip-archives via ftp, parsing excel files and
-accessing APIs. Individual `VendorServices` are defined for each vendor to
-support their respective data access. These all extend
-`AbstractBaseVendorService` were common functionality needed by the importers is
+The application needs to import covers from a number of different vendors through their exposed access protocols. This
+means we need to support various
+strategies such as crawling zip-archives via ftp, parsing excel files and accessing APIs. Individual `VendorServices`
+are defined for each vendor to
+support their respective data access. These all extend `AbstractBaseVendorService` were common functionality needed by
+the importers is
 defined.
 
 All vendor implementations are located under `/src/Service/VendorService/*`
 
 #### Services
 
-The application defines a number of internal services for the various
-tasks. These are autowired through dependency injection by [Symfony's Service
+The application defines a number of internal services for the various tasks. These are autowired through dependency
+injection by [Symfony's Service
 Container](https://symfony.com/doc/current/service_container.html)
 
 ##### CoverStore
 
-Abstracts [Cloudinarys Upload
-API](https://cloudinary.com/documentation/image_upload_api_reference)
-functionality into a set of helper methods for upload, delete and
+Abstracts [Cloudinarys Upload API](https://cloudinary.com/documentation/image_upload_api_reference) functionality into a
+set of helper methods for upload, delete and
 generate. "Generate" will create a generic cover based on a default image.
 
 ##### OpenPlatform
 
-Implements authentication and search against [Open
-Search](https://www.dbc.dk/produkter-services/webservices/open-search)
+Implements authentication and search
+against [Open Search](https://www.dbc.dk/produkter-services/webservices/open-search)
 
 ##### Vendor Services
 
-Common functionality for all Vendor importers is shared in
-`AbstractBaseVendorService`. Individual importers are defined for each vendor to
-contain the import logic for the vendors specific access setup
-(FTP/Spreadsheet/API etc).
+Common functionality for all Vendor importers is shared in `AbstractBaseVendorService`. Individual importers are defined
+for each vendor to
+contain the import logic for the vendors specific access setup (FTP/Spreadsheet/API etc).
 
 ## Development Setup
 
 ### Docker compose
 
-The project comes with a docker-compose setup base on development only images,
-that comes with all required extensions to PHP (including xdebug) and all services
+The project comes with a docker-compose setup base on development only images, that comes with all required extensions
+to PHP (including xdebug) and all services
 required to run the application.
 
-For easy usage it's recommended to use træfik (proxy) and the wrapper script for
-docker-compose used at ITKDev (<https://github.com/aakb/itkdev-docker/tree/develop/scripts>).
-It's not an requirement and the setup examples below is without the script. The
-script just makes working with docker simpler and faster.
+For easy usage it's recommended to use træfik (proxy) and the wrapper script for docker-compose used at
+ITKDev (<https://github.com/aakb/itkdev-docker/tree/develop/scripts>).
+It's not an requirement and the setup examples below is without the script. The script just makes working with docker
+simpler and faster.
 
 #### Running docker setup
 
@@ -199,7 +196,7 @@ is in sync with the current mapping file(s).
 ### Commands
 
 To simplify testing during development test console commands are defined for the
-various services defined in the application.  These are described for each
+various services defined in the application. These are described for each
 service in the "Services" section of this document. Using these commands you can
 manually test each service in isolation without having to run one or more
 message queues.
@@ -289,12 +286,16 @@ bin/console messenger:consume --env=prod --quiet --time-limit=900 --failure-limi
 Or use all your works to run all queue in the order given (from high to no-hit).
 
 ```shell
-bin/console messenger:consume --env=prod --quiet --time-limit=900 --failure-limit=1 async_priority_high async_priority_normal async_priority_low async_no_hit
+bin/console messenger:consume --env=prod --quiet --time-limit=900 --failure-limit=1 async_priority_high \
+async_priority_normal async_priority_low async_no_hit
 ```
 
 #### Message Queues and Doctrine
 
-If Doctrine throws an exception when interacting with the database the Consumers' Entity Manager will close and not re-open. This will cause subsequent message handling to fail. To handle this run the consumers with `--failure-limit=1`. This will cause the consumer to exit if an exception is thrown. The Consumer will then be restarted with a new Entity Manager assuming Supervisor or similar is used to run the consumers.
+If Doctrine throws an exception when interacting with the database the Consumers' Entity Manager will close and not
+re-open. This will cause subsequent message handling to fail. To handle this run the consumers with `--failure-limit=1`.
+This will cause the consumer to exit if an exception is thrown. The Consumer will then be restarted with a new Entity
+Manager assuming Supervisor or similar is used to run the consumers.
 
 See: Symfony PR [#35453](https://github.com/symfony/symfony/pull/35453)
 

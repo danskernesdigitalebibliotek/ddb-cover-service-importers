@@ -9,8 +9,10 @@ namespace App\Command;
 use App\Message\CoverUserUploadMessage;
 use App\Message\SearchMessage;
 use App\Message\SearchNoHitsMessage;
+use App\Message\VendorImageMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -20,21 +22,17 @@ use Symfony\Component\Messenger\MessageBusInterface;
 /**
  * Class QueueInsertCommand.
  */
+#[AsCommand(name: 'app:queue:insert')]
 class QueueInsertCommand extends Command
 {
-    private MessageBusInterface $bus;
-
-    protected static $defaultName = 'app:queue:insert';
-
     /**
      * QueueInsertCommand constructor.
      *
      * @param MessageBusInterface $bus
      */
-    public function __construct(MessageBusInterface $bus)
-    {
-        $this->bus = $bus;
-
+    public function __construct(
+        private readonly MessageBusInterface $bus
+    ) {
         parent::__construct();
     }
 
@@ -68,7 +66,7 @@ class QueueInsertCommand extends Command
                     $message = new CoverUserUploadMessage();
                     $message->setIdentifierType(IdentifierType::PID);
                     $message->setIdentifier('1234567890');
-                    $message->setVendorId('15');
+                    $message->setVendorId(15);
                     $message->setImageUrl('https://images.bogportalen.dk/images/9788740050134.jpg');
                     $message->setOperation($vendorState ?? VendorState::INSERT);
                     break;
@@ -88,6 +86,14 @@ class QueueInsertCommand extends Command
                         ->setIdentifierType(IdentifierType::ISBN);
                     break;
 
+                case 'vendorImage':
+                    $message = new VendorImageMessage();
+                    $message->setIdentifier('870971-tsart:88613635')
+                        ->setIdentifierType(IdentifierType::PID)
+                        ->setOperation(VendorState::UPDATE)
+                        ->setVendorId(15);
+                    break;
+
                 default:
                     throw new \RuntimeException('No test message exists for the given topic');
             }
@@ -96,8 +102,8 @@ class QueueInsertCommand extends Command
         }
 
         // Send message into the system.
-        $this->bus->dispatch($message);
+        $this->bus->dispatch((object) $message);
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

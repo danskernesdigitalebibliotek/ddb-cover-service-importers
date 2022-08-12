@@ -4,51 +4,43 @@ namespace App\Service\VendorService;
 
 use App\Entity\Source;
 use App\Utils\CoverVendor\VendorImageItem;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class VendorImageValidatorService.
  */
 class VendorImageValidatorService
 {
-    private ClientInterface $httpClient;
-
     /**
      * VendorImageValidatorService constructor.
      *
-     * @param ClientInterface $httpClient
+     * @param HttpClientInterface $httpClient
      */
-    public function __construct(ClientInterface $httpClient)
-    {
-        $this->httpClient = $httpClient;
+    public function __construct(
+        private readonly HttpClientInterface $httpClient
+    ) {
     }
 
     /**
      * Validate that remote image exists by sending an HTTP HEAD request.
-     *
-     * @param VendorImageItem $item
      */
     public function validateRemoteImage(VendorImageItem $item, string $httpRequestMethod = Request::METHOD_HEAD): void
     {
         try {
-            $head = $this->httpClient->request($httpRequestMethod, $item->getOriginalFile(), [
-                'allow_redirects' => [
-                    'strict' => true,   // use "strict" RFC compliant redirects to avoid 30x redirects resulting in GET calls
-                ],
-            ]);
+            $response = $this->httpClient->request($httpRequestMethod, $item->getOriginalFile());
+            $headers = $response->getHeaders();
 
             $contentLengthArray = [];
-            if ($head->getHeader('Content-Length') > 0) {
-                $contentLengthArray = $head->getHeader('Content-Length');
+            if (isset($headers['content-length'])) {
+                $contentLengthArray = $headers['content-length'];
             }
             if (empty($contentLengthArray)) {
                 // This is a hack since image services such as flickr don't set content length header.
-                $contentLengthArray = $head->getHeader('ImageWidth');
+                $contentLengthArray = $headers['ImageWidth'];
             }
 
-            $lastModifiedArray = $head->getHeader('Last-Modified');
+            $lastModifiedArray = $headers['last-modified'];
 
             $timezone = new \DateTimeZone('UTC');
             if (empty($lastModifiedArray)) {
@@ -77,11 +69,6 @@ class VendorImageValidatorService
 
     /**
      * Check if a remote image has been updated since we fetched the source.
-     *
-     * @param VendorImageItem $item
-     * @param Source $source
-     *
-     * @throws GuzzleException
      */
     public function isRemoteImageUpdated(VendorImageItem $item, Source $source): void
     {
@@ -105,20 +92,15 @@ class VendorImageValidatorService
      *   The image URL to query
      * @param string $httpRequestMethod
      *   The request method to use
-     *
-     * @return array
      */
     public function remoteImageHeader(string $header, string $url, string $httpRequestMethod = Request::METHOD_HEAD): array
     {
         $headerContent = [];
         try {
-            $head = $this->httpClient->request($httpRequestMethod, $url, [
-                'allow_redirects' => [
-                    'strict' => true,   // use "strict" RFC compliant redirects to avoid 30x redirects resulting in GET calls
-                ],
-            ]);
+            $response = $this->httpClient->request($httpRequestMethod, $url);
+            $headers = $response->getHeaders();
 
-            $headerContent = $head->getHeader($header);
+            $headerContent = $headers[$header];
         } catch (\Throwable $e) {
             // Some providers (i.e. Google Drive) disallows HEAD requests. Fall back
             // to GET request and try to validate image.

@@ -11,46 +11,46 @@
 namespace App\Service\OpenPlatform;
 
 use App\Exception\OpenPlatformAuthException;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\RequestException;
+use JsonException;
+use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Class AuthenticationService.
  */
 class AuthenticationService
 {
-    // Used to give the token some grace-period so it will not expire will
+    // Used to give the token some grace-period, so it will not expire will
     // being used. Currently, the token is valid for 30 days. So we set the
     // limit to be 1 day, so it will be refreshed before it expires.
-    public const TOKEN_EXPIRE_LIMIT = 86400;
-
-    private ParameterBagInterface $params;
-    private AdapterInterface $cache;
-    private LoggerInterface $logger;
+    final public const TOKEN_EXPIRE_LIMIT = 86400;
     private string $accessToken = '';
-    private ClientInterface $client;
 
     /**
      * Authentication constructor.
      *
      * @param ParameterBagInterface $params
      *   Used to get parameters form the environment
-     * @param AdapterInterface $cache
+     * @param CacheItemPoolInterface $cache
      *   Cache to store access token
-     * @param LoggerInterface $informationLogger
+     * @param LoggerInterface $logger
      *   Logger object to send stats to ES
-     * @param ClientInterface $httpClient
-     *   Guzzle Client
+     * @param HttpClientInterface $httpClient
+     *   Http Client
      */
-    public function __construct(ParameterBagInterface $params, AdapterInterface $cache, LoggerInterface $informationLogger, ClientInterface $httpClient)
-    {
-        $this->params = $params;
-        $this->cache = $cache;
-        $this->logger = $informationLogger;
-        $this->client = $httpClient;
+    public function __construct(
+        private readonly ParameterBagInterface $params,
+        private readonly CacheItemPoolInterface $cache,
+        private readonly LoggerInterface $logger,
+        private readonly HttpClientInterface $httpClient
+    ) {
     }
 
     /**
@@ -62,12 +62,11 @@ class AuthenticationService
      * @param bool $refresh
      *   If TRUE refresh token. Default: FALSE.
      *
-     * @return string
      *   The access token
      *
      * @throws OpenPlatformAuthException
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws JsonException
+     * @throws InvalidArgumentException
      */
     public function getAccessToken(bool $refresh = false): string
     {
@@ -84,12 +83,15 @@ class AuthenticationService
      * @param bool $refresh
      *   If TRUE refresh token. Default: FALSE.
      *
-     * @return string
      *   The token if successful else the empty string,
      *
      * @throws OpenPlatformAuthException
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Psr\Cache\InvalidArgumentException
+     * @throws TransportExceptionInterface
+     * @throws JsonException
+     * @throws InvalidArgumentException
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
      */
     private function authenticate(bool $refresh = false): string
     {
@@ -107,37 +109,41 @@ class AuthenticationService
             return $item->get();
         } else {
             try {
-                $response = $this->client->request('POST', $this->params->get('openPlatform.auth.url'), [
-                    'form_params' => [
+                $response = $this->httpClient->request('POST', $this->params->get('openPlatform.auth.url'), [
+                    'body' => [
                         'grant_type' => 'password',
                         'username' => '@'.$this->params->get('openPlatform.auth.agency'),
                         'password' => '@'.$this->params->get('openPlatform.auth.agency'),
                     ],
-                    'auth' => [
+                    'auth_basic' => [
                         $this->params->get('openPlatform.auth.id'),
                         $this->params->get('openPlatform.auth.secret'),
                     ],
                 ]);
-            } catch (RequestException $exception) {
+            } catch (TransportExceptionInterface $exception) {
                 $this->logger->error('Access token not acquired', [
                     'service' => 'AuthenticationService',
                     'cache' => false,
                     'message' => $exception->getMessage(),
                 ]);
 
-                throw new OpenPlatformAuthException($exception->getMessage(), $exception->getCode());
+                throw new OpenPlatformAuthException($exception->getMessage(), (int) $exception->getCode(), $exception);
             } catch (\Exception $exception) {
                 $this->logger->error('Unknown error in acquiring access token', [
                     'service' => 'AuthenticationService',
                     'message' => $exception->getMessage(),
                 ]);
 
-                throw new OpenPlatformAuthException($exception->getMessage(), $exception->getCode());
+                throw new OpenPlatformAuthException($exception->getMessage(), (int) $exception->getCode(), $exception);
+            }
+
+            if (200 !== $response->getStatusCode()) {
+                throw new OpenPlatformAuthException('Authentication service returned non 200 status code', $response->getStatusCode());
             }
 
             // Get the content and parse json object as an array.
-            $content = $response->getBody()->getContents();
-            $json = json_decode($content, true);
+            $content = $response->getContent();
+            $json = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
 
             $this->logger->info('Access token acquired', [
                 'service' => 'AuthenticationService',

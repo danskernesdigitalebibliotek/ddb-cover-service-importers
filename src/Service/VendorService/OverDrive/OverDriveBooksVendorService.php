@@ -15,8 +15,6 @@ use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Exception\GuzzleException;
 use Psr\Cache\InvalidArgumentException;
 
 /**
@@ -29,27 +27,20 @@ class OverDriveBooksVendorService implements VendorServiceInterface
 
     protected const VENDOR_ID = 14;
 
-    private $apiClient;
-    private $httpClient;
-
     /**
      * OverDriveBooksVendorService constructor.
      *
-     * @param ClientInterface $httpClient
-     *   Http client to send api requests
      * @param Client $apiClient
      *   Api client for the OverDrive API
      */
-    public function __construct(ClientInterface $httpClient, Client $apiClient)
-    {
-        $this->httpClient = $httpClient;
-        $this->apiClient = $apiClient;
+    public function __construct(
+        private readonly Client $apiClient
+    ) {
     }
 
     /**
      * {@inheritdoc}
      *
-     * @throws GuzzleException
      * @throws InvalidArgumentException
      * @throws UnknownVendorServiceException
      */
@@ -80,7 +71,7 @@ class OverDriveBooksVendorService implements VendorServiceInterface
 
                     foreach ($product->formats as $format) {
                         foreach ($format->identifiers as $identifier) {
-                            if (IdentifierType::ISBN === strtolower($identifier->type)) {
+                            if (IdentifierType::ISBN === strtolower((string) $identifier->type)) {
                                 if (!empty($identifier->value)) {
                                     $isbnImageUrlArray[$identifier->value] = $coverImageUrl;
                                 }

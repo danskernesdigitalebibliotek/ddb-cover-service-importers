@@ -6,12 +6,14 @@
 
 namespace App\MessageHandler;
 
+use App\Entity\Search;
 use App\Entity\Source;
 use App\Entity\Vendor;
 use App\Exception\CoverStoreException;
 use App\Exception\CoverStoreNotFoundException;
 use App\Message\DeleteMessage;
 use App\Service\CoverStore\CoverStoreInterface;
+use App\Service\Indexing\IndexingServiceInterface;
 use Doctrine\DBAL\ConnectionException;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -23,22 +25,20 @@ use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
  */
 class DeleteMessageHandler implements MessageHandlerInterface
 {
-    private EntityManagerInterface $em;
-    private LoggerInterface $logger;
-    private CoverStoreInterface $coverStore;
-
     /**
      * DeleteProcessor constructor.
      *
-     * @param EntityManagerInterface $entityManager
-     * @param LoggerInterface $informationLogger
+     * @param EntityManagerInterface $em
+     * @param LoggerInterface $logger
      * @param CoverStoreInterface $coverStore
+     * @param IndexingServiceInterface $indexingService
      */
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $informationLogger, CoverStoreInterface $coverStore)
-    {
-        $this->em = $entityManager;
-        $this->logger = $informationLogger;
-        $this->coverStore = $coverStore;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly LoggerInterface $logger,
+        private readonly CoverStoreInterface $coverStore,
+        private readonly IndexingServiceInterface $indexingService
+    ) {
     }
 
     /**
@@ -51,6 +51,10 @@ class DeleteMessageHandler implements MessageHandlerInterface
         // Look up vendor to get information about image server.
         $vendorRepos = $this->em->getRepository(Vendor::class);
         $vendor = $vendorRepos->find($message->getVendorId());
+
+        if (null === $vendor) {
+            throw new UnrecoverableMessageHandlingException('Error vendor was not found');
+        }
 
         try {
             // There may exist a race condition when multiple queues are
@@ -69,8 +73,12 @@ class DeleteMessageHandler implements MessageHandlerInterface
                 // Remove search table rows.
                 if ($source) {
                     $searches = $source->getSearches();
+                    /** @var Search $search */
                     foreach ($searches as $search) {
                         $this->em->remove($search);
+
+                        // Remove this search entity from the search index.
+                        $this->indexingService->remove($search->getId());
                     }
 
                     // Remove image entity.
@@ -95,7 +103,7 @@ class DeleteMessageHandler implements MessageHandlerInterface
             } catch (\Exception $exception) {
                 $this->em->getConnection()->rollBack();
 
-                $this->logger->error('Database exception: '.get_class($exception), [
+                $this->logger->error('Database exception: '.$exception::class, [
                     'service' => 'DeleteProcessor',
                     'message' => $exception->getMessage(),
                     'identifiers' => $message->getIdentifier(),

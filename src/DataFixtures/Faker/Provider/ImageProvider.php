@@ -20,18 +20,15 @@ final class ImageProvider extends BaseProvider
                 $fileExt = 'tif';
                 break;
             default:
-                $fileExt = strtolower($format);
+                $fileExt = strtolower((string) $format);
         }
 
         return Miscellaneous::sha1().'.'.$fileExt;
     }
 
-    /**
-     * @return string
-     */
     public function originalImageFormat(): string
     {
-        return strtolower(self::randomElement(self::FORMAT_PROVIDER));
+        return strtolower((string) self::randomElement(self::FORMAT_PROVIDER));
     }
 
     public function size(int $width, int $height): int

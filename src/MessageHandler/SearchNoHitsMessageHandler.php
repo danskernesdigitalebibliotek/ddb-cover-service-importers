@@ -22,47 +22,36 @@ use App\Utils\OpenPlatform\Material;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Doctrine\DBAL\ConnectionException;
+use Doctrine\DBAL\Exception;
 use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Exception\GuzzleException;
 use ItkDev\MetricsBundle\Service\MetricsService;
-use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
-use Doctrine\DBAL\Exception;
 
 /**
  * Class SearchNoHitsMessageHandler.
  */
 class SearchNoHitsMessageHandler implements MessageHandlerInterface
 {
-    private EntityManagerInterface $em;
-    private MessageBusInterface $bus;
-    private LoggerInterface $logger;
-    private SearchService $searchService;
-    private VendorImageValidatorService $validatorService;
-    private MetricsService $metricsService;
-
-    public const VENDOR = 'Unknown';
+    final public const VENDOR = 'Unknown';
 
     /**
      * SearchNoHitsMessageHandler constructor.
      */
-    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, LoggerInterface $statsLogger, SearchService $searchService, VendorImageValidatorService $validatorService, MetricsService $metricsService)
-    {
-        $this->em = $entityManager;
-        $this->bus = $bus;
-        $this->logger = $statsLogger;
-        $this->searchService = $searchService;
-        $this->validatorService = $validatorService;
-        $this->metricsService = $metricsService;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly MessageBusInterface $bus,
+        private readonly LoggerInterface $logger,
+        private readonly SearchService $searchService,
+        private readonly VendorImageValidatorService $validatorService,
+        private readonly MetricsService $metricsService
+    ) {
     }
 
     /**
      * @param SearchNoHitsMessage $message
      *
-     * @throws InvalidArgumentException
      * @throws MaterialTypeException
      * @throws OpenPlatformAuthException
      * @throws MaterialTypeException
@@ -127,7 +116,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                     $this->em->getConnection()->rollBack();
 
                     $this->metricsService->counter('no_hit_katelog_error', 'No-hit katelog error', 1, ['type' => 'nohit']);
-                    $this->logger->error('Database exception: '.get_class($exception), [
+                    $this->logger->error('Database exception: '.$exception::class, [
                         'service' => 'SearchNoHitsProcessor',
                         'message' => $exception->getMessage(),
                         'identifier' => $identifier,
@@ -168,20 +157,14 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                             ->setImageId($source->getImage()->getId())
                             ->setUseSearchCache(true);
                         $this->bus->dispatch($message);
-                    } else if (is_null($source->getImage()) && !is_null($source->getOriginalFile())) {
+                    } elseif (is_null($source->getImage()) && !is_null($source->getOriginalFile())) {
                         // If the source image is null. It might have been made available since we asked the vendor for the
                         // cover.
                         $this->metricsService->counter('no_hit_without_image', 'No-hit source found without image', 1, ['type' => 'nohit']);
 
                         $item = new VendorImageItem();
                         $item->setOriginalFile($source->getOriginalFile());
-                        try {
-                            $this->validatorService->validateRemoteImage($item);
-                        } catch (GuzzleException $e) {
-                            // Just remove this job from the queue, on fetch errors. This will ensure that the job is not
-                            // re-queue in infinity loop.
-                            throw new UnrecoverableMessageHandlingException('Image fetch error in validation');
-                        }
+                        $this->validatorService->validateRemoteImage($item);
 
                         if ($item->isFound()) {
                             $this->metricsService->counter('no_hit_without_image_new', 'No-hit source found with new image', 1, ['type' => 'nohit']);

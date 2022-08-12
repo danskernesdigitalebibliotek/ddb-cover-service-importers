@@ -19,17 +19,12 @@ abstract class AbstractBaseMessage
     private bool $useSearchCache = true;
     private ?string $traceId = null;
 
-    /**
-     * @return string
-     */
     public function getOperation(): string
     {
         return $this->operation;
     }
 
     /**
-     * @param string $operation
-     *
      * @return $this
      */
     public function setOperation(string $operation): self
@@ -39,17 +34,12 @@ abstract class AbstractBaseMessage
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getIdentifierType(): string
     {
         return $this->identifierType;
     }
 
     /**
-     * @param string $type
-     *
      * @return static
      */
     public function setIdentifierType(string $type): self
@@ -59,17 +49,12 @@ abstract class AbstractBaseMessage
         return $this;
     }
 
-    /**
-     * @return string
-     */
     public function getIdentifier(): string
     {
         return $this->identifier;
     }
 
     /**
-     * @param string $identifier
-     *
      * @return static
      */
     public function setIdentifier(string $identifier): self
@@ -79,17 +64,12 @@ abstract class AbstractBaseMessage
         return $this;
     }
 
-    /**
-     * @return int
-     */
     public function getVendorId(): int
     {
         return $this->vendorId;
     }
 
     /**
-     * @param int $vendorId
-     *
      * @return static
      */
     public function setVendorId(int $vendorId): self
@@ -99,17 +79,12 @@ abstract class AbstractBaseMessage
         return $this;
     }
 
-    /**
-     * @return int|null
-     */
     public function getImageId(): ?int
     {
         return $this->imageId;
     }
 
     /**
-     * @param int|null $imageId
-     *
      * @return static
      */
     public function setImageId(?int $imageId): self
@@ -122,7 +97,6 @@ abstract class AbstractBaseMessage
     /**
      * Use search cache.
      *
-     * @return bool
      *   Defaults to true if not set
      */
     public function useSearchCache(): bool
@@ -148,7 +122,6 @@ abstract class AbstractBaseMessage
     /**
      * Get request id (which is unique for the whole request).
      *
-     * @return string|null
      *   The request id
      */
     public function getTraceId(): ?string
@@ -161,8 +134,6 @@ abstract class AbstractBaseMessage
      *
      * @param string $traceId
      *   The trace id used to trace this message between services
-     *
-     * @return AbstractBaseMessage
      */
     public function setTraceId(string $traceId): self
     {

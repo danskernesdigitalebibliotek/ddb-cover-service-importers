@@ -27,7 +27,6 @@ class SourceRepository extends ServiceEntityRepository
      *
      * @param string $matchType
      * @param array $matchIdList
-     * @param Vendor $vendor
      *
      * @return mixed
      *  Array of sources indexed by match id
@@ -58,9 +57,6 @@ class SourceRepository extends ServiceEntityRepository
     /**
      * Delete all sources not found in given list match IDs.
      *
-     * @param array $matchIdList
-     * @param Vendor $vendor
-     *
      * @return mixed
      */
     public function removeIdsNotInList(array $matchIdList, Vendor $vendor)
@@ -83,10 +79,9 @@ class SourceRepository extends ServiceEntityRepository
      * @param string $identifier
      *   The identifier to lookup
      *
-     * @return Source|bool
      *   If found Source entity else false
      */
-    public function findOneByVendorRank(string $type, string $identifier)
+    public function findOneByVendorRank(string $type, string $identifier): Source|bool
     {
         $sources = $this->createQueryBuilder('s')
             ->andWhere('s.matchId = :identifier')
@@ -113,8 +108,6 @@ class SourceRepository extends ServiceEntityRepository
      *   The vendor to fetch sources for
      * @param string|null $identifier
      *   Limit to single identifier
-     *
-     * @return Query
      */
     public function findReindexabledSources(int $limit = 0, ?\DateTimeImmutable $lastIndexedDate = null, int $vendorId = 0, ?string $identifier = ''): Query
     {

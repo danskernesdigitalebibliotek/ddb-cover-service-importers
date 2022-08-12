@@ -8,43 +8,38 @@
 namespace App\MessageHandler;
 
 use App\Entity\Source;
-use App\Event\IndexReadyEvent;
 use App\Exception\MaterialTypeException;
 use App\Exception\OpenPlatformAuthException;
 use App\Exception\OpenPlatformSearchException;
+use App\Message\IndexMessage;
 use App\Message\SearchMessage;
 use App\Service\OpenPlatform\SearchService;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Messenger\Exception\UnrecoverableMessageHandlingException;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class SearchMessageHandler.
  */
 class SearchMessageHandler implements MessageHandlerInterface
 {
-    private EntityManagerInterface $em;
-    private EventDispatcherInterface $dispatcher;
-    private LoggerInterface $logger;
-    private SearchService $searchService;
-
     /**
      * SearchProcessor constructor.
      *
-     * @param EntityManagerInterface $entityManager
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param LoggerInterface $informationLogger
+     * @param EntityManagerInterface $em
+     * @param MessageBusInterface $bus
+     * @param LoggerInterface $logger
      * @param SearchService $searchService
      */
-    public function __construct(EntityManagerInterface $entityManager, EventDispatcherInterface $eventDispatcher, LoggerInterface $informationLogger, SearchService $searchService)
-    {
-        $this->em = $entityManager;
-        $this->dispatcher = $eventDispatcher;
-        $this->logger = $informationLogger;
-        $this->searchService = $searchService;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly MessageBusInterface $bus,
+        private readonly LoggerInterface $logger,
+        private readonly SearchService $searchService
+    ) {
     }
 
     /**
@@ -116,14 +111,14 @@ class SearchMessageHandler implements MessageHandlerInterface
                 'imageId' => $message->getImageId(),
             ]);
         } else {
-            $event = new IndexReadyEvent();
-            $event->setIs($message->getIdentifier())
+            $indexMessage = new IndexMessage();
+            $indexMessage->setIdentifier($message->getIdentifier())
                 ->setOperation($message->getOperation())
                 ->setVendorId($message->getVendorId())
                 ->setImageId($message->getImageId())
                 ->setMaterial($material);
 
-            $this->dispatcher->dispatch($event, $event::NAME);
+            $this->bus->dispatch($indexMessage);
         }
 
         // Free memory.

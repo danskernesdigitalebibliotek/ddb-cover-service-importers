@@ -31,17 +31,15 @@ class EbookCentralVendorService implements VendorServiceInterface
     private const VENDOR_ARCHIVE_DIR = 'EbookCentral';
     private const VENDOR_ARCHIVE_NAME = 'cover images title list ddbdk.xlsx';
 
-    private $resourcesDir;
-
     /**
      * EbookCentralVendorService constructor.
      *
      * @param string $resourcesDir
      *   The application resource dir
      */
-    public function __construct(string $resourcesDir)
-    {
-        $this->resourcesDir = $resourcesDir;
+    public function __construct(
+        private readonly string $resourcesDir
+    ) {
     }
 
     /**
@@ -134,8 +132,6 @@ class EbookCentralVendorService implements VendorServiceInterface
 
     /**
      * Get a xlsx file reader reference for the import source.
-     *
-     * @return Reader
      *
      * @throws IOException
      */

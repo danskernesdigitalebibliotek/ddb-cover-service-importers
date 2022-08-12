@@ -11,9 +11,8 @@ use App\Utils\Types\VendorStatus;
 /**
  * Class VendorImportResultMessage.
  */
-class VendorImportResultMessage
+class VendorImportResultMessage implements \Stringable
 {
-    private bool $isSuccess;
     private string $message;
 
     private int $totalRecords;
@@ -24,11 +23,11 @@ class VendorImportResultMessage
     /**
      * VendorImportResultMessage constructor.
      *
-     * @param bool $success
+     * @param bool $isSuccess
      */
-    private function __construct(bool $success)
-    {
-        $this->isSuccess = $success;
+    private function __construct(
+        private readonly bool $isSuccess
+    ) {
     }
 
     /**
@@ -46,8 +45,6 @@ class VendorImportResultMessage
      *
      * @param vendorStatus $status
      *   Counts for the changes made be the vendor
-     *
-     * @return VendorImportResultMessage
      */
     public static function success(VendorStatus $status): self
     {
@@ -64,10 +61,6 @@ class VendorImportResultMessage
 
     /**
      * Create error message.
-     *
-     * @param string $message
-     *
-     * @return VendorImportResultMessage
      */
     public static function error(string $message): self
     {
@@ -77,49 +70,31 @@ class VendorImportResultMessage
         return $resultMessage;
     }
 
-    /**
-     * @return bool
-     */
     public function isSuccess(): bool
     {
         return $this->isSuccess;
     }
 
-    /**
-     * @return string
-     */
     public function getMessage(): string
     {
         return $this->message;
     }
 
-    /**
-     * @return int
-     */
     public function getTotalRecords(): int
     {
         return $this->totalRecords;
     }
 
-    /**
-     * @return int
-     */
     public function getUpdated(): int
     {
         return $this->updated;
     }
 
-    /**
-     * @return int
-     */
     public function getInserted(): int
     {
         return $this->inserted;
     }
 
-    /**
-     * @return int
-     */
     public function getDeleted(): int
     {
         return $this->deleted;

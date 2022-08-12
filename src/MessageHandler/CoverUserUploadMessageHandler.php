@@ -25,28 +25,22 @@ use Symfony\Component\Messenger\MessageBusInterface;
  */
 class CoverUserUploadMessageHandler implements MessageHandlerInterface
 {
-    private EntityManagerInterface $em;
-    private MessageBusInterface $bus;
-    private SourceRepository $sourceRepo;
-    private MetricsService $metricsService;
-    private UserUploadVendorService $userUploadVendorService;
-
     /**
      * CoverUserUploadMessageHandler constructor.
      *
-     * @param EntityManagerInterface $entityManager
+     * @param EntityManagerInterface $em
      * @param MessageBusInterface $bus
      * @param SourceRepository $sourceRepo
      * @param UserUploadVendorService $userUploadVendorService
      * @param MetricsService $metricsService
      */
-    public function __construct(EntityManagerInterface $entityManager, MessageBusInterface $bus, SourceRepository $sourceRepo, UserUploadVendorService $userUploadVendorService, MetricsService $metricsService)
-    {
-        $this->em = $entityManager;
-        $this->bus = $bus;
-        $this->sourceRepo = $sourceRepo;
-        $this->metricsService = $metricsService;
-        $this->userUploadVendorService = $userUploadVendorService;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly MessageBusInterface $bus,
+        private readonly SourceRepository $sourceRepo,
+        private readonly UserUploadVendorService $userUploadVendorService,
+        private readonly MetricsService $metricsService
+    ) {
     }
 
     /**
@@ -96,12 +90,9 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
     /**
      * Create or update existing source entity in the database.
      *
-     * @param CoverUserUploadMessage $userUploadMessage
      *   The process message to build for the event producer
-     * @param Vendor $vendor
      *   The vendor (user upload vendor)
      *
-     * @return bool
      *   True on insert and false on update
      *
      * @throws \Doctrine\ORM\Query\QueryException
