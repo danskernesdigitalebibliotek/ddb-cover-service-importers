@@ -28,11 +28,7 @@ class VendorImageValidatorService
     public function validateRemoteImage(VendorImageItem $item, string $httpRequestMethod = Request::METHOD_HEAD): void
     {
         try {
-            $response = $this->httpClient->request($httpRequestMethod, $item->getOriginalFile(), [
-                'allow_redirects' => [
-                    'strict' => true,   // use "strict" RFC compliant redirects to avoid 30x redirects resulting in GET calls
-                ],
-            ]);
+            $response = $this->httpClient->request($httpRequestMethod, $item->getOriginalFile());
             $headers = $response->getHeaders();
 
             $contentLengthArray = [];

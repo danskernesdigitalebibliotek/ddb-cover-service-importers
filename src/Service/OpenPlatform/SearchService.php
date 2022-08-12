@@ -207,7 +207,7 @@ class SearchService
         }
 
         // Try to detect if this is a collection (used later on to not override existing covers).
-        $material->setCollection((!empty($result['title']) && (is_countable($result['title']) ? count($result['title']) : 0) > 1));
+        $material->setCollection(!empty($result['title']) && (is_countable($result['title']) ? count($result['title']) : 0) > 1);
 
         return $material;
     }
