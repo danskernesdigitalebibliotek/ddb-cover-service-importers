@@ -28,22 +28,17 @@ class HasCoverCommand extends Command
 {
     use ProgressBarTrait;
 
-    private MessageBusInterface $bus;
-    private SearchRepository $searchRepository;
-    private EntityManagerInterface $em;
-
     /**
      * @param MessageBusInterface $bus
      * @param EntityManagerInterface $entityManager
      * @param SearchRepository $searchRepository
      */
-    public function __construct(MessageBusInterface $bus, EntityManagerInterface $entityManager, SearchRepository $searchRepository)
-    {
-        $this->bus = $bus;
-
+    public function __construct(
+        private readonly MessageBusInterface $bus,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SearchRepository $searchRepository
+    ) {
         parent::__construct();
-        $this->searchRepository = $searchRepository;
-        $this->em = $entityManager;
     }
 
     /**
@@ -84,7 +79,7 @@ class HasCoverCommand extends Command
 
             // Free memory when batch size is reached.
             if (0 === ($i % $batchSize)) {
-                $this->em->clear();
+                $this->entityManager->clear();
                 gc_collect_cycles();
             }
 
