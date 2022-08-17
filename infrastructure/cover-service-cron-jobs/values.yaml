@@ -21,6 +21,7 @@ app:
   indexing:
     url: "http://es-elasticsearch-coordinating-only.cover-service.svc.cluster.local:9200"
   has_cover:
+    enabled: false
     url: "https://ddfhascover.dbc.dk/api/v1/events"
   redis:
     server: "redis-master.cover-service.svc.cluster.local"

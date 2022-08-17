@@ -79,6 +79,7 @@ services:
 
     App\Service\HasCoverService:
         arguments:
+            $enabled: '%env(bool:HAS_COVER_ENABLED)%'
             $hasCoverServiceUrl: '%env(string:HAS_COVER_SERVICE_URL)%'
 
     App\Service\Indexing\IndexingElasticService:

@@ -31,7 +31,7 @@ class HasCoverServiceTest extends TestCase
 
         /** @var MockResponse[] $responses */
         [$client, $responses] = $this->getApiHttpMock();
-        $hasCover = new HasCoverService($client, 'https://test.itkdev.dk/api/v2', $this->getMetricsService(), $this->getAuthenticationService());
+        $hasCover = new HasCoverService($client, true, 'https://test.itkdev.dk/api/v2', $this->getMetricsService(), $this->getAuthenticationService());
 
         try {
             $hasCover->post($pid, false);

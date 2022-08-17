@@ -11,10 +11,13 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+### Added
+- Support for hasCover services.
+
 ## [3.0.1] - 2022-08-16
 
 ### Changed
-- Updated metrics bundle
+- Updated metrics bundle.
 
 ## [3.0.0] - 2022-08-15
 

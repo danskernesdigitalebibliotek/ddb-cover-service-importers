@@ -21,6 +21,7 @@ class HasCoverService
      */
     public function __construct(
         private readonly HttpClientInterface $client,
+        private readonly bool $enabled,
         private readonly string $hasCoverServiceUrl,
         private readonly MetricsService $metricsService,
         private readonly AuthenticationService $authenticationService
@@ -40,6 +41,11 @@ class HasCoverService
      */
     public function post(string $pid, bool $coverExists): void
     {
+        // Do not send request if service is enabled.
+        if (!$this->enabled) {
+            return;
+        }
+
         $labels = [
             'type' => 'hasCover',
         ];
