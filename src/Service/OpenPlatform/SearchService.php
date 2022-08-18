@@ -93,10 +93,6 @@ class SearchService
             throw new OpenPlatformSearchException('Invalid cache argument');
         }
 
-        // We return the material object and not the $item->get() as that
-        // prevents proper testing of the service.
-        $material = null;
-
         // Check if cache should be used if item have been located.
         if ($refresh || !$item->isHit()) {
             try {
