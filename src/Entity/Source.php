@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Exception\UninitializedPropertyException;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -78,6 +79,11 @@ class Source
      * @ORM\Column(type="datetime", nullable=true)
      */
     private \DateTime $lastIndexed;
+
+    public function __construct()
+    {
+        $this->searches = new ArrayCollection();
+    }
 
     public function getSearches(): Collection
     {
