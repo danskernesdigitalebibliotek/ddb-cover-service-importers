@@ -7,8 +7,6 @@
 
 namespace App\Utils\CoverVendor;
 
-use App\Entity\Vendor;
-
 class UnverifiedVendorImageItem extends VendorImageItem
 {
     private string $identifier;
