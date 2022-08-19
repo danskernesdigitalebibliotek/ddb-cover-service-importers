@@ -25,6 +25,8 @@ use App\Utils\Types\VendorState;
 use Doctrine\DBAL\Exception as DBALException;
 use Doctrine\ORM\EntityManagerInterface;
 use ItkDev\MetricsBundle\Service\MetricsService;
+use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -46,6 +48,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
         private readonly SearchService $searchService,
         private readonly VendorImageValidatorService $validatorService,
         private readonly MetricsService $metricsService,
+        private readonly CacheItemPoolInterface $noHitsSingleCoverCache,
         private readonly iterable $singleIdentifierVendors
     ) {
     }
@@ -76,7 +79,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                 $found = $this->mapDatawellSearch($material);
             }
 
-            if (!$found && isset($material)) {
+            if (!$found && isset($material) && $this->cacheCheckSingleCoverVendors($message)) {
                 // Some vendors can return a potential URL for the cover given an identifier.
                 // Get a list of these from the matched identifiers in the datawell.
                 $unverifiedVendorImageItems = $this->getUnverifiedVendorImageItems($material);
@@ -87,7 +90,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
             if (!$found) {
                 $this->metricsService->counter('no_hit_failed', 'No-hit mapping not found', 1, ['type' => 'nohit']);
             }
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
             $this->metricsService->counter('no_hit_katelog_error', 'No-hit katelog error', 1, ['type' => 'nohit']);
 
             $this->logger->error('Exception: '.$exception::class, [
@@ -96,6 +99,30 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                 'identifier' => $message->getIdentifier(),
             ]);
         }
+    }
+
+    /**
+     * Check if the cache pool for the messages' identifier + type.
+     *
+     * @param SearchNoHitsMessage $message
+     *
+     * @return bool
+     *
+     * @throws InvalidArgumentException
+     */
+    private function cacheCheckSingleCoverVendors(SearchNoHitsMessage $message): bool
+    {
+        $key = $this->getValidCacheKey($message->getIdentifierType(), $message->getIdentifier());
+        $item = $this->noHitsSingleCoverCache->getItem($key);
+
+        if ($item->isHit()) {
+            return false;
+        }
+
+        $item->set(true);
+        $this->noHitsSingleCoverCache->save($item);
+
+        return true;
     }
 
     /**
@@ -352,5 +379,31 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
         }
 
         return false;
+    }
+
+    /**
+     * Get a valid cache keys for the identifier of given type.
+     *
+     * Keys should only contain letters (A-Z, a-z), numbers (0-9) and the _ and . symbols.
+     *
+     * @see https://www.php-fig.org/psr/psr-6/
+     * @see https://symfony.com/doc/current/components/cache/cache_items.html#cache-item-keys-and-values
+     *
+     * @param string $type
+     *   The identifier type
+     * @param string $identifier
+     *   The identifier
+     *
+     * @return string
+     *   The cache key
+     */
+    private function getValidCacheKey(string $type, string $identifier): string
+    {
+        if (IdentifierType::PID === $type) {
+            $identifier = str_replace(':', '_', $identifier);
+            $identifier = str_replace('-', '_', $identifier);
+        }
+
+        return $type.'.'.$identifier;
     }
 }

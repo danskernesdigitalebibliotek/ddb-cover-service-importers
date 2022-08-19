@@ -9,3 +9,10 @@ framework:
         app: cache.adapter.filesystem
 
         default_redis_provider: '%env(REDIS_CACHE_DSN)%'
+
+        pools:
+            # Creates a "no.hits.single.cover.cache" service
+            no.hits.single.cover.cache:
+                adapter: cache.adapter.redis
+                # Default expire set to two days in .env
+                default_lifetime: '%env(int:APP_NO_HITS_CACHE_SINGLE_COVER_TTL)%'
