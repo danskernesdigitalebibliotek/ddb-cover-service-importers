@@ -10,6 +10,9 @@ app:
     imagePullPolicy: IfNotPresent
   indexing:
     url: "http://es-elasticsearch.cover-service.svc.cluster.local:9200"
+  has_cover:
+    enabled: false
+    url: "https://ddfhascover.dbc.dk/api/v1/events"
   no_hits_ttl: 3600
   redis:
     server: "redis-master.cover-service.svc.cluster.local"

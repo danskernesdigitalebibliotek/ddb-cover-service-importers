@@ -10,6 +10,7 @@ use App\Entity\Search;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
+use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
 
 class SearchRepository extends ServiceEntityRepository
@@ -51,5 +52,40 @@ class SearchRepository extends ServiceEntityRepository
             ->getQuery();
 
         return $query->getSingleScalarResult();
+    }
+
+    /**
+     * Find all search base on type or single search by type and identifier.
+     *
+     * @param string $type
+     *   The identifier type
+     * @param string|null $identifier
+     *   If given limit to this single identifier
+     * @param int $limit
+     *   Limit the number of rows
+     * @param int $offset
+     *   The offset to start at
+     *
+     * @return query
+     *   The query build
+     */
+    public function findSearchesByType(string $type, ?string $identifier, int $limit, int $offset): Query
+    {
+        $queryBuilder = $this->createQueryBuilder('s');
+        $queryBuilder->select('s')
+            ->where('s.isType = :type')
+            ->setParameter('type', $type);
+
+        if (!is_null($identifier)) {
+            $queryBuilder->andWhere('s.isIdentifier = :identifier')
+                ->setParameter('identifier', $identifier);
+        }
+
+        $queryBuilder->setMaxResults($limit);
+        $queryBuilder->setFirstResult($offset);
+
+        $queryBuilder->orderBy('s.id', 'ASC');
+
+        return $queryBuilder->getQuery();
     }
 }
