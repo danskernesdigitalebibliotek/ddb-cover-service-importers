@@ -9,8 +9,8 @@ namespace App\MessageHandler;
 
 use App\Entity\Search;
 use App\Entity\Source;
-use App\Exception\MaterialTypeException;
-use App\Exception\OpenPlatformSearchException;
+use App\Exception\UnknownVendorServiceException;
+use App\Exception\UnsupportedIdentifierTypeException;
 use App\Message\SearchMessage;
 use App\Message\SearchNoHitsMessage;
 use App\Message\VendorImageMessage;
@@ -22,9 +22,8 @@ use App\Utils\CoverVendor\VendorImageItem;
 use App\Utils\OpenPlatform\Material;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
-use Doctrine\DBAL\ConnectionException;
+use Doctrine\DBAL\Exception as DBALException;
 use Doctrine\ORM\EntityManagerInterface;
-use http\Exception\InvalidArgumentException;
 use ItkDev\MetricsBundle\Service\MetricsService;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
@@ -55,47 +54,46 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
      * Invoke handler.
      *
      * @param SearchNoHitsMessage $message
-     *
-     * @throws MaterialTypeException
-     * @throws OpenPlatformSearchException
-     * @throws \Doctrine\DBAL\Exception
      */
     public function __invoke(SearchNoHitsMessage $message): void
     {
-        $identifier = $message->getIdentifier();
-        $found = false;
+        try {
+            $identifier = $message->getIdentifier();
+            $found = false;
 
-        if (IdentifierType::PID === $message->getIdentifierType()) {
-            // For PID's of type '-katalog' we might not have access to them
-            // in the datawell through our search profile. We try to guess the
-            // faust from the PID and search by that to instead.
-            $found = $this->mapCatalogIdentifier($identifier);
-        }
+            if (IdentifierType::PID === $message->getIdentifierType()) {
+                // For PID's of type '-katalog' we might not have access to them
+                // in the datawell through our search profile. We try to guess the
+                // faust from the PID and search by that to instead.
+                $found = $this->mapCatalogIdentifier($identifier);
+            }
 
-        if (!$found) {
-            // Try to search the data well and match source entity. If the 'source'
-            // have been added by the vendor before it's available in the datawell
-            // it will not have been indexed.
-            $material = $this->searchService->search($identifier, $message->getIdentifierType());
-            $found = $this->mapDatawellSearch($material);
-        }
+            if (!$found) {
+                // Try to search the data well and match source entity. If the 'source'
+                // have been added by the vendor before it's available in the datawell
+                // it will not have been indexed.
+                $material = $this->searchService->search($identifier, $message->getIdentifierType());
+                $found = $this->mapDatawellSearch($material);
+            }
 
-        if (!$found && isset($material)) {
-            // Some vendors can return a potential URL for the cover given an identifier.
-            // Get a list of these from the matched identifiers in the datawell.
-            $unverifiedVendorImageItems = $this->getUnverifiedVendorImageItems($material);
+            if (!$found && isset($material)) {
+                // Some vendors can return a potential URL for the cover given an identifier.
+                // Get a list of these from the matched identifiers in the datawell.
+                $unverifiedVendorImageItems = $this->getUnverifiedVendorImageItems($material);
 
-            $found = $this->processUnverifiedImageItems($unverifiedVendorImageItems);
-        }
+                $found = $this->processUnverifiedImageItems($unverifiedVendorImageItems);
+            }
 
-        if (!$found) {
-            $this->metricsService->counter('no_hit_failed', 'No-hit mapping not found', 1, ['type' => 'nohit']);
+            if (!$found) {
+                $this->metricsService->counter('no_hit_failed', 'No-hit mapping not found', 1, ['type' => 'nohit']);
+            }
+        } catch (\Exception $exception) {
+            $this->metricsService->counter('no_hit_katelog_error', 'No-hit katelog error', 1, ['type' => 'nohit']);
 
-            // Log current not handled no-hit.
-            $this->logger->info('No hit', [
-                'service' => 'SearchNoHitsProcessor',
-                'message' => 'No hit found and send to auto generate queue',
-                'identifier' => $identifier,
+            $this->logger->error('Exception: '.$exception::class, [
+                'service' => self::class,
+                'message' => $exception->getMessage(),
+                'identifier' => $message->getIdentifier(),
             ]);
         }
     }
@@ -106,6 +104,9 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
      * @param Material $material
      *
      * @return UnverifiedVendorImageItem[]
+     *
+     * @throws UnknownVendorServiceException
+     * @throws UnsupportedIdentifierTypeException
      */
     private function getUnverifiedVendorImageItems(Material $material): array
     {
@@ -129,6 +130,8 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
      * @param UnverifiedVendorImageItem[] $unverifiedImageItems
      *
      * @return bool
+     *
+     * @throws DBALException
      */
     private function processUnverifiedImageItems(array $unverifiedImageItems): bool
     {
@@ -144,6 +147,13 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
 
                 $found = true;
             }
+        }
+
+        // Log if a new record was created or not.
+        if ($found) {
+            $this->metricsService->counter('no_hit_single_identifier_mapped', 'No-hit mapped from single identifier vendor', 1, ['type' => 'nohit']);
+        } else {
+            $this->metricsService->counter('no_hit_single_identifier_not_mapped', 'No-hit not mapped from single identifier vendor', 1, ['type' => 'nohit']);
         }
 
         return $found;
@@ -173,38 +183,53 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
      * @param UnverifiedVendorImageItem $item
      *
      * @return Source
+     *
+     * @throws DBALException
      */
     private function persistSource(UnverifiedVendorImageItem $item): Source
     {
         if (!$item->isFound()) {
-            throw new InvalidArgumentException('A "Source" should not be persisted from UnverifiedVendorImageItem that is not "found"');
+            throw new \InvalidArgumentException('A "Source" should not be persisted from UnverifiedVendorImageItem that is not "found"');
         }
 
         $sourceRepository = $this->em->getRepository(Source::class);
 
-        /** @var Source $source */
-        $source = $sourceRepository->findOneBy([
-            'matchId' => $item->getIdentifier(),
-            'matchType' => $item->getIdentifierType(),
-            'vendor' => $item->getVendor(),
-        ]);
+        // There may exist a race condition when multiple queues are
+        // running. To ensure we don't insert duplicates we need to
+        // wrap our search/update/insert in a transaction.
+        $this->em->getConnection()->beginTransaction();
 
-        if (is_null($source)) {
-            $source = new Source();
-            $source->setVendor($item->getVendor());
-            $source->setMatchId($item->getIdentifier());
-            $source->setMatchType($item->getIdentifierType());
+        try {
+            /** @var Source $source */
+            $source = $sourceRepository->findOneBy([
+                'matchId' => $item->getIdentifier(),
+                'matchType' => $item->getIdentifierType(),
+                'vendor' => $item->getVendor(),
+            ]);
 
-            $this->em->persist($source);
+            if (is_null($source)) {
+                $source = new Source();
+                $source->setVendor($item->getVendor());
+                $source->setMatchId($item->getIdentifier());
+                $source->setMatchType($item->getIdentifierType());
+                $source->setDate(new \DateTime());
+
+                $this->em->persist($source);
+            }
+
+            $source->setOriginalFile($item->getOriginalFile());
+            $source->setOriginalContentLength($item->getOriginalContentLength());
+            $source->setOriginalLastModified($item->getOriginalLastModified());
+
+            $this->em->flush();
+            $this->em->getConnection()->commit();
+
+            return $source;
+        } catch (DBALException $dbalException) {
+            $this->em->getConnection()->rollBack();
+
+            throw $dbalException;
         }
-
-        $source->setOriginalFile($item->getOriginalFile());
-        $source->setOriginalContentLength($item->getOriginalContentLength());
-        $source->setOriginalLastModified($item->getOriginalLastModified());
-
-        $this->em->flush();
-
-        return $source;
     }
 
     /**
@@ -213,9 +238,6 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
      * @param Material $material
      *
      * @return bool
-     *
-     * @throws MaterialTypeException
-     * @throws OpenPlatformSearchException
      */
     private function mapDatawellSearch(Material $material): bool
     {
@@ -276,7 +298,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
      *
      * @return bool
      *
-     * @throws \Doctrine\DBAL\Exception
+     * @throws DBALException
      */
     private function mapCatalogIdentifier(string $identifier): bool
     {
@@ -286,68 +308,46 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
             $searchRepos = $this->em->getRepository(Search::class);
             $faust = null;
 
+            // Try to get basic pid.
+            $faust = Material::translatePidToFaust($identifier);
+
+            // There may exist a race condition when multiple queues are
+            // running. To ensure we don't insert duplicates we need to
+            // wrap our search/update/insert in a transaction.
+            $this->em->getConnection()->beginTransaction();
+
             try {
-                // Try to get basic pid.
-                $faust = Material::translatePidToFaust($identifier);
-
-                // There may exist a race condition when multiple queues are
-                // running. To ensure we don't insert duplicates we need to
-                // wrap our search/update/insert in a transaction.
-                $this->em->getConnection()->beginTransaction();
-
-                try {
-                    /* @var Search $search */
-                    $search = $searchRepos->findOneBy([
+                /* @var Search $search */
+                $search = $searchRepos->findOneBy([
                         'isIdentifier' => $faust,
                         'isType' => IdentifierType::FAUST,
                     ]);
 
-                    if (!empty($search)) {
-                        $newSearch = new Search();
-                        $newSearch->setIsType(IdentifierType::PID)
+                if (!empty($search)) {
+                    $newSearch = new Search();
+                    $newSearch->setIsType(IdentifierType::PID)
                             ->setIsIdentifier($identifier)
                             ->setSource($search->getSource())
                             ->setImageUrl((string) $search->getImageUrl())
                             ->setImageFormat((string) $search->getImageFormat())
                             ->setWidth($search->getWidth())
                             ->setHeight($search->getHeight());
-                        $this->em->persist($newSearch);
+                    $this->em->persist($newSearch);
 
-                        $this->em->flush();
-                        $this->em->getConnection()->commit();
+                    $this->em->flush();
+                    $this->em->getConnection()->commit();
 
-                        // Log that a new record was created.
-                        $this->metricsService->counter('no_hit_katelog_mapped', 'No-hit katelog was mapped', 1, ['type' => 'nohit']);
-                        $this->logger->info('Katalog recorded have been generated', [
-                            'service' => 'SearchNoHitsProcessor',
-                            'message' => 'New katalog search record have been generated',
-                            'identifier' => $identifier,
-                            'source' => $faust,
-                        ]);
+                    // Log that a new record was created.
+                    $this->metricsService->counter('no_hit_katelog_mapped', 'No-hit katelog was mapped', 1, ['type' => 'nohit']);
 
-                        return true;
-                    } else {
-                        $this->metricsService->counter('no_hit_katelog_not_mapped', 'No-hit katelog not mapped', 1, ['type' => 'nohit']);
-                    }
-                } catch (\Exception $exception) {
-                    $this->em->getConnection()->rollBack();
-
-                    $this->metricsService->counter('no_hit_katelog_error', 'No-hit katelog error', 1, ['type' => 'nohit']);
-                    $this->logger->error('Database exception: '.$exception::class, [
-                        'service' => 'SearchNoHitsProcessor',
-                        'message' => $exception->getMessage(),
-                        'identifier' => $identifier,
-                        'source' => $faust,
-                    ]);
+                    return true;
+                } else {
+                    $this->metricsService->counter('no_hit_katelog_not_mapped', 'No-hit katelog not mapped', 1, ['type' => 'nohit']);
                 }
-            } catch (ConnectionException $exception) {
-                $this->metricsService->counter('no_hit_katelog_error', 'No-hit katelog error', 1, ['type' => 'nohit']);
-                $this->logger->error('Database Connection Exception', [
-                    'service' => 'SearchNoHitsProcessor',
-                    'message' => $exception->getMessage(),
-                    'identifier' => $identifier,
-                    'source' => $faust ?: 'unknown',
-                ]);
+            } catch (DBALException $exception) {
+                $this->em->getConnection()->rollBack();
+
+                throw $exception;
             }
         }
 
