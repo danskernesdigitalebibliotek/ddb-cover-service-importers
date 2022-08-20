@@ -6,7 +6,7 @@ use App\Exception\UnknownVendorServiceException;
 use App\Exception\UnsupportedIdentifierTypeException;
 use App\Utils\CoverVendor\UnverifiedVendorImageItem;
 
-interface SupportsSingleIdentifierInterface
+interface VendorServiceSingleIdentifierInterface
 {
     /**
      * Get an unverified image item for the identifier of the given type.
