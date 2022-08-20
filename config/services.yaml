@@ -36,7 +36,7 @@ services:
             calls:
                 - setVendorCoreService: ['@App\Service\VendorService\VendorCoreService']
 
-        App\Service\VendorService\SupportsSingleIdentifierInterface:
+        App\Service\VendorService\VendorServiceSingleIdentifierInterface:
             tags: [ app.handler.single_identifier_vendor ]
 
     # makes classes in src/ available to be used as services
