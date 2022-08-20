@@ -256,6 +256,7 @@ final class VendorCoreService
      * @param array $identifierArray
      *   Array of found identification numbers
      *
+     * @return int
      *   The number of source materials deleted
      */
     public function deleteRemovedMaterials(array &$identifierArray): int
@@ -306,9 +307,11 @@ final class VendorCoreService
     /**
      * Log result of an vendor import.
      *
-     * @param vendorStatus $status
-     *   The vendor status object
-     *
+     * @param int $vendorId
+     * @param int $count
+     * @param int $inserted
+     * @param int $updated
+     * 
      * @throws UnknownVendorServiceException
      */
     private function logStatusMetrics(int $vendorId, int $count, int $inserted, int $updated): void

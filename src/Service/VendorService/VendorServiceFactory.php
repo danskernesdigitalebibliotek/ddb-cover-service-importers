@@ -17,6 +17,12 @@ class VendorServiceFactory
     /** @var VendorServiceInterface[] */
     private array $vendorServices;
 
+    /** @var VendorServiceImporterInterface[] */
+    private array $vendorServiceImporters;
+
+    /** @var VendorServiceSingleIdentifierInterface[] */
+    private array $vendorServiceSingleIdentifiers;
+
     /**
      * VendorFactoryService constructor.
      *
@@ -35,6 +41,14 @@ class VendorServiceFactory
             // We are using the classname to match to config row in vendor db table
             $className = $vendor::class;
             $this->vendorServices[$className] = $vendor;
+
+            if ($vendor instanceof VendorServiceImporterInterface) {
+                $this->vendorServiceImporters[$className] = $vendor;
+            }
+
+            if ($vendor instanceof VendorServiceSingleIdentifierInterface) {
+                $this->vendorServiceSingleIdentifiers[$className] = $vendor;
+            }
 
             if (0 === $vendor->getVendorId() || !is_int($vendor->getVendorId())) {
                 throw new IllegalVendorServiceException('VENDOR_ID must be a non-zero integer. Illegal value detected in '.$className);
@@ -94,10 +108,32 @@ class VendorServiceFactory
 
     /**
      * Get all vendor services.
+     *
+     * @return VendorServiceInterface[]
      */
     public function getVendorServices(): array
     {
         return $this->vendorServices;
+    }
+
+    /**
+     * Get all importer vendor services.
+     *
+     * @return VendorServiceImporterInterface[]
+     */
+    public function getVendorServiceImporters(): array
+    {
+        return $this->vendorServiceImporters;
+    }
+
+    /**
+     * Get all single identifier vendor services.
+     *
+     * @return VendorServiceSingleIdentifierInterface[]
+     */
+    public function getVendorServiceSingleIdentifiers(): array
+    {
+        return $this->vendorServiceSingleIdentifiers;
     }
 
     /**
