@@ -311,7 +311,7 @@ final class VendorCoreService
      * @param int $count
      * @param int $inserted
      * @param int $updated
-     * 
+     *
      * @throws UnknownVendorServiceException
      */
     private function logStatusMetrics(int $vendorId, int $count, int $inserted, int $updated): void

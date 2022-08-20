@@ -8,7 +8,6 @@ namespace App\Command\Vendors;
 
 use App\Service\VendorService\VendorServiceFactory;
 use App\Service\VendorService\VendorServiceImporterInterface;
-use App\Service\VendorService\VendorServiceInterface;
 use ItkDev\MetricsBundle\Service\MetricsService;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
