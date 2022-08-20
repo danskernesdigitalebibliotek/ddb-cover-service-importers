@@ -2,9 +2,6 @@
 
 namespace App\Service\VendorService;
 
-use App\Utils\Message\VendorImportResultMessage;
-use Symfony\Component\Console\Helper\ProgressBar;
-
 /**
  * Interface VendorServiceInterface.
  *
