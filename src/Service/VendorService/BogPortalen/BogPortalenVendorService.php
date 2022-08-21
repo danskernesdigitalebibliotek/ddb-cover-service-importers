@@ -118,6 +118,34 @@ class BogPortalenVendorService implements VendorServiceInterface, SupportsSingle
     }
 
     /**
+     * {@inheritDoc}
+     */
+    public function getUnverifiedVendorImageItem(string $identifier, string $type): UnverifiedVendorImageItem
+    {
+        if (!$this->supportsIdentifierType($type)) {
+            throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
+        }
+
+        $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
+
+        $item = new UnverifiedVendorImageItem();
+        $item->setIdentifier($identifier);
+        $item->setIdentifierType($type);
+        $item->setVendor($vendor);
+        $item->setOriginalFile($this->getVendorsImageUrl($identifier));
+
+        return $item;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function supportsIdentifierType(string $type): bool
+    {
+        return IdentifierType::ISBN === $type;
+    }
+
+    /**
      * Set config from service from DB vendor object.
      *
      * @throws UnknownVendorServiceException
@@ -226,31 +254,5 @@ class BogPortalenVendorService implements VendorServiceInterface, SupportsSingle
         // Double 'array_flip' performs 150x faster than 'array_unique'
         // https://stackoverflow.com/questions/8321620/array-unique-vs-array-flip
         return array_flip(array_flip($isbnList));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getUnverifiedVendorImageItem(string $identifier, string $type): UnverifiedVendorImageItem
-    {
-        if (!$this->supportsIdentifierType($type)) {
-            throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
-        }
-
-        $item = new UnverifiedVendorImageItem();
-        $item->setIdentifier($identifier);
-        $item->setIdentifierType($type);
-        $item->setVendor($this->vendorCoreService->getVendor(self::VENDOR_ID));
-        $item->setOriginalFile($this->getVendorsImageUrl($identifier));
-
-        return $item;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function supportsIdentifierType(string $type): bool
-    {
-        return IdentifierType::ISBN === $type;
     }
 }
