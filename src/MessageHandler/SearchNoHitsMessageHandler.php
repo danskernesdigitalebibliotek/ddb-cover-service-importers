@@ -276,7 +276,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
             $source = $sourceRepository->findOneByVendorRank($is->getType(), $is->getId());
 
             // If we have a 'source' that match the material from the datawell we create the relevant jobs
-            // to re-index the source entities
+            // to re-index the source entities.
             if ($source instanceof Source) {
                 // A 'source' is not guaranteed to have a valid image in the CDN.
                 // If it doesn't it should not be indexed.
