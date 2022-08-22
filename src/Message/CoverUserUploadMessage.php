@@ -19,7 +19,7 @@ class CoverUserUploadMessage
     private string $identifier;
     private string $imageUrl;
     private string $accrediting;
-    private mixed $vendorId;
+    private int $vendorId;
     private string $traceId;
 
     public function getOperation(): string
@@ -100,7 +100,7 @@ class CoverUserUploadMessage
     /**
      * @return mixed
      */
-    public function getVendorId(): mixed
+    public function getVendorId(): int
     {
         return $this->vendorId;
     }
@@ -110,7 +110,7 @@ class CoverUserUploadMessage
      *
      * @return static
      */
-    public function setVendorId(mixed $vendorId): self
+    public function setVendorId(int $vendorId): self
     {
         $this->vendorId = $vendorId;
 
