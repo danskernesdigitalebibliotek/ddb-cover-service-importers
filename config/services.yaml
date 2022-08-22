@@ -36,6 +36,9 @@ services:
             calls:
                 - setVendorCoreService: ['@App\Service\VendorService\VendorCoreService']
 
+        App\Service\VendorService\SupportsSingleIdentifierInterface:
+            tags: [ app.handler.single_identifier_vendor ]
+
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name
     App\:
@@ -89,3 +92,7 @@ services:
     App\Service\CoverStore\CloudinaryTransformationService:
         arguments:
             $transformations: '%env(yml:file:resolve:CLOUDINARY_CONFIG_FILE)%'
+
+    App\MessageHandler\SearchNoHitsMessageHandler:
+        arguments:
+            $singleIdentifierVendors: !tagged_iterator app.handler.single_identifier_vendor

@@ -7,11 +7,13 @@
 
 namespace App\Utils\CoverVendor;
 
+use App\Entity\Vendor;
+
 class VendorImageItem implements \Stringable
 {
     private bool $found = false;
     private bool $updated = false;
-    private string $vendor;
+    private Vendor $vendor;
     private string $originalFile;
     private \DateTime $originalLastModified;
     private int $originalContentLength;
@@ -21,7 +23,7 @@ class VendorImageItem implements \Stringable
         $output = [];
 
         $output[] = str_repeat('-', 42);
-        $output[] = 'Vendor: '.$this->getVendor();
+        $output[] = 'Vendor: '.$this->getVendor()->getName();
         $output[] = 'Original file: '.$this->getOriginalFile();
         $output[] = str_repeat('-', 42);
 
@@ -58,17 +60,17 @@ class VendorImageItem implements \Stringable
         return $this;
     }
 
-    public function getVendor(): string
+    public function getVendor(): Vendor
     {
         return $this->vendor;
     }
 
     /**
-     * @param $vendor
+     * @param Vendor $vendor
      *
      * @return static
      */
-    public function setVendor($vendor): self
+    public function setVendor(Vendor $vendor): self
     {
         $this->vendor = $vendor;
 

@@ -9,6 +9,7 @@ namespace App\MessageHandler;
 
 use App\Entity\Source;
 use App\Entity\Vendor;
+use App\Exception\UnknownVendorServiceException;
 use App\Message\CoverUserUploadMessage;
 use App\Message\DeleteMessage;
 use App\Message\VendorImageMessage;
@@ -16,6 +17,7 @@ use App\Repository\SourceRepository;
 use App\Service\VendorService\UserUpload\UserUploadVendorService;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Query\QueryException;
 use ItkDev\MetricsBundle\Service\MetricsService;
 use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -46,7 +48,8 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
     /**
      * @param CoverUserUploadMessage $userUploadMessage
      *
-     * @throws \Doctrine\ORM\Query\QueryException
+     * @throws QueryException
+     * @throws UnknownVendorServiceException
      */
     public function __invoke(CoverUserUploadMessage $userUploadMessage)
     {
@@ -95,7 +98,7 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
      *
      *   True on insert and false on update
      *
-     * @throws \Doctrine\ORM\Query\QueryException
+     * @throws QueryException
      */
     private function createUpdateSource(CoverUserUploadMessage $userUploadMessage, Vendor $vendor): bool
     {

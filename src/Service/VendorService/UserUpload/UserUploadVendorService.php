@@ -7,6 +7,7 @@
 namespace App\Service\VendorService\UserUpload;
 
 use App\Entity\Vendor;
+use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
@@ -35,7 +36,7 @@ class UserUploadVendorService implements VendorServiceInterface
      *
      *   Vendor entity
      *
-     * @throws \App\Exception\UnknownVendorServiceException
+     * @throws UnknownVendorServiceException
      */
     public function getVendorEntity(): Vendor
     {
