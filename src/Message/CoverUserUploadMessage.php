@@ -98,7 +98,7 @@ class CoverUserUploadMessage
     }
 
     /**
-     * @return mixed
+     * @return int
      */
     public function getVendorId(): int
     {
@@ -106,7 +106,7 @@ class CoverUserUploadMessage
     }
 
     /**
-     * @param mixed $vendorId
+     * @param int $vendorId
      *
      * @return static
      */
