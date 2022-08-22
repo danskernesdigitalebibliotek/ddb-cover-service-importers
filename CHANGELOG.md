@@ -11,6 +11,16 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+### Added
+- Support for hasCover services.
+
+## [3.0.1] - 2022-08-16
+
+### Changed
+- Updated metrics bundle.
+
+## [3.0.0] - 2022-08-15
+
 ### Changed
 - Updated url pattern in Datawell vendor url converter
 - Updated code base with types to prepare for PHP 8.
@@ -24,7 +34,6 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ### Removed
 - Removed FOS elasticsearch bundle and Elastica library.
->>>>>>> 1ec0053 (DDBTEAM-0101: POC on populate with clean elasticsearch php library)
 
 ## [2.3.3] - 2022-05-19
 

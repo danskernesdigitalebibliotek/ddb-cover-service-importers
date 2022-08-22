@@ -77,6 +77,11 @@ services:
             $cloudinaryApiKey: '%env(string:CLOUDINARY_API_KEY)%'
             $cloudinaryApiSecret: '%env(string:CLOUDINARY_API_SECRET)%'
 
+    App\Service\HasCoverService:
+        arguments:
+            $enabled: '%env(bool:HAS_COVER_ENABLED)%'
+            $hasCoverServiceUrl: '%env(string:HAS_COVER_SERVICE_URL)%'
+
     App\Service\Indexing\IndexingElasticService:
         arguments:
             $indexAliasName: '%env(INDEXING_ALIAS)%'
