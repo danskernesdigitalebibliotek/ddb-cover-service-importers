@@ -11,6 +11,8 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+## [3.1.0] - 2022-08-22
+
 ### Added
 - Support for hasCover services.
 
