@@ -10,6 +10,7 @@ use App\Exception\UnknownVendorServiceException;
 use App\Exception\UnsupportedIdentifierTypeException;
 use App\Service\VendorService\FtpDownloadService;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorServiceImporterInterface;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceSingleIdentifierInterface;
 use App\Service\VendorService\VendorServiceTrait;
@@ -22,7 +23,7 @@ use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 /**
  * Class BogPortalenVendorService.
  */
-class BogPortalenVendorService implements VendorServiceInterface, VendorServiceSingleIdentifierInterface
+class BogPortalenVendorService implements VendorServiceImporterInterface, VendorServiceSingleIdentifierInterface
 {
     use ProgressBarTrait;
     use VendorServiceTrait;

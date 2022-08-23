@@ -10,6 +10,7 @@ namespace App\Service\VendorService\OverDrive;
 use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\OverDrive\Api\Client;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorServiceImporterInterface;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
@@ -20,7 +21,7 @@ use Psr\Cache\InvalidArgumentException;
 /**
  * Class OverDriveBooksVendorService.
  */
-class OverDriveBooksVendorService implements VendorServiceInterface
+class OverDriveBooksVendorService implements VendorServiceImporterInterface
 {
     use ProgressBarTrait;
     use VendorServiceTrait;

@@ -8,6 +8,7 @@ namespace App\Service\VendorService\Saxo;
 
 use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorServiceImporterInterface;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
@@ -21,7 +22,7 @@ use Symfony\Component\Config\FileLocator;
 /**
  * Class SaxoVendorService.
  */
-class SaxoVendorService implements VendorServiceInterface
+class SaxoVendorService implements VendorServiceImporterInterface
 {
     use ProgressBarTrait;
     use VendorServiceTrait;

@@ -9,6 +9,7 @@ namespace App\Service\VendorService\DataWell;
 
 use App\Service\VendorService\DataWell\DataConverter\AmazonPublicUrlConverter;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\VendorServiceImporterInterface;
 use App\Service\VendorService\VendorServiceInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
@@ -18,7 +19,7 @@ use App\Utils\Types\VendorStatus;
 /**
  * Class DataWellVendorService.
  */
-class DataWellVendorService implements VendorServiceInterface
+class DataWellVendorService implements VendorServiceImporterInterface
 {
     use ProgressBarTrait;
     use VendorServiceTrait;
