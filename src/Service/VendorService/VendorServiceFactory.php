@@ -188,11 +188,11 @@ class VendorServiceFactory
     public function getVendorServiceImporterByName(string $name): VendorServiceImporterInterface
     {
         $vendor = $this->getVendorServiceByName($name);
-        
+
         if (!$vendor instanceof VendorServiceImporterInterface) {
             throw new UnknownVendorServiceException('No importer vendor found with name: '.$name);
         }
-        
+
         return $vendor;
     }
 }
