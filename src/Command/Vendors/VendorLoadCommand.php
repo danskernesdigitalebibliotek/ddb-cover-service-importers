@@ -100,7 +100,7 @@ class VendorLoadCommand extends Command
             $vendorServices = $this->vendorFactory->getVendorServiceImporters();
         } elseif ('none' !== $vendor) {
             // If answer is not 'none' it must be specific vendor
-            $vendorServices[] = $this->vendorFactory->getVendorServiceByName($vendor);
+            $vendorServices[] = $this->vendorFactory->getVendorServiceImporterByName($vendor);
         }
 
         $io = new SymfonyStyle($input, $output);

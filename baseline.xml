@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.24.0@06dd975cb55d36af80f242561738f16c5f58264f">
+<files psalm-version="4.26.0@6998fabb2bf528b65777bf9941920888d23c03ac">
   <file src="src/Command/HasCoverCommand.php">
     <UndefinedInterfaceMethod occurrences="1">
       <code>section</code>
@@ -53,16 +53,6 @@
       <code>$faker-&gt;width</code>
     </UndefinedMagicPropertyFetch>
   </file>
-  <file src="src/EnvVarProcessor/TraceIdEnvVarProcessor.php">
-    <UndefinedAttributeClass occurrences="1">
-      <code>ArrayShape</code>
-    </UndefinedAttributeClass>
-  </file>
-  <file src="src/EnvVarProcessor/YmlEnvVarProcessor.php">
-    <UndefinedAttributeClass occurrences="1">
-      <code>ArrayShape</code>
-    </UndefinedAttributeClass>
-  </file>
   <file src="src/Exception/XmlReaderException.php">
     <UndefinedClass occurrences="1">
       <code>Throwable</code>
@@ -93,9 +83,6 @@
     </InvalidScalarArgument>
   </file>
   <file src="src/Service/Indexing/IndexingElasticService.php">
-    <MethodSignatureMismatch occurrences="1">
-      <code>$items</code>
-    </MethodSignatureMismatch>
     <PossiblyUndefinedMethod occurrences="9">
       <code>asArray</code>
       <code>getStatusCode</code>
@@ -112,27 +99,12 @@
       <code>isset($this-&gt;newIndexName)</code>
     </RedundantPropertyInitializationCheck>
   </file>
-  <file src="src/Service/PopulateService.php">
-    <InvalidReturnStatement occurrences="1">
-      <code>return;</code>
-    </InvalidReturnStatement>
-  </file>
   <file src="src/Service/VendorService/DataWell/DataWellVendorService.php">
     <PossiblyNullArgument occurrences="3">
       <code>$vendor-&gt;getDataServerPassword()</code>
       <code>$vendor-&gt;getDataServerURI()</code>
       <code>$vendor-&gt;getDataServerUser()</code>
     </PossiblyNullArgument>
-  </file>
-  <file src="src/Service/VendorService/EbookCentral/EbookCentralVendorService.php">
-    <InvalidArgument occurrences="1">
-      <code>true</code>
-    </InvalidArgument>
-  </file>
-  <file src="src/Service/VendorService/OverDrive/Api/Client.php">
-    <UndefinedAttributeClass occurrences="1">
-      <code>ArrayShape</code>
-    </UndefinedAttributeClass>
   </file>
   <file src="src/Service/VendorService/OverDrive/OverDriveBooksVendorService.php">
     <PossiblyNullArgument occurrences="3">
