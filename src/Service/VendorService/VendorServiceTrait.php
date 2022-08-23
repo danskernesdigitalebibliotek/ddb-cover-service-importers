@@ -6,6 +6,7 @@
 
 namespace App\Service\VendorService;
 
+use App\Entity\Vendor;
 use App\Exception\UnknownVendorServiceException;
 
 /**
@@ -35,6 +36,7 @@ trait VendorServiceTrait
     /**
      * Get vendor id.
      *
+     * @return int
      *   The ID of the current loaded vendor
      */
     public function getVendorId(): int
@@ -45,6 +47,7 @@ trait VendorServiceTrait
     /**
      * Get name of the currently loaded vendor.
      *
+     * @return string
      *   Vendor name
      *
      * @throws UnknownVendorServiceException
@@ -52,6 +55,19 @@ trait VendorServiceTrait
     public function getVendorName(): string
     {
         return $this->vendorCoreService->getVendorName($this->getVendorId());
+    }
+
+    /**
+     * Get the currently loaded vendor.
+     *
+     * @return Vendor
+     *   The vendor entity
+     *
+     * @throws UnknownVendorServiceException
+     */
+    public function getVendor(): Vendor
+    {
+        return $this->vendorCoreService->getVendor($this->getVendorId());
     }
 
     /**

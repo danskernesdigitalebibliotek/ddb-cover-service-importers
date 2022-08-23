@@ -18,28 +18,7 @@ use App\Utils\Message\VendorImportResultMessage;
  */
 class UserUploadVendorService implements VendorServiceInterface
 {
-    use ProgressBarTrait;
     use VendorServiceTrait;
 
     protected const VENDOR_ID = 15;
-
-    /**
-     * {@inheritdoc}
-     */
-    public function load(): VendorImportResultMessage
-    {
-        throw new \RuntimeException('This vendor is not runnable');
-    }
-
-    /**
-     * Get entity for this vendor.
-     *
-     *   Vendor entity
-     *
-     * @throws UnknownVendorServiceException
-     */
-    public function getVendorEntity(): Vendor
-    {
-        return $this->vendorCoreService->getVendor(self::VENDOR_ID);
-    }
 }
