@@ -15,8 +15,8 @@ use App\Message\SearchMessage;
 use App\Message\SearchNoHitsMessage;
 use App\Message\VendorImageMessage;
 use App\Service\OpenPlatform\SearchService;
-use App\Service\VendorService\SupportsSingleIdentifierInterface;
 use App\Service\VendorService\VendorImageValidatorService;
+use App\Service\VendorService\VendorServiceSingleIdentifierInterface;
 use App\Utils\CoverVendor\UnverifiedVendorImageItem;
 use App\Utils\CoverVendor\VendorImageItem;
 use App\Utils\OpenPlatform\Material;
@@ -140,7 +140,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
         $items = [];
 
         foreach ($material->getIdentifiers() as $identifier) {
-            /** @var SupportsSingleIdentifierInterface $vendor */
+            /** @var VendorServiceSingleIdentifierInterface $vendor */
             foreach ($this->singleIdentifierVendors as $vendor) {
                 if ($vendor->supportsIdentifierType($identifier->getType())) {
                     $items[] = $vendor->getUnverifiedVendorImageItem($identifier->getId(), $identifier->getType());

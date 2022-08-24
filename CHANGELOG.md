@@ -15,6 +15,11 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ### Added
 - Support for hasCover services.
+- "single cover" vendor for no hits processing.
+- "OpenLibrary" single cover vendor.
+
+### Changed
+- Added "single cover" support to Bogportalen vendor.
 
 ## [3.0.1] - 2022-08-16
 

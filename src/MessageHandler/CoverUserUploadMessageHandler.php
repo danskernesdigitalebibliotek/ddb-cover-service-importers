@@ -53,7 +53,7 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
      */
     public function __invoke(CoverUserUploadMessage $userUploadMessage)
     {
-        $vendor = $this->userUploadVendorService->getVendorEntity();
+        $vendor = $this->userUploadVendorService->getVendor();
         $labels = [
             'type' => 'vendor',
             'vendorName' => $vendor->getName(),

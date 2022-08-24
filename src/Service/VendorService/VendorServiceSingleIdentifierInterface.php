@@ -6,7 +6,12 @@ use App\Exception\UnknownVendorServiceException;
 use App\Exception\UnsupportedIdentifierTypeException;
 use App\Utils\CoverVendor\UnverifiedVendorImageItem;
 
-interface SupportsSingleIdentifierInterface
+/**
+ * Interface VendorServiceSingleIdentifierInterface.
+ *
+ * All single identifier vendors should implement this interface to ensure they are discovered by the system.
+ */
+interface VendorServiceSingleIdentifierInterface extends VendorServiceInterface
 {
     /**
      * Get an unverified image item for the identifier of the given type.

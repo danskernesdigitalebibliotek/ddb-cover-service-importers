@@ -10,7 +10,7 @@ use App\Exception\UnknownVendorServiceException;
 use App\Service\DataWell\SearchService;
 use App\Service\VendorService\OverDrive\Api\Client;
 use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceImporterInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
@@ -20,7 +20,7 @@ use Psr\Cache\InvalidArgumentException;
 /**
  * Class OverDriveMagazinesVendorService.
  */
-class OverDriveMagazinesVendorService implements VendorServiceInterface
+class OverDriveMagazinesVendorService implements VendorServiceImporterInterface
 {
     use ProgressBarTrait;
     use VendorServiceTrait;
