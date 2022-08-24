@@ -30,10 +30,12 @@ class OpenLibraryVendor implements VendorServiceSingleIdentifierInterface
             throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
         }
 
+        $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
+
         $item = new UnverifiedVendorImageItem();
         $item->setIdentifier($identifier);
         $item->setIdentifierType($type);
-        $item->setVendor($this->vendorCoreService->getVendor(self::VENDOR_ID));
+        $item->setVendor($vendor);
         $item->setOriginalFile($this->getVendorsImageUrl($identifier));
 
         return $item;
@@ -52,6 +54,6 @@ class OpenLibraryVendor implements VendorServiceSingleIdentifierInterface
      */
     private function getVendorsImageUrl(string $isbn): string
     {
-        return sprintf(self::COVER_URL_FORMAT, $isbn);
+        return \sprintf(self::COVER_URL_FORMAT, $isbn);
     }
 }
