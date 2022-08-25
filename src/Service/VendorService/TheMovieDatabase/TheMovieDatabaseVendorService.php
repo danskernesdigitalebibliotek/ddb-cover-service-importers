@@ -57,7 +57,7 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService
                     $creators = array_key_exists('creator', $record) ? $object['record']['creator'] : null;
                     $director = $this->getDirector($creators ?? []);
 
-                    $posterUrl = $this->api->searchPosterUrl($title, $originalYear, $director);
+                    $posterUrl = $this->api->searchPosterUrl(title: $title, originalYear: $originalYear, director: $director);
 
                     $data[$pid] = $posterUrl;
                 }
@@ -73,9 +73,9 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService
      * @param array $descriptions
      *   Search array of descriptions
      *
-     * @return false|string The original year or null
+     * @return ?string The original year or null
      */
-    private function getOriginalYear(array $descriptions): false|string
+    private function getOriginalYear(array $descriptions): ?string
     {
         $matches = [];
 
@@ -103,7 +103,7 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService
             return $confirmedMatches[0];
         }
 
-        return false;
+        return null;
     }
 
     /**

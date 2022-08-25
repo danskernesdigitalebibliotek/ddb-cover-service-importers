@@ -88,7 +88,7 @@ services:
 
     App\Service\Indexing\IndexingServiceInterface: '@App\Service\Indexing\IndexingElasticService'
 
-    App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiService:
+    App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiClient:
         arguments:
             $apiKey: '%env(THEMOVIEDATABASE_APIKEY)%'
 

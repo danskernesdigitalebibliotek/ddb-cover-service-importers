@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains TheMovieDatabaseApiService for searching in TheMovieDatabase.
+ * Contains TheMovieDatabaseApiClient for searching in TheMovieDatabase.
  */
 
 namespace App\Service\VendorService\TheMovieDatabase;
@@ -21,7 +21,7 @@ class TheMovieDatabaseApiClient
     private const BASE_IMAGE_PATH = 'https://image.tmdb.org/t/p/original';
 
     /**
-     * TheMovieDatabaseApiService constructor.
+     * TheMovieDatabaseApiClient constructor.
      *
      * @param string $apiKey
      * @param HttpClientInterface $httpClient
@@ -47,7 +47,7 @@ class TheMovieDatabaseApiClient
      * @return string|null
      *   The poster url or null
      */
-    public function searchPosterUrl(string $title = null, string $originalYear = null, string $director = null): ?string
+    public function searchPosterUrl(?string $title = null, ?string $originalYear = null, ?string $director = null): ?string
     {
         $posterUrl = null;
 
