@@ -5,7 +5,7 @@
  * Use a library's data well access to get comic+ covers.
  */
 
-namespace App\Service\VendorService\DataWell;
+namespace App\Service\VendorService\BlockBuster;
 
 use App\Service\VendorService\AbstractDataWellVendorService;
 
@@ -17,7 +17,7 @@ class BlockBusterVendorService extends AbstractDataWellVendorService
     protected const VENDOR_ID = 20;
     protected const DATAWELL_URL_RELATION = 'dbcaddi:hasImage';
 
-    protected array $datawellQuery = ['term.acSource=Libry films'];
+    protected array $datawellQuery = ['term.acSource=Library films'];
 
     /**
      * {@inheritdoc}
