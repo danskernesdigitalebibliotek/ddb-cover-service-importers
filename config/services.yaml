@@ -13,11 +13,6 @@ parameters:
     openPlatform.search.ttl: '%env(OPENPLATFORM_SEARCH_TTL)%'
     openPlatform.search.profile: '%env(OPENPLATFORM_SEARCH_PROFILE)%'
     openPlatform.search.limit: '%env(OPENPLATFORM_SEARCH_LIMIT)%'
-    datawell.vendor.agency: '%env(DATAWELL_VENDOR_AGENCY)%'
-    datawell.vendor.profile: '%env(DATAWELL_VENDOR_PROFILE)%'
-    datawell.vendor.search_url: '%env(DATAWELL_VENDOR_SEARCH_URL)%'
-    datawell.vendor.user: '%env(DATAWELL_VENDOR_USER)%'
-    datawell.vendor.password: '%env(DATAWELL_VENDOR_PASSWORD)%'
     es_config: {'hosts': ['%env(INDEXING_URL)%']}
 
 services:
@@ -54,34 +49,33 @@ services:
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
 
-    App\Service\Indexing\IndexingServiceInterface: '@App\Service\Indexing\IndexingElasticService'
-
-    Elastic\Elasticsearch\ClientBuilder: ~
-    Elastic\Elasticsearch\Client:
-        factory: ['@Elastic\Elasticsearch\ClientBuilder', fromConfig]
-        arguments: ['%es_config%']
-
-    monolog.formatter.json:
-        class: Monolog\Formatter\JsonFormatter
-
     App\Logger\TraceIdProcessor:
         arguments:
             $traceId: '%env(traceId:HTTP_X_REQUEST_ID)%'
         tags:
             - { name: monolog.processor }
 
-    App\Service\VendorService\VendorServiceFactory:
-        arguments: [!tagged app.vendor.service]
-
-    App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiService:
+    App\MessageHandler\SearchNoHitsMessageHandler:
         arguments:
-            $apiKey: '%env(THEMOVIEDATABASE_APIKEY)%'
+            $singleIdentifierVendors: !tagged_iterator app.vendor.service.single_identifier
+
+    App\Service\CoverStore\CloudinaryTransformationService:
+        arguments:
+            $transformations: '%env(yml:file:resolve:CLOUDINARY_CONFIG_FILE)%'
 
     App\Service\CoverStore\CloudinaryCoverStoreService:
         arguments:
             $cloudinaryCloudName: '%env(string:CLOUDINARY_CLOUD_NAME)%'
             $cloudinaryApiKey: '%env(string:CLOUDINARY_API_KEY)%'
             $cloudinaryApiSecret: '%env(string:CLOUDINARY_API_SECRET)%'
+
+    App\Service\DataWell\DataWellClient:
+        arguments:
+            $agency: '%env(DATAWELL_VENDOR_AGENCY)%'
+            $profile: '%env(DATAWELL_VENDOR_PROFILE)%'
+            $searchURL: '%env(DATAWELL_VENDOR_SEARCH_URL)%'
+            $user: '%env(DATAWELL_VENDOR_USER)%'
+            $password: '%env(DATAWELL_VENDOR_PASSWORD)%'
 
     App\Service\HasCoverService:
         arguments:
@@ -92,10 +86,20 @@ services:
         arguments:
             $indexAliasName: '%env(INDEXING_ALIAS)%'
 
-    App\Service\CoverStore\CloudinaryTransformationService:
-        arguments:
-            $transformations: '%env(yml:file:resolve:CLOUDINARY_CONFIG_FILE)%'
+    App\Service\Indexing\IndexingServiceInterface: '@App\Service\Indexing\IndexingElasticService'
 
-    App\MessageHandler\SearchNoHitsMessageHandler:
+    App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiService:
         arguments:
-            $singleIdentifierVendors: !tagged_iterator app.vendor.service.single_identifier
+            $apiKey: '%env(THEMOVIEDATABASE_APIKEY)%'
+
+    App\Service\VendorService\VendorServiceFactory:
+        arguments: [!tagged app.vendor.service]
+
+    Elastic\Elasticsearch\Client:
+        factory: ['@Elastic\Elasticsearch\ClientBuilder', fromConfig]
+        arguments: ['%es_config%']
+
+    Elastic\Elasticsearch\ClientBuilder: ~
+
+    monolog.formatter.json:
+        class: Monolog\Formatter\JsonFormatter

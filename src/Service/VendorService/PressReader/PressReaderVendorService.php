@@ -7,113 +7,64 @@
 
 namespace App\Service\VendorService\PressReader;
 
-use App\Service\VendorService\DataWell\DataWellSearchService;
-use App\Service\VendorService\ProgressBarTrait;
+use App\Service\DataWell\DataWellClient;
+use App\Service\VendorService\AbstractDataWellVendorService;
 use App\Service\VendorService\VendorImageValidatorService;
-use App\Service\VendorService\VendorServiceImporterInterface;
-use App\Service\VendorService\VendorServiceTrait;
-use App\Utils\Message\VendorImportResultMessage;
-use App\Utils\Types\IdentifierType;
-use App\Utils\Types\VendorStatus;
 
 /**
  * Class PressReaderVendorService.
  */
-class PressReaderVendorService implements VendorServiceImporterInterface
+class PressReaderVendorService extends AbstractDataWellVendorService
 {
-    use ProgressBarTrait;
-    use VendorServiceTrait;
-
     protected const VENDOR_ID = 19;
-    private const VENDOR_ARCHIVE_NAME = 'pressreader';
     private const URL_PATTERN = 'https://i.prcdn.co/img?cid=%s&page=1&width=1200';
     private const MIN_IMAGE_SIZE = 40000;
+
+    protected array $datawellQuery = ['facet.acSource="pressreader"'];
 
     /**
      * DataWellVendorService constructor.
      *
-     * @param DataWellSearchService $datawell
+     * @param DataWellClient $datawell
      *   For searching the data well
+     * @param VendorImageValidatorService $imageValidatorService
+     *   Image validator
      */
     public function __construct(
-        private readonly DataWellSearchService $datawell,
+        protected readonly DataWellClient $datawell,
         private readonly VendorImageValidatorService $imageValidatorService
     ) {
+        parent::__construct($datawell);
     }
 
     /**
-     * @{@inheritdoc}
+     * {@inheritdoc}
      */
-    public function load(): VendorImportResultMessage
+    protected function extractData(array $jsonContent): array
     {
-        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
-            return VendorImportResultMessage::error(self::ERROR_RUNNING);
-        }
+        $pidArray = $this->datawell->extractData($jsonContent);
+        $this->transformUrls($pidArray);
 
-        // We're lazy loading the config to avoid errors from missing config values on dependency injection
-        $this->loadConfig();
-
-        $status = new VendorStatus();
-
-        $this->progressStart('Search data well for: "'.self::VENDOR_ARCHIVE_NAME.'"');
-
-        $offset = 1;
-        try {
-            do {
-                // Search the data well for material with acSource set to "pressreader".
-                [$pidArray, $more, $offset] = $this->datawell->search(self::VENDOR_ARCHIVE_NAME, $offset);
-                $this->transformUrls($pidArray);
-
-                // The press reader CDN insert at special image saying that the content is not updated for newest news
-                // cover. See https://i.prcdn.co/img?cid=9L09&page=1&width=1200, but the size will be under 40Kb, so we have
-                // this extra test.
-                $pidArray = array_filter($pidArray, function ($url) {
-                    $headers = $this->imageValidatorService->remoteImageHeader('content-length', $url);
-                    if (!empty($headers)) {
-                        $header = reset($headers);
-                        if ($header < $this::MIN_IMAGE_SIZE) {
-                            // Size to little set it to null.
-                            return false;
-                        }
-                    } else {
-                        // Size header not found.
-                        return false;
-                    }
-
-                    return true;
-                });
-
-                $batchSize = count($pidArray);
-                $this->vendorCoreService->updateOrInsertMaterials($status, $pidArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, $batchSize);
-
-                $this->progressMessageFormatted($status);
-                $this->progressAdvance();
-
-                if ($this->limit && $status->records >= $this->limit) {
-                    $more = false;
+        // The press reader CDN insert at special image saying that the content is not updated for newest news
+        // cover. See https://i.prcdn.co/img?cid=9L09&page=1&width=1200, but the size will be under 40Kb, so we have
+        // this extra test.
+        return array_filter($pidArray, function ($url) {
+            $headers = $this->imageValidatorService->remoteImageHeader('content-length', $url);
+            if (!empty($headers)) {
+                $header = reset($headers);
+                if ($header < $this::MIN_IMAGE_SIZE) {
+                    // Size to little set it to null.
+                    return false;
                 }
-            } while ($more);
+            } else {
+                // Size header not found.
+                return false;
+            }
 
-            $this->vendorCoreService->releaseLock($this->getVendorId());
-
-            return VendorImportResultMessage::success($status);
-        } catch (\Exception $exception) {
-            return VendorImportResultMessage::error($exception->getMessage());
-        }
+            return true;
+        });
     }
 
-    /**
-     * Set config from service from DB vendor object.
-     */
-    private function loadConfig(): void
-    {
-        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
-
-        // Set the service access configuration from the vendor.
-        $this->datawell->setSearchUrl($vendor->getDataServerURI());
-        $this->datawell->setUser($vendor->getDataServerUser());
-        $this->datawell->setPassword($vendor->getDataServerPassword());
-    }
 
     /**
      * Transform/substitute the URL from the datawell to CDN https://i.prcdn.co/img?cid={$id}&page=1&width=1200.
