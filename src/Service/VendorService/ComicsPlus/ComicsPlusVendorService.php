@@ -5,7 +5,7 @@
  * Use a library's data well access to get comic+ covers.
  */
 
-namespace App\Service\VendorService\DataWell;
+namespace App\Service\VendorService\ComicsPlus;
 
 use App\Service\VendorService\AbstractDataWellVendorService;
 use App\Service\VendorService\ComicsPlus\DataConverter\AmazonPublicUrlConverter;
