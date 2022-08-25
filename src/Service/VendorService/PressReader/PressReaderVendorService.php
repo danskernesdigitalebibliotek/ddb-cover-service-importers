@@ -65,7 +65,6 @@ class PressReaderVendorService extends AbstractDataWellVendorService
         });
     }
 
-
     /**
      * Transform/substitute the URL from the datawell to CDN https://i.prcdn.co/img?cid={$id}&page=1&width=1200.
      *
