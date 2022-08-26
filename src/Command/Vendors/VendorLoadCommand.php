@@ -146,7 +146,7 @@ class VendorLoadCommand extends Command
     {
         $helper = $this->getHelper('question');
 
-        $names = $this->vendorFactory->getVendorNames();
+        $names = $this->vendorFactory->getVendorImporterNames();
 
         $question = new ChoiceQuestion(
             'Please choose the vendor to load:',

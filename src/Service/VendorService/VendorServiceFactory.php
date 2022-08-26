@@ -137,16 +137,16 @@ class VendorServiceFactory
     }
 
     /**
-     * Get names of all vendor services that have been detected.
+     * Get names of all vendor importer services that have been detected.
      *
      * Only vendors that implements the VendorServiceInterface.
      *
      * @psalm-return list<mixed>
      */
-    public function getVendorNames(): array
+    public function getVendorImporterNames(): array
     {
         $names = [];
-        foreach ($this->getVendorServices() as $vendorService) {
+        foreach ($this->getVendorServiceImporters() as $vendorService) {
             $names[] = $vendorService->getVendorName();
         }
 
