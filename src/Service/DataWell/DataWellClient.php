@@ -52,7 +52,7 @@ class DataWellClient
      *
      * @throws DataWellVendorException
      */
-    public function search(string $query, int $offset = 1): array
+    public function search(string $query, int $offset = 0): array
     {
         try {
             $response = $this->httpClient->request('POST', $this->searchURL, [
@@ -127,12 +127,12 @@ class DataWellClient
     }
 
     /**
-     * Extract PIDs and matching cover urls from response.
+     * Extract PIDs and matching objects from response.
      *
      * @param array $jsonContent
      *   Array of the json decoded data
      *
-     *   Array of all pid => url pairs found in response
+     *   Array of all pid => object pairs found in response
      */
     public function extractData(array $jsonContent): array
     {

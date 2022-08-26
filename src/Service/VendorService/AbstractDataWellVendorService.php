@@ -57,7 +57,7 @@ abstract class AbstractDataWellVendorService implements VendorServiceImporterInt
 
         $this->progressStart('Search data well for: "'.implode(', ', $this->datawellQueries).'"');
 
-        $offset = 1;
+        $offset = 0;
         try {
             foreach ($this->datawellQueries as $datawellQuery) {
                 do {
@@ -66,11 +66,10 @@ abstract class AbstractDataWellVendorService implements VendorServiceImporterInt
 
                     // Extract
                     $pidArray = $this->extractData($jsonContent);
+                    $batchSize = count($pidArray);
 
                     // Remove empty elements.
                     $pidArray = array_filter($pidArray);
-
-                    $batchSize = count($pidArray);
 
                     $this->vendorCoreService->updateOrInsertMaterials(
                         $status,
