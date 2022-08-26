@@ -20,7 +20,7 @@ class PressReaderVendorService extends AbstractDataWellVendorService
     private const URL_PATTERN = 'https://i.prcdn.co/img?cid=%s&page=1&width=1200';
     private const MIN_IMAGE_SIZE = 40000;
 
-    protected array $datawellQuery = ['facet.acSource="pressreader"'];
+    protected array $datawellQueries = ['facet.acSource="pressreader"'];
 
     /**
      * DataWellVendorService constructor.
@@ -34,7 +34,6 @@ class PressReaderVendorService extends AbstractDataWellVendorService
         protected readonly DataWellClient $datawell,
         private readonly VendorImageValidatorService $imageValidatorService
     ) {
-        parent::__construct($datawell);
     }
 
     /**

@@ -19,7 +19,7 @@ class OverDriveMagazinesVendorService extends AbstractDataWellVendorService
     protected const VENDOR_ID = 16;
     private const VENDOR_MAGAZINE_URL_BASE = 'link.overdrive.com';
 
-    protected array $datawellQuery = ['facet.acSource="ereolen magazines"'];
+    protected array $datawellQueries = ['facet.acSource="ereolen magazines"'];
 
     /**
      * OverDriveMagazinesVendorService constructor.

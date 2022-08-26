@@ -61,7 +61,7 @@ abstract class AbstractDataWellVendorService implements VendorServiceImporterInt
         try {
             foreach ($this->datawellQueries as $datawellQuery) {
                 do {
-                    // Search the data well for material with acSource set to "comics plus".
+                    // Search the data well with given query.
                     [$jsonContent, $more, $offset] = $this->datawell->search($datawellQuery, $offset);
 
                     // Extract

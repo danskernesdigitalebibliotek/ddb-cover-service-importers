@@ -106,15 +106,17 @@ class DataWellClient
     {
         $data = [];
 
-        foreach ($jsonContent['searchResponse']['result']['searchResult'] as $item) {
-            foreach ($item['collection']['object'] as $object) {
-                if (isset($object['identifier'])) {
-                    $pid = (string) $object['identifier']['$'];
-                    $data[$pid] = null;
-                    foreach ($object['relations']['relation'] as $relation) {
-                        if ($coverUrlRelationKey === $relation['relationType']['$']) {
-                            $coverUrl = $relation['relationUri']['$'];
-                            $data[$pid] = (string) $coverUrl;
+        if (array_key_exists('searchResult', $jsonContent['searchResponse']['result'])) {
+            foreach ($jsonContent['searchResponse']['result']['searchResult'] as $item) {
+                foreach ($item['collection']['object'] as $object) {
+                    if (isset($object['identifier'])) {
+                        $pid = (string) $object['identifier']['$'];
+                        $data[$pid] = null;
+                        foreach ($object['relations']['relation'] as $relation) {
+                            if ($coverUrlRelationKey === $relation['relationType']['$']) {
+                                $coverUrl = $relation['relationUri']['$'];
+                                $data[$pid] = (string) $coverUrl;
+                            }
                         }
                     }
                 }
@@ -127,19 +129,21 @@ class DataWellClient
     /**
      * Extract PIDs and matching cover urls from response.
      *
-     * @param array $json
+     * @param array $jsonContent
      *   Array of the json decoded data
      *
      *   Array of all pid => url pairs found in response
      */
-    public function extractData(array $json): array
+    public function extractData(array $jsonContent): array
     {
         $data = [];
 
-        foreach ($json['searchResponse']['result']['searchResult'] as $item) {
-            foreach ($item['collection']['object'] as $object) {
-                $pid = $object['identifier']['$'];
-                $data[$pid] = $object;
+        if (array_key_exists('searchResult', $jsonContent['searchResponse']['result'])) {
+            foreach ($jsonContent['searchResponse']['result']['searchResult'] as $item) {
+                foreach ($item['collection']['object'] as $object) {
+                    $pid = $object['identifier']['$'];
+                    $data[$pid] = $object;
+                }
             }
         }
 
@@ -153,16 +157,20 @@ class DataWellClient
      *   Json decode result
      *
      * @return bool
+     *
+     * @throws DataWellVendorException
      */
     private function hasMoreResults(array $jsonContent): bool
     {
-        $more = false;
+        $more = array_shift($jsonContent['searchResponse']['result']['more']);
 
-        if (array_key_exists('searchResult', $jsonContent['searchResponse']['result'])) {
-            // It seems that the "more" in the search result is always "false".
-            $more = true;
+        try {
+            return match ($more) {
+                'true' => true,
+                'false' => false,
+            };
+        } catch (\UnhandledMatchError $e) {
+            throw new DataWellVendorException('Datawell returned unknown value for "more": '.$more);
         }
-
-        return $more;
     }
 }

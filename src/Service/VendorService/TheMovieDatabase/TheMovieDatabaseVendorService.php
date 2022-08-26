@@ -33,7 +33,6 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService
         protected readonly DataWellClient $datawell,
         private readonly TheMovieDatabaseApiClient $api
     ) {
-        parent::__construct($this->datawell);
     }
 
     /**
