@@ -164,13 +164,10 @@ class DataWellClient
     {
         $more = array_shift($jsonContent['searchResponse']['result']['more']);
 
-        try {
-            return match ($more) {
-                'true' => true,
-                'false' => false,
-            };
-        } catch (\UnhandledMatchError $e) {
-            throw new DataWellVendorException('Datawell returned unknown value for "more": '.$more);
-        }
+        return match ($more) {
+            'true' => true,
+            'false' => false,
+            default => throw new DataWellVendorException('Datawell returned unknown value for "more": '.$more),
+        };
     }
 }
