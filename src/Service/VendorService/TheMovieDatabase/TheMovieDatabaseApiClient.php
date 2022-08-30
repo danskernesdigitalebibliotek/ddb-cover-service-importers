@@ -37,9 +37,9 @@ class TheMovieDatabaseApiClient
     /**
      * Search in the movie database for a poster url by title, year and director.
      *
-     * @param ?string $title
+     * @param string|null $title
      *   The title of the item
-     * @param ?string $originalYear
+     * @param string|null $originalYear
      *   The release year of the item
      * @param string|null $director
      *   The director of the movie
