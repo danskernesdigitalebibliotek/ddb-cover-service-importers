@@ -71,11 +71,11 @@ services:
 
     App\Service\DataWell\DataWellClient:
         arguments:
-            $agency: '%env(DATAWELL_VENDOR_AGENCY)%'
-            $profile: '%env(DATAWELL_VENDOR_PROFILE)%'
-            $searchURL: '%env(DATAWELL_VENDOR_SEARCH_URL)%'
-            $user: '%env(DATAWELL_VENDOR_USER)%'
-            $password: '%env(DATAWELL_VENDOR_PASSWORD)%'
+            $agency: '%env(string:DATAWELL_VENDOR_AGENCY)%'
+            $profile: '%env(string:DATAWELL_VENDOR_PROFILE)%'
+            $searchURL: '%env(string:DATAWELL_VENDOR_SEARCH_URL)%'
+            $user: '%env(string:DATAWELL_VENDOR_USER)%'
+            $password: '%env(string:DATAWELL_VENDOR_PASSWORD)%'
 
     App\Service\HasCoverService:
         arguments:
@@ -90,7 +90,7 @@ services:
 
     App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiClient:
         arguments:
-            $apiKey: '%env(THEMOVIEDATABASE_APIKEY)%'
+            $apiKey: '%env(string:THEMOVIEDATABASE_APIKEY)%'
 
     App\Service\VendorService\VendorServiceFactory:
         arguments: [!tagged app.vendor.service]
