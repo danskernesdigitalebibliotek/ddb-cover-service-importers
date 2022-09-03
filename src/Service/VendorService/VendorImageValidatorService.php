@@ -37,7 +37,7 @@ class VendorImageValidatorService
             }
             if (empty($contentLengthArray)) {
                 // This is a hack since image services such as flickr don't set content length header.
-                $contentLengthArray = $headers['ImageWidth'];
+                $contentLengthArray = $headers['imagewidth'];
             }
 
             $lastModifiedArray = $headers['last-modified'];
