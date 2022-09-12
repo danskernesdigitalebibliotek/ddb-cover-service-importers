@@ -13,7 +13,7 @@ use App\Exception\UnknownVendorServiceException;
 use App\Message\VendorImageMessage;
 use App\Repository\SourceRepository;
 use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceImporterInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
@@ -25,7 +25,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 /**
  * Class DataWellVendorService.
  */
-class TheMovieDatabaseVendorService implements VendorServiceInterface
+class TheMovieDatabaseVendorService implements VendorServiceImporterInterface
 {
     use ProgressBarTrait;
     use VendorServiceTrait;

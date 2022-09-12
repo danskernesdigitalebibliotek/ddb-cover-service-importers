@@ -19,7 +19,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 /**
  * Class AbstractTsvVendorService.
  */
-abstract class AbstractTsvVendorService implements VendorServiceInterface
+abstract class AbstractTsvVendorService implements VendorServiceImporterInterface
 {
     use ProgressBarTrait;
     use VendorServiceTrait;

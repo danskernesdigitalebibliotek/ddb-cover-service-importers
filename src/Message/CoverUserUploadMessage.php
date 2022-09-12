@@ -14,13 +14,13 @@ namespace App\Message;
  */
 class CoverUserUploadMessage
 {
-    private $operation;
-    private $identifierType;
-    private $identifier;
-    private $imageUrl;
-    private $accrediting;
-    private $vendorId;
-    private $traceId;
+    private string $operation;
+    private string $identifierType;
+    private string $identifier;
+    private string $imageUrl;
+    private string $accrediting;
+    private int $vendorId;
+    private string $traceId;
 
     public function getOperation(): string
     {
@@ -98,19 +98,19 @@ class CoverUserUploadMessage
     }
 
     /**
-     * @return mixed
+     * @return int
      */
-    public function getVendorId()
+    public function getVendorId(): int
     {
         return $this->vendorId;
     }
 
     /**
-     * @param mixed $vendorId
+     * @param int $vendorId
      *
      * @return static
      */
-    public function setVendorId($vendorId): self
+    public function setVendorId(int $vendorId): self
     {
         $this->vendorId = $vendorId;
 
