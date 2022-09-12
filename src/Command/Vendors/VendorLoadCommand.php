@@ -7,7 +7,7 @@
 namespace App\Command\Vendors;
 
 use App\Service\VendorService\VendorServiceFactory;
-use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceImporterInterface;
 use ItkDev\MetricsBundle\Service\MetricsService;
 use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -44,7 +44,7 @@ class VendorLoadCommand extends Command
      */
     protected function configure(): void
     {
-        $this->setDescription('Load all sources/covers from known vendors');
+        $this->setDescription('Load all sources/covers from known vendor importers');
         $this->addOption('limit', null, InputOption::VALUE_OPTIONAL, 'Limit the amount of records imported per vendor', 0);
         $this->addOption('vendor', null, InputOption::VALUE_OPTIONAL, 'Which Vendor should be loaded');
         $this->addOption('without-queue', null, InputOption::VALUE_NONE, 'Should the imported data be sent into the queues - image uploader');
@@ -97,10 +97,10 @@ class VendorLoadCommand extends Command
 
         $vendorServices = [];
         if ('all' === $vendor) {
-            $vendorServices = $this->vendorFactory->getVendorServices();
+            $vendorServices = $this->vendorFactory->getVendorServiceImporters();
         } elseif ('none' !== $vendor) {
             // If answer is not 'none' it must be specific vendor
-            $vendorServices[] = $this->vendorFactory->getVendorServiceByName($vendor);
+            $vendorServices[] = $this->vendorFactory->getVendorServiceImporterByName($vendor);
         }
 
         $io = new SymfonyStyle($input, $output);
@@ -118,7 +118,7 @@ class VendorLoadCommand extends Command
             ];
 
             try {
-                /* @var VendorServiceInterface $vendorService */
+                /* @var VendorServiceImporterInterface $vendorService */
                 $vendorService->setWithoutQueue($dispatchToQueue);
                 $vendorService->setWithUpdatesDate($withUpdatesDate);
                 $vendorService->setLimit($limit);

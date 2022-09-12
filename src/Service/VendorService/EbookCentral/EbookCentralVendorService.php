@@ -8,7 +8,7 @@ namespace App\Service\VendorService\EbookCentral;
 
 use App\Exception\UnknownVendorResourceFormatException;
 use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceImporterInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
@@ -21,7 +21,7 @@ use Symfony\Component\Config\FileLocator;
 /**
  * Class EbookCentralVendorService.
  */
-class EbookCentralVendorService implements VendorServiceInterface
+class EbookCentralVendorService implements VendorServiceImporterInterface
 {
     use ProgressBarTrait;
     use VendorServiceTrait;

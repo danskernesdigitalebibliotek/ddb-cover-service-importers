@@ -54,6 +54,7 @@ class VendorImageMessageHandler implements MessageHandlerInterface
         /** @var Source $source */
         $source = $sourceRepos->findOneBy([
             'matchId' => $message->getIdentifier(),
+            'matchType' => $message->getIdentifierType(),
             'vendor' => $vendor,
         ]);
 

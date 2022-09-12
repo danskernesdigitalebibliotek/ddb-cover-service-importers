@@ -10,7 +10,7 @@ namespace App\Service\VendorService\PressReader;
 use App\Service\VendorService\DataWell\DataWellSearchService;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\VendorImageValidatorService;
-use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceImporterInterface;
 use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
@@ -19,7 +19,7 @@ use App\Utils\Types\VendorStatus;
 /**
  * Class PressReaderVendorService.
  */
-class PressReaderVendorService implements VendorServiceInterface
+class PressReaderVendorService implements VendorServiceImporterInterface
 {
     use ProgressBarTrait;
     use VendorServiceTrait;

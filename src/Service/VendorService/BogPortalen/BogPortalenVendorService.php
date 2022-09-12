@@ -7,10 +7,13 @@
 namespace App\Service\VendorService\BogPortalen;
 
 use App\Exception\UnknownVendorServiceException;
+use App\Exception\UnsupportedIdentifierTypeException;
 use App\Service\VendorService\FtpDownloadService;
 use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorServiceInterface;
+use App\Service\VendorService\VendorServiceImporterInterface;
+use App\Service\VendorService\VendorServiceSingleIdentifierInterface;
 use App\Service\VendorService\VendorServiceTrait;
+use App\Utils\CoverVendor\UnverifiedVendorImageItem;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
@@ -19,7 +22,7 @@ use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 /**
  * Class BogPortalenVendorService.
  */
-class BogPortalenVendorService implements VendorServiceInterface
+class BogPortalenVendorService implements VendorServiceImporterInterface, VendorServiceSingleIdentifierInterface
 {
     use ProgressBarTrait;
     use VendorServiceTrait;
@@ -112,6 +115,34 @@ class BogPortalenVendorService implements VendorServiceInterface
         $this->vendorCoreService->releaseLock($this->getVendorId());
 
         return VendorImportResultMessage::success($status);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getUnverifiedVendorImageItem(string $identifier, string $type): UnverifiedVendorImageItem
+    {
+        if (!$this->supportsIdentifierType($type)) {
+            throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
+        }
+
+        $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
+
+        $item = new UnverifiedVendorImageItem();
+        $item->setIdentifier($identifier);
+        $item->setIdentifierType($type);
+        $item->setVendor($vendor);
+        $item->setOriginalFile($this->getVendorsImageUrl($identifier));
+
+        return $item;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function supportsIdentifierType(string $type): bool
+    {
+        return IdentifierType::ISBN === $type;
     }
 
     /**
