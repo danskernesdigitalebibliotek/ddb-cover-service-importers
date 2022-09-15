@@ -19,7 +19,7 @@ class CoverUserUploadMessage
     private string $identifier;
     private string $imageUrl;
     private string $accrediting;
-    private int $vendorId;
+    private ?int $vendorId;
     private string $traceId;
 
     public function getOperation(): string
@@ -98,19 +98,19 @@ class CoverUserUploadMessage
     }
 
     /**
-     * @return int
+     * @return ?int
      */
-    public function getVendorId(): int
+    public function getVendorId(): ?int
     {
         return $this->vendorId;
     }
 
     /**
-     * @param int $vendorId
+     * @param ?int $vendorId
      *
      * @return static
      */
-    public function setVendorId(int $vendorId): self
+    public function setVendorId(?int $vendorId): self
     {
         $this->vendorId = $vendorId;
 
