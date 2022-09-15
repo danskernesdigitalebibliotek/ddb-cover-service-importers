@@ -6,10 +6,17 @@
 
 namespace App\Service\VendorService\OverDrive;
 
+use App\Exception\UnknownVendorServiceException;
 use App\Service\DataWell\DataWellClient;
 use App\Service\VendorService\AbstractDataWellVendorService;
 use App\Service\VendorService\OverDrive\Api\Client;
+use App\Service\VendorService\OverDrive\Api\Exception\AccountException;
+use App\Service\VendorService\OverDrive\Api\Exception\AuthException;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 
 /**
  * Class OverDriveMagazinesVendorService.
@@ -38,12 +45,12 @@ class OverDriveMagazinesVendorService extends AbstractDataWellVendorService
     /**
      * {@inheritdoc}
      */
-    protected function extractData(array $jsonContent): array
+    protected function extractData(object $jsonContent): array
     {
         $pidArray = $this->datawell->extractData($jsonContent);
 
         // Get the OverDrive APIs title urls from the results
-        $pidTitleUrlArray = array_map('self::getTitleUrlFromDatableIdentifiers', $pidArray);
+        $pidTitleUrlArray = array_map('self::getTitleUrlFromDatawellIdentifiers', $pidArray);
         $pidTitleUrlArray = array_filter($pidTitleUrlArray);
 
         // Get the OverDrive APIs crossRefIds from the results
@@ -59,21 +66,22 @@ class OverDriveMagazinesVendorService extends AbstractDataWellVendorService
     /**
      * Get the OverDrive title urls from the data well result.
      *
-     * @param array $result
+     * @param object $result
      *   A data well result array
      *
+     * @return string|null
      *   Title url or null
      */
-    private function getTitleUrlFromDatableIdentifiers(array $result): ?string
+    private function getTitleUrlFromDatawellIdentifiers(object $result): ?string
     {
-        $identifiers = $result['record']['identifier'];
+        $identifiers = $result->record->identifier;
 
         // Loop through identifiers to look for urls starting with 'http://link.overdrive.com/'
         // E.g. http://link.overdrive.com/?websiteID=100515&titleID=5849553
         foreach ($identifiers as $identifier) {
-            $pos = strpos((string) $identifier['$'], self::VENDOR_MAGAZINE_URL_BASE);
+            $pos = strpos((string) $identifier->{'$'}, self::VENDOR_MAGAZINE_URL_BASE);
             if (false !== $pos) {
-                return $identifier['$'];
+                return $identifier->{'$'};
             }
         }
 
@@ -106,11 +114,35 @@ class OverDriveMagazinesVendorService extends AbstractDataWellVendorService
      *
      *   The cover url or null
      *
-     * @throws Api\Exception\AuthException
+     * @return string|null
+     *
+     * @throws AccountException
+     * @throws AuthException
      * @throws InvalidArgumentException
+     * @throws IdentityProviderException
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
      */
     private function getCoverUrl(string $crossRefID): ?string
     {
         return $this->apiClient->getCoverUrl($crossRefID);
+    }
+
+    /**
+     * Set config from service from DB vendor object.
+     *
+     * @throws UnknownVendorServiceException
+     */
+    protected function loadConfig(): void
+    {
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
+        $libraryAccountEndpoint = $vendor->getDataServerURI();
+        $this->apiClient->setLibraryAccountEndpoint($libraryAccountEndpoint);
+
+        $clientId = $vendor->getDataServerUser();
+        $clientSecret = $vendor->getDataServerPassword();
+        $this->apiClient->setCredentials($clientId, $clientSecret);
     }
 }

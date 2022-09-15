@@ -24,11 +24,11 @@ class DataWellClientTest extends TestCase
 
         [$jsonContent, $more, $offset] = $client->search('query', 0);
 
-        $this->assertIsArray($jsonContent);
-        $this->assertArrayHasKey('searchResponse', $jsonContent);
-        $this->assertArrayHasKey('result', $jsonContent['searchResponse']);
-        $this->assertArrayHasKey('searchResult', $jsonContent['searchResponse']['result']);
-        $this->assertCount(50, $jsonContent['searchResponse']['result']['searchResult']);
+        $this->assertIsObject($jsonContent);
+        $this->assertObjectHasAttribute('searchResponse', $jsonContent);
+        $this->assertObjectHasAttribute('result', $jsonContent->searchResponse);
+        $this->assertObjectHasAttribute('searchResult', $jsonContent->searchResponse->result);
+        $this->assertCount(50, $jsonContent->searchResponse->result->searchResult);
         $this->assertTrue($more);
         $this->assertEquals(50, $offset);
     }
@@ -77,9 +77,9 @@ class DataWellClientTest extends TestCase
 
         $this->assertCount(50, $pidArray);
         $this->assertArrayHasKey('150070-comics:IV69838DaNe', $pidArray);
-        $this->assertIsArray($pidArray['150070-comics:IV69838DaNe']);
-        $this->assertIsArray($pidArray['150070-comics:IV69838DaNe']['identifier']);
-        $this->assertEquals('150070-comics:IV69838DaNe', $pidArray['150070-comics:IV69838DaNe']['identifier']['$']);
+        $this->assertIsObject($pidArray['150070-comics:IV69838DaNe']);
+        $this->assertIsObject($pidArray['150070-comics:IV69838DaNe']->identifier);
+        $this->assertEquals('150070-comics:IV69838DaNe', $pidArray['150070-comics:IV69838DaNe']->identifier->{'$'});
         $this->assertTrue($more);
         $this->assertEquals(50, $offset);
     }

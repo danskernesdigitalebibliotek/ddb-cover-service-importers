@@ -13,6 +13,13 @@
             <directory name="vendor"/>
         </ignoreFiles>
     </projectFiles>
+    <issueHandlers>
+        <PossiblyNullIterator>
+            <errorLevel type="suppress">
+                <file name="src\Service\DataWell\DataWellClient.php"/>
+            </errorLevel>
+        </PossiblyNullIterator>
+    </issueHandlers>
     <plugins>
         <pluginClass class="Psalm\SymfonyPsalmPlugin\Plugin">
             <containerXml>var/cache/dev/App_KernelDevDebugContainer.xml</containerXml>

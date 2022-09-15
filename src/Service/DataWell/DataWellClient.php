@@ -81,7 +81,7 @@ class DataWellClient
             ]);
 
             $content = $response->getContent();
-            $jsonContent = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+            $jsonContent = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
         } catch (\JsonException|ClientExceptionInterface|RedirectionExceptionInterface|ServerExceptionInterface|TransportExceptionInterface $exception) {
             throw new DataWellVendorException($exception->getMessage(), (int) $exception->getCode(), $exception);
         }
@@ -94,7 +94,7 @@ class DataWellClient
     /**
      * Extract data from response.
      *
-     * @param array $jsonContent
+     * @param object $jsonContent
      *   Array of the json decoded data
      * @param string $coverUrlRelationKey
      *   The datawell relation key that holds the cover URL
@@ -102,19 +102,19 @@ class DataWellClient
      * @return array<string, ?string>
      *   Array of all pid => url pairs found in response
      */
-    public function extractCoverUrl(array $jsonContent, string $coverUrlRelationKey): array
+    public function extractCoverUrl(object $jsonContent, string $coverUrlRelationKey): array
     {
         $data = [];
 
-        if (array_key_exists('searchResult', $jsonContent['searchResponse']['result'])) {
-            foreach ($jsonContent['searchResponse']['result']['searchResult'] as $item) {
-                foreach ($item['collection']['object'] as $object) {
-                    if (isset($object['identifier'])) {
-                        $pid = (string) $object['identifier']['$'];
+        if (property_exists($jsonContent->searchResponse?->result, 'searchResult')) {
+            foreach ($jsonContent->searchResponse->result->searchResult as $searchResult) {
+                foreach ($searchResult->collection?->object as $object) {
+                    $pid = $object->identifier?->{'$'};
+                    if (null !== $pid) {
                         $data[$pid] = null;
-                        foreach ($object['relations']['relation'] as $relation) {
-                            if ($coverUrlRelationKey === $relation['relationType']['$']) {
-                                $coverUrl = $relation['relationUri']['$'];
+                        foreach ($object->relations?->relation as $relation) {
+                            if ($coverUrlRelationKey === $relation->relationType?->{'$'}) {
+                                $coverUrl = $relation->relationUri?->{'$'};
                                 $data[$pid] = (string) $coverUrl;
                             }
                         }
@@ -129,20 +129,23 @@ class DataWellClient
     /**
      * Extract PIDs and matching objects from response.
      *
-     * @param array $jsonContent
+     * @param object $jsonContent
      *   Array of the json decoded data
      *
+     * @return array<string, object>
      *   Array of all pid => object pairs found in response
      */
-    public function extractData(array $jsonContent): array
+    public function extractData(object $jsonContent): array
     {
         $data = [];
 
-        if (array_key_exists('searchResult', $jsonContent['searchResponse']['result'])) {
-            foreach ($jsonContent['searchResponse']['result']['searchResult'] as $item) {
-                foreach ($item['collection']['object'] as $object) {
-                    $pid = $object['identifier']['$'];
-                    $data[$pid] = $object;
+        if (property_exists($jsonContent->searchResponse?->result, 'searchResult')) {
+            foreach ($jsonContent->searchResponse?->result?->searchResult as $searchResult) {
+                foreach ($searchResult->collection?->object as $object) {
+                    $pid = $object->identifier?->{'$'};
+                    if (null !== $pid) {
+                        $data[$pid] = $object;
+                    }
                 }
             }
         }
@@ -153,21 +156,21 @@ class DataWellClient
     /**
      * Has the search more results.
      *
-     * @param array $jsonContent
+     * @param object $jsonContent
      *   Json decode result
      *
      * @return bool
      *
      * @throws DataWellVendorException
      */
-    private function hasMoreResults(array $jsonContent): bool
+    private function hasMoreResults(object $jsonContent): bool
     {
-        $more = array_shift($jsonContent['searchResponse']['result']['more']);
+        $more = $jsonContent->searchResponse?->result?->more->{'$'};
 
         return match ($more) {
             'true' => true,
             'false' => false,
-            default => throw new DataWellVendorException('Datawell returned unknown value for "more": '.$more),
+            default => throw new DataWellVendorException('Datawell returned unknown value for "more": '.var_export($more, true))
         };
     }
 }

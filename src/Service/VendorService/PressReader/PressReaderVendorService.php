@@ -39,7 +39,7 @@ class PressReaderVendorService extends AbstractDataWellVendorService
     /**
      * {@inheritdoc}
      */
-    protected function extractData(array $jsonContent): array
+    protected function extractData(object $jsonContent): array
     {
         $pidArray = $this->datawell->extractData($jsonContent);
         $this->transformUrls($pidArray);

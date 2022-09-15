@@ -38,7 +38,7 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService
     /**
      * {@inheritdoc}
      */
-    protected function extractData(array $jsonContent): array
+    protected function extractData(object $jsonContent): array
     {
         $data = [];
 

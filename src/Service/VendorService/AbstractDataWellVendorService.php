@@ -36,13 +36,13 @@ abstract class AbstractDataWellVendorService implements VendorServiceImporterInt
     /**
      * Extract cover url from response.
      *
-     * @param array $jsonContent
+     * @param object $jsonContent
      *   Array of the json decoded data
      *
      * @return array<string, ?string>
      *   Array of all pid => url pairs found in response
      */
-    abstract protected function extractData(array $jsonContent): array;
+    abstract protected function extractData(object $jsonContent): array;
 
     /**
      * @{@inheritdoc}
@@ -51,6 +51,11 @@ abstract class AbstractDataWellVendorService implements VendorServiceImporterInt
     {
         if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
             return VendorImportResultMessage::error(self::ERROR_RUNNING);
+        }
+
+        // @TODO: Refactor to remove the need for loadConfig
+        if (method_exists($this, 'loadConfig')) {
+            $this->loadConfig();
         }
 
         $status = new VendorStatus();

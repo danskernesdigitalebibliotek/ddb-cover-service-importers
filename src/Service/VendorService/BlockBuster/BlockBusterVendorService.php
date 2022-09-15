@@ -22,7 +22,7 @@ class BlockBusterVendorService extends AbstractDataWellVendorService
     /**
      * {@inheritdoc}
      */
-    protected function extractData(array $jsonContent): array
+    protected function extractData(object $jsonContent): array
     {
         return $this->datawell->extractCoverUrl($jsonContent, self::DATAWELL_URL_RELATION);
     }
