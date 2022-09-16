@@ -27,7 +27,7 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 ## [3.2.1] - 2022-09-15
 
 ### Fixed
--  Fixed vendor id NULL in user upload messages.
+- Fixed vendor id NULL in user upload messages.
 
 ## [3.2.0] - 2022-09-12
 
@@ -41,7 +41,7 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 ## [3.1.1] - 2022-09-03
 
 ### Fixed
--  Fixed validate images headers index
+- Fixed validate images headers index
 
 ## [3.1.0] - 2022-08-22
 
