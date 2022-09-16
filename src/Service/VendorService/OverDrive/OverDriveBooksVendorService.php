@@ -112,7 +112,7 @@ class OverDriveBooksVendorService implements VendorServiceImporterInterface
         $clientId = $vendor->getDataServerUser();
         $clientSecret = $vendor->getDataServerPassword();
 
-        if (null === $libraryAccountEndpoint || null === $clientId || null === $clientSecret ) {
+        if (null === $libraryAccountEndpoint || null === $clientId || null === $clientSecret) {
             throw new UninitializedPropertyException('Incomplete config for '.self::class);
         }
 
