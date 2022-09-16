@@ -7,6 +7,7 @@
 
 namespace App\Service\VendorService\OverDrive;
 
+use App\Exception\UninitializedPropertyException;
 use App\Exception\UnknownVendorServiceException;
 use App\Service\VendorService\OverDrive\Api\Client;
 use App\Service\VendorService\ProgressBarTrait;
@@ -108,10 +109,14 @@ class OverDriveBooksVendorService implements VendorServiceImporterInterface
         $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
 
         $libraryAccountEndpoint = $vendor->getDataServerURI();
-        $this->apiClient->setLibraryAccountEndpoint($libraryAccountEndpoint);
-
         $clientId = $vendor->getDataServerUser();
         $clientSecret = $vendor->getDataServerPassword();
+
+        if (null === $libraryAccountEndpoint || null === $clientId || null === $clientSecret ) {
+            throw new UninitializedPropertyException('Incomplete config for '.self::class);
+        }
+
+        $this->apiClient->setLibraryAccountEndpoint($libraryAccountEndpoint);
         $this->apiClient->setCredentials($clientId, $clientSecret);
     }
 }
