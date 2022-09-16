@@ -16,7 +16,8 @@
     <issueHandlers>
         <PossiblyNullIterator>
             <errorLevel type="suppress">
-                <file name="src\Service\DataWell\DataWellClient.php"/>
+                <file name="src/Service/DataWell/DataWellClient.php"/>
+                <file name="src/Service/VendorService/TheMovieDatabase/TheMovieDatabaseVendorService.php"/>
             </errorLevel>
         </PossiblyNullIterator>
     </issueHandlers>
