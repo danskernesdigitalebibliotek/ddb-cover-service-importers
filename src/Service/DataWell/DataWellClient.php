@@ -106,7 +106,7 @@ class DataWellClient
     {
         $data = [];
 
-        if (property_exists($jsonContent->searchResponse?->result, 'searchResult')) {
+        if (isset($jsonContent->searchResponse?->result?->searchResult)) {
             foreach ($jsonContent->searchResponse->result->searchResult as $searchResult) {
                 foreach ($searchResult->collection?->object as $object) {
                     $pid = $object->identifier?->{'$'};
@@ -139,7 +139,7 @@ class DataWellClient
     {
         $data = [];
 
-        if (property_exists($jsonContent->searchResponse?->result, 'searchResult')) {
+        if (isset($jsonContent->searchResponse?->result?->searchResult)) {
             foreach ($jsonContent->searchResponse?->result?->searchResult as $searchResult) {
                 foreach ($searchResult->collection?->object as $object) {
                     $pid = $object->identifier?->{'$'};
