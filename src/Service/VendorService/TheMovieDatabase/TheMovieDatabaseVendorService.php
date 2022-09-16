@@ -42,23 +42,29 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService
     {
         $data = [];
 
-        foreach ($jsonContent['searchResponse']['result']['searchResult'] as $item) {
-            foreach ($item['collection']['object'] as $object) {
-                $pid = $object['identifier']['$'];
-                $record = $object['record'];
+        if (isset($jsonContent->searchResponse?->result?->searchResult)) {
+            foreach ($jsonContent->searchResponse?->result?->searchResult as $searchResult) {
+                foreach ($searchResult->collection?->object as $object) {
+                    $pid = $object->identifier->{'$'};
+                    $record = $object->record;
 
-                $title = array_key_exists('title', $record) ? $object['record']['title'][0]['$'] : null;
-                $date = array_key_exists('date', $record) ? $object['record']['date'][0]['$'] : null;
+                    $title = property_exists($record, 'title') ? $record->title[0]->{'$'} : null;
+                    $date = property_exists($record, 'date') ? $record->date[0]->{'$'} : null;
 
-                if ($title && $date) {
-                    $description = array_key_exists('description', $record) ? $object['record']['description'] : null;
-                    $originalYear = $this->getOriginalYear(array_column($description ?? [], '$'));
-                    $creators = array_key_exists('creator', $record) ? $object['record']['creator'] : null;
-                    $director = $this->getDirector($creators ?? []);
+                    if ($title && $date) {
+                        $descriptions = property_exists($record, 'description') ? $record->description : [];
+                        $originalYear = $this->getOriginalYear($descriptions);
+                        $creators = property_exists($record, 'creator') ? $record->creator : [];
+                        $director = $this->getDirector($creators);
 
-                    $posterUrl = $this->api->searchPosterUrl(title: $title, originalYear: $originalYear, director: $director);
+                        $posterUrl = $this->api->searchPosterUrl(
+                            title: $title,
+                            originalYear: $originalYear,
+                            director: $director
+                        );
 
-                    $data[$pid] = $posterUrl;
+                        $data[$pid] = $posterUrl;
+                    }
                 }
             }
         }
@@ -80,7 +86,7 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService
 
         foreach ($descriptions as $description) {
             $descriptionMatches = [];
-            $match = preg_match('/(\d{4})/u', (string) $description, $descriptionMatches);
+            $match = preg_match('/(\d{4})/u', (string) $description->{'$'}, $descriptionMatches);
 
             if ($match) {
                 $matches = array_unique(array_merge($matches, $descriptionMatches));
@@ -118,9 +124,9 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService
         $directors = [];
 
         foreach ($creators as $creator) {
-            if (isset($creator['@type']['$']) && 'dkdcplus:drt' === $creator['@type']['$']) {
-                if (isset($creator['$'])) {
-                    $directors[] = $creator['$'];
+            if (isset($creator->{'@type'}?->{'$'}) && 'dkdcplus:drt' === $creator->{'@type'}?->{'$'}) {
+                if (isset($creator->{'$'})) {
+                    $directors[] = $creator->{'$'};
                 }
             }
         }
