@@ -21,12 +21,12 @@ interface VendorServiceSingleIdentifierInterface extends VendorServiceInterface
      * @param string $type
      *   The identifier type
      *
-     * @return UnverifiedVendorImageItem
+     * @return UnverifiedVendorImageItem|null
      *
      * @throws UnsupportedIdentifierTypeException
      * @throws UnknownVendorServiceException
      */
-    public function getUnverifiedVendorImageItem(string $identifier, string $type): UnverifiedVendorImageItem;
+    public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem;
 
     /**
      * Does the vendor support this identifier type.
