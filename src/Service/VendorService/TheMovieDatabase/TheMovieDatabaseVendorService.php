@@ -7,14 +7,18 @@
 
 namespace App\Service\VendorService\TheMovieDatabase;
 
+use App\Exception\UnsupportedIdentifierTypeException;
 use App\Service\DataWell\DataWellClient;
 use App\Service\VendorService\AbstractDataWellVendorService;
+use App\Service\VendorService\VendorServiceSingleIdentifierInterface;
+use App\Utils\CoverVendor\UnverifiedVendorImageItem;
+use App\Utils\Types\IdentifierType;
 use PrinsFrank\Standards\Language\ISO639_2_Alpha_3_Common;
 
 /**
  * Class TheMovieDatabaseVendorService.
  */
-class TheMovieDatabaseVendorService extends AbstractDataWellVendorService
+class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implements VendorServiceSingleIdentifierInterface
 {
     protected const VENDOR_ID = 6;
 
@@ -34,6 +38,44 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService
         protected readonly DataWellClient $datawell,
         private readonly TheMovieDatabaseApiClient $api
     ) {
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
+    {
+        if (!$this->supportsIdentifierType($type)) {
+            throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
+        }
+
+        $datawellQuery = 'rec.id='.$identifier;
+        [$jsonContent, $more, $offset] = $this->datawell->search($datawellQuery, 0);
+
+        // This will only query TMDB if "getWorkType" returns "movie"
+        $pidArray = $this->extractData($jsonContent);
+
+        if (array_key_exists($identifier, $pidArray) && null !== $pidArray[$identifier]) {
+            $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
+
+            $item = new UnverifiedVendorImageItem();
+            $item->setIdentifier($identifier);
+            $item->setIdentifierType($type);
+            $item->setVendor($vendor);
+            $item->setOriginalFile($this->getVendorsImageUrl($identifier));
+
+            return $item;
+        }
+
+        return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function supportsIdentifierType(string $type): bool
+    {
+        return IdentifierType::PID === $type;
     }
 
     /**
