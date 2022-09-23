@@ -24,6 +24,11 @@ class VendorImageValidatorService
 
     /**
      * Validate that remote image exists by sending an HTTP HEAD request.
+     *
+     * @param VendorImageItem $item
+     * @param string $httpRequestMethod
+     *
+     * @return void
      */
     public function validateRemoteImage(VendorImageItem $item, string $httpRequestMethod = Request::METHOD_HEAD): void
     {
@@ -53,8 +58,9 @@ class VendorImageValidatorService
             $item->setOriginalContentLength(array_shift($contentLengthArray));
             $item->setOriginalLastModified($lastModified);
 
-            // Some images exist (return 200) but have no content
-            $found = $item->getOriginalContentLength() > 0;
+            // Some images exist (return 200) but have no content or return "text/html"
+            $contentType = strtolower($headers['content-type']);
+            $found = $item->getOriginalContentLength() > 0 && str_starts_with($contentType, 'image/');
             $item->setFound($found);
         } catch (\Throwable $e) {
             // Some providers (i.e. Google Drive) disallows HEAD requests. Fall back

@@ -33,6 +33,24 @@ class DataWellClientTest extends TestCase
         $this->assertEquals(50, $offset);
     }
 
+    public function testExtractIsbn(): void
+    {
+        $mockHttpClient = new MockHttpClient();
+        $client = $this->getDataWellClient($mockHttpClient);
+
+        $json = \file_get_contents(__DIR__.'/Fixtures/datawellObjectWithIsbn.json');
+        $dataWellObject = \json_decode($json);
+        $isbn = $client->extractIsbn($dataWellObject);
+
+        $this->assertEquals('9781443828192', $isbn);
+
+        $json = \file_get_contents(__DIR__.'/Fixtures/datawellObjectWithoutIsbn.json');
+        $dataWellObject = \json_decode($json);
+        $isbn = $client->extractIsbn($dataWellObject);
+
+        $this->assertNull($isbn);
+    }
+
     public function testExtractCoverUrl(): void
     {
         $responseBody = \file_get_contents(__DIR__.'/Fixtures/testSearch.json');

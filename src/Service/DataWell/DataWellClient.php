@@ -92,7 +92,27 @@ class DataWellClient
     }
 
     /**
-     * Extract data from response.
+     * Extract isbn from result object.
+     *
+     * @param object $datawellObject
+     *
+     * @return string|null
+     */
+    public function extractIsbn(object $datawellObject): ?string
+    {
+        foreach ($datawellObject->record?->identifier ?? [] as $identifier) {
+            if (property_exists($identifier, '@type')) {
+                if ('dkdcplus:ISBN' === $identifier->{'@type'}->{'$'}) {
+                    return $identifier->{'$'};
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Extract PIDs and matching cover urls from result set.
      *
      * @param object $jsonContent
      *   Array of the json decoded data
@@ -108,11 +128,11 @@ class DataWellClient
 
         if (isset($jsonContent->searchResponse?->result?->searchResult)) {
             foreach ($jsonContent->searchResponse->result->searchResult as $searchResult) {
-                foreach ($searchResult->collection?->object as $object) {
+                foreach ($searchResult->collection?->object ?? [] as $object) {
                     $pid = $object->identifier?->{'$'};
                     if (null !== $pid) {
                         $data[$pid] = null;
-                        foreach ($object->relations?->relation as $relation) {
+                        foreach ($object->relations?->relation ?? [] as $relation) {
                             if ($coverUrlRelationKey === $relation->relationType?->{'$'}) {
                                 $coverUrl = $relation->relationUri?->{'$'};
                                 $data[$pid] = (string) $coverUrl;
@@ -127,7 +147,7 @@ class DataWellClient
     }
 
     /**
-     * Extract PIDs and matching objects from response.
+     * Extract PIDs and matching objects from result set.
      *
      * @param object $jsonContent
      *   Array of the json decoded data
@@ -140,8 +160,8 @@ class DataWellClient
         $data = [];
 
         if (isset($jsonContent->searchResponse?->result?->searchResult)) {
-            foreach ($jsonContent->searchResponse?->result?->searchResult as $searchResult) {
-                foreach ($searchResult->collection?->object as $object) {
+            foreach ($jsonContent->searchResponse?->result?->searchResult ?? [] as $searchResult) {
+                foreach ($searchResult->collection?->object ?? [] as $object) {
                     $pid = $object->identifier?->{'$'};
                     if (null !== $pid) {
                         $data[$pid] = $object;

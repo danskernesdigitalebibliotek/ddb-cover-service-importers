@@ -26,6 +26,8 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 - PressReaderVendorService has been refactored to use the Abstract DatawellVendor.
 - Consolidated all datawell search code to a DataWellClient;
 - Ordered services.yaml and changed "datawell.*" from parameters to direct injection.
+- EbookCentralVendorService has been refactored to use the Abstract DatawellVendor.
+- EbookCentralVendorService now supports single cover no hits processing.
 
 ## [3.2.1] - 2022-09-15
 
