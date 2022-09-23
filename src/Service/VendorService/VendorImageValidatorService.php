@@ -58,9 +58,8 @@ class VendorImageValidatorService
             $item->setOriginalContentLength(array_shift($contentLengthArray));
             $item->setOriginalLastModified($lastModified);
 
-            // Some images exist (return 200) but have no content or return "text/html"
-            $contentType = strtolower($headers['content-type']);
-            $found = $item->getOriginalContentLength() > 0 && str_starts_with($contentType, 'image/');
+            // Some images exist (return 200) but have no content
+            $found = $item->getOriginalContentLength() > 0;
             $item->setFound($found);
         } catch (\Throwable $e) {
             // Some providers (i.e. Google Drive) disallows HEAD requests. Fall back
