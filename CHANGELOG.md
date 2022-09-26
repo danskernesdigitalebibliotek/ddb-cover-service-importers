@@ -19,7 +19,7 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 ### Changed
 - Deprecated "datawell" vendor (now "ComicsPlus" vendor).
 - TheMovieDatabaseVendor has been refactored to use the Abstract DatawellVendor.
-- TheMovieDatabaseVendor now supports single cover no hits processing. 
+- TheMovieDatabaseVendor now supports single cover no hits processing.
 - Match logic for TheMovieDatabaseVendor has been refactored for better matching.
 - VendorServiceSingleIdentifierInterface now has nullable return.
 - OverDriveMagazinesVendorService has been refactored to use the Abstract DatawellVendor.
