@@ -62,7 +62,7 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implem
             $item->setIdentifier($identifier);
             $item->setIdentifierType($type);
             $item->setVendor($vendor);
-            $item->setOriginalFile($this->getVendorsImageUrl($identifier));
+            $item->setOriginalFile($pidArray[$identifier]);
 
             return $item;
         }
