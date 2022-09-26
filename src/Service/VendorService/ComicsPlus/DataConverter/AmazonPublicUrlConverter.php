@@ -4,7 +4,7 @@
  * Convert 'Iverse' urls from pointing to medium sized images to pointing large size.
  */
 
-namespace App\Service\VendorService\DataWell\DataConverter;
+namespace App\Service\VendorService\ComicsPlus\DataConverter;
 
 /**
  * Class AmazonPublicUrlConverter.
@@ -38,8 +38,6 @@ class AmazonPublicUrlConverter
      */
     public static function convertSingleUrl(string $url): string
     {
-        $padlarge = str_replace(self::PADMEDIUM_URL_STRING, self::PADLARGE_URL_STRING, $url);
-
-        return $padlarge;
+        return str_replace(self::PADMEDIUM_URL_STRING, self::PADLARGE_URL_STRING, $url);
     }
 }

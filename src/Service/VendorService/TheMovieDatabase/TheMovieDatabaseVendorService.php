@@ -7,31 +7,17 @@
 
 namespace App\Service\VendorService\TheMovieDatabase;
 
-use App\Entity\Source;
-use App\Exception\IllegalVendorServiceException;
-use App\Exception\UnknownVendorServiceException;
-use App\Message\VendorImageMessage;
-use App\Repository\SourceRepository;
-use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorServiceImporterInterface;
-use App\Service\VendorService\VendorServiceTrait;
-use App\Utils\Message\VendorImportResultMessage;
-use App\Utils\Types\IdentifierType;
-use App\Utils\Types\VendorState;
-use App\Utils\Types\VendorStatus;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Messenger\MessageBusInterface;
+use App\Service\DataWell\DataWellClient;
+use App\Service\VendorService\AbstractDataWellVendorService;
 
 /**
- * Class DataWellVendorService.
+ * Class TheMovieDatabaseVendorService.
  */
-class TheMovieDatabaseVendorService implements VendorServiceImporterInterface
+class TheMovieDatabaseVendorService extends AbstractDataWellVendorService
 {
-    use ProgressBarTrait;
-    use VendorServiceTrait;
-
     protected const VENDOR_ID = 6;
-    private array $queries = [
+
+    protected array $datawellQueries = [
         'phrase.type="blu-ray" and facet.typeCategory="film"',
         'phrase.type="dvd" and facet.typeCategory="film"',
     ];
@@ -39,164 +25,117 @@ class TheMovieDatabaseVendorService implements VendorServiceImporterInterface
     /**
      * TheMovieDatabaseVendorService constructor.
      *
-     * @param EntityManagerInterface $em
-     *   Database entity manager
-     * @param MessageBusInterface $bus
-     *   Message bus for the queue system
-     * @param TheMovieDatabaseSearchService $dataWell
-     *   The search service
-     * @param TheMovieDatabaseApiService $api
+     * @param DataWellClient $datawell
+     * @param TheMovieDatabaseApiClient $api
      *   The movie api service
      */
     public function __construct(
-        private readonly EntityManagerInterface $em,
-        private readonly MessageBusInterface $bus,
-        private readonly TheMovieDatabaseSearchService $dataWell,
-        private readonly TheMovieDatabaseApiService $api
+        protected readonly DataWellClient $datawell,
+        private readonly TheMovieDatabaseApiClient $api
     ) {
     }
 
     /**
-     * @{@inheritdoc}
-     *
-     * @throws UnknownVendorServiceException
+     * {@inheritdoc}
      */
-    public function load(): VendorImportResultMessage
+    protected function extractData(object $jsonContent): array
     {
-        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
-            return VendorImportResultMessage::error(self::ERROR_RUNNING);
-        }
+        $data = [];
 
-        // We're lazy loading the config to avoid errors from missing config values on dependency injection
-        $this->loadConfig();
+        if (isset($jsonContent->searchResponse?->result?->searchResult)) {
+            foreach ($jsonContent->searchResponse?->result?->searchResult as $searchResult) {
+                foreach ($searchResult->collection?->object as $object) {
+                    $pid = $object->identifier->{'$'};
+                    $record = $object->record;
 
-        $status = new VendorStatus();
+                    $title = property_exists($record, 'title') ? $record->title[0]->{'$'} : null;
+                    $date = property_exists($record, 'date') ? $record->date[0]->{'$'} : null;
 
-        $this->progressStart('Search data well for movies');
+                    if ($title && $date) {
+                        $descriptions = property_exists($record, 'description') ? $record->description : [];
+                        $originalYear = $this->getOriginalYear($descriptions);
+                        $creators = property_exists($record, 'creator') ? $record->creator : [];
+                        $director = $this->getDirector($creators);
 
-        $offset = 1;
-        $queriesIndex = 0;
-        try {
-            // @TODO: Change this to use foreach?
-            while (count($this->queries) > $queriesIndex) {
-                do {
-                    // Search the data well for materials.
-                    $query = $this->queries[$queriesIndex];
-                    [$resultArray, $more, $offset] = $this->dataWell->search($query, $offset);
+                        $posterUrl = $this->api->searchPosterUrl(
+                            title: $title,
+                            originalYear: $originalYear,
+                            director: $director
+                        );
 
-                    // This is a hack to get the 'processBatch' working below.
-                    $pidArray = array_map(
-                        fn ($value) => '',
-                        $resultArray
-                    );
-
-                    $batchSize = count($pidArray);
-
-                    // @TODO: this should be handled in updateOrInsertMaterials, which should take which event and job
-                    //        it should call. Default is now CoverStore (upload image), which we do not know yet.
-
-                    /** @var SourceRepository $sourceRepo */
-                    $sourceRepo = $this->em->getRepository(Source::class);
-                    $batchOffset = 0;
-                    while ($batchOffset < $batchSize) {
-                        $batch = \array_slice($pidArray, $batchOffset, self::BATCH_SIZE, true);
-                        [$updatedIdentifiers, $insertedIdentifiers] = $this->vendorCoreService->processBatch($batch, $sourceRepo, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate);
-
-                        $this->postProcess($updatedIdentifiers, $resultArray);
-                        $this->postProcess($insertedIdentifiers, $resultArray);
-
-                        // Update status.
-                        $status->addUpdated(count($updatedIdentifiers));
-                        $status->addInserted(count($insertedIdentifiers));
-                        $status->addRecords(count($batch));
-
-                        $batchOffset += $batchSize;
+                        $data[$pid] = $posterUrl;
                     }
-
-                    // @TODO: How to handle multiple queries with progress bar.
-                    $this->progressMessageFormatted($status);
-                    $this->progressAdvance();
-
-                    if ($this->limit && $status->records >= $this->limit) {
-                        $more = false;
-                    }
-                } while ($more);
-
-                ++$queriesIndex;
-            }
-
-            $this->progressFinish();
-
-            $this->vendorCoreService->releaseLock($this->getVendorId());
-
-            return VendorImportResultMessage::success($status);
-        } catch (\Exception $exception) {
-            return VendorImportResultMessage::error($exception->getMessage());
-        }
-    }
-
-    /**
-     * Set config from service from DB vendor object.
-     *
-     * @throws UnknownVendorServiceException
-     */
-    private function loadConfig(): void
-    {
-        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
-
-        // Set the service access configuration from the vendor.
-        $this->dataWell->setSearchUrl($vendor->getDataServerURI() ?? '');
-        $this->dataWell->setUser($vendor->getDataServerUser() ?? '');
-        $this->dataWell->setPassword($vendor->getDataServerPassword() ?? '');
-    }
-
-    /**
-     * Lookup post urls post normal batch processing.
-     *
-     * @param array $pids
-     *   The source table post id's
-     * @param array $searchResults
-     *   The datawell search result
-     *
-     * @throws IllegalVendorServiceException
-     * @throws UnknownVendorServiceException
-     */
-    private function postProcess(array $pids, array $searchResults): void
-    {
-        /** @var SourceRepository $sourceRepo */
-        $sourceRepo = $this->em->getRepository(Source::class);
-
-        foreach ($pids as $pid) {
-            $metadata = $searchResults[$pid];
-
-            // Find source in database.
-            $source = $sourceRepo->findOneBy([
-                'matchId' => $pid,
-                'matchType' => IdentifierType::PID,
-                'vendor' => $this->vendorCoreService->getVendor($this->getVendorId()),
-            ]);
-
-            if (null !== $source) {
-                // Get poster url.
-                $posterUrl = $this->api->searchPosterUrl($metadata['title'], $metadata['originalYear'], $metadata['director']);
-
-                if (null !== $posterUrl) {
-                    // Set poster url of source.
-                    $source->setOriginalFile($posterUrl);
-                    $this->em->flush();
-
-                    // Create vendor event.
-                    $message = new VendorImageMessage();
-                    $message->setOperation(VendorState::INSERT)
-                        ->setIdentifier($source->getMatchId())
-                        ->setVendorId($source->getVendor()->getId())
-                        ->setIdentifierType($source->getMatchType());
-                    $this->bus->dispatch($message);
-
-                    // Free memory.
-                    $this->em->clear();
                 }
             }
         }
+
+        return $data;
+    }
+
+    /**
+     * Extract the original year from the descriptions.
+     *
+     * @param array $descriptions
+     *   Search array of descriptions
+     *
+     * @return ?string The original year or null
+     */
+    private function getOriginalYear(array $descriptions): ?string
+    {
+        $matches = [];
+
+        foreach ($descriptions as $description) {
+            $descriptionMatches = [];
+            $match = preg_match('/(\d{4})/u', (string) $description->{'$'}, $descriptionMatches);
+
+            if ($match) {
+                $matches = array_unique(array_merge($matches, $descriptionMatches));
+            }
+        }
+
+        $upperYear = (int) date('Y') + 2;
+        $confirmedMatches = [];
+
+        foreach ($matches as $matchString) {
+            $match = (int) $matchString;
+
+            if ($match > 1850 && $match < $upperYear) {
+                $confirmedMatches[] = $matchString;
+            }
+        }
+
+        if (1 === count($confirmedMatches)) {
+            return $confirmedMatches[0];
+        }
+
+        return null;
+    }
+
+    /**
+     * Extract the director from the creators.
+     *
+     * @param array $creators
+     *   Search array of creators
+     *
+     *   The director or null
+     */
+    private function getDirector(array $creators): ?string
+    {
+        $directors = [];
+
+        foreach ($creators as $creator) {
+            if (isset($creator->{'@type'}?->{'$'}) && 'dkdcplus:drt' === $creator->{'@type'}?->{'$'}) {
+                if (isset($creator->{'$'})) {
+                    $directors[] = $creator->{'$'};
+                }
+            }
+        }
+
+        // @TODO: Can there be more directors?
+        if (count($directors) > 0) {
+            return $directors[0];
+        }
+
+        return null;
     }
 }

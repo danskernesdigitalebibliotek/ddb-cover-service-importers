@@ -11,10 +11,23 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+### Added
+- Abstract DatawellVendor.
+- BlockBuster vendor service.
+- ComicsPlus vendor service.
+
+### Changed
+- Deprecated "datawell" vendor (now "ComicsPlus" vendor).
+- TheMovieDatabaseVendor has been refactored to use the Abstract DatawellVendor.
+- OverDriveMagazinesVendorService has been refactored to use the Abstract DatawellVendor.
+- PressReaderVendorService has been refactored to use the Abstract DatawellVendor.
+- Consolidated all datawell search code to a DataWellClient;
+- Ordered services.yaml and changed "datawell.*" from parameters to direct injection.
+
 ## [3.2.1] - 2022-09-15
 
 ### Fixed
--  Fixed vendor id NULL in user upload messages.
+- Fixed vendor id NULL in user upload messages.
 
 ## [3.2.0] - 2022-09-12
 
@@ -28,7 +41,7 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 ## [3.1.1] - 2022-09-03
 
 ### Fixed
--  Fixed validate images headers index
+- Fixed validate images headers index
 
 ## [3.1.0] - 2022-08-22
 

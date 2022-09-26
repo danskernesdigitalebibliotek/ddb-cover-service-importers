@@ -2,25 +2,26 @@
 
 /**
  * @file
- * Contains TheMovieDatabaseApiService for searching in TheMovieDatabase.
+ * Contains TheMovieDatabaseApiClient for searching in TheMovieDatabase.
  */
 
 namespace App\Service\VendorService\TheMovieDatabase;
 
 use Psr\Log\LoggerInterface;
+use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
- * Class TheMovieDatabaseApiService.
+ * Class TheMovieDatabaseApiClient.
  */
-class TheMovieDatabaseApiService
+class TheMovieDatabaseApiClient
 {
     private const SEARCH_URL = 'https://api.themoviedb.org/3/search/movie';
     private const BASE_IMAGE_PATH = 'https://image.tmdb.org/t/p/original';
 
     /**
-     * TheMovieDatabaseApiService constructor.
+     * TheMovieDatabaseApiClient constructor.
      *
      * @param string $apiKey
      * @param HttpClientInterface $httpClient
@@ -36,9 +37,9 @@ class TheMovieDatabaseApiService
     /**
      * Search in the movie database for a poster url by title, year and director.
      *
-     * @param ?string $title
+     * @param string|null $title
      *   The title of the item
-     * @param ?string $originalYear
+     * @param string|null $originalYear
      *   The release year of the item
      * @param string|null $director
      *   The director of the movie
@@ -46,7 +47,7 @@ class TheMovieDatabaseApiService
      * @return string|null
      *   The poster url or null
      */
-    public function searchPosterUrl(string $title = null, string $originalYear = null, string $director = null): ?string
+    public function searchPosterUrl(?string $title = null, ?string $originalYear = null, ?string $director = null): ?string
     {
         $posterUrl = null;
 
@@ -74,7 +75,7 @@ class TheMovieDatabaseApiService
             if ($result) {
                 $posterUrl = $this->getPosterUrl($result);
             }
-        } catch (\Exception) {
+        } catch (\Exception|TransportExceptionInterface) {
             // Catch all exceptions to avoid crashing.
         }
 
@@ -105,28 +106,24 @@ class TheMovieDatabaseApiService
             // Validate title against result->title or result->original_title.
             if (mb_strtolower((string) $result->title, 'UTF-8') === $lowercaseResultTitle || mb_strtolower((string) $result->original_title, 'UTF-8') === $lowercaseResultTitle) {
                 // Validate director.
-                try {
-                    // https://developers.themoviedb.org/3/movies/get-movie-credits
-                    $queryUrl = 'https://api.themoviedb.org/3/movie/'.$result->id.'/credits';
-                    $responseData = $this->sendRequest($queryUrl);
+                // https://developers.themoviedb.org/3/movies/get-movie-credits
+                $queryUrl = 'https://api.themoviedb.org/3/movie/'.$result->id.'/credits';
+                $responseData = $this->sendRequest($queryUrl);
 
-                    $directors = array_reduce($responseData->crew, function ($carry, $item) {
-                        if ('Director' === $item->job) {
-                            $carry[] = mb_strtolower((string) $item->name, 'UTF-8');
-                        }
-
-                        return $carry;
-                    }, []);
-
-                    if (in_array($lowercaseDirector, $directors)) {
-                        // If more that one director, bail out.
-                        if (null !== $chosenResult) {
-                            return null;
-                        }
-                        $chosenResult = $result;
+                $directors = array_reduce($responseData->crew, function ($carry, $item) {
+                    if ('Director' === $item->job) {
+                        $carry[] = mb_strtolower((string) $item->name, 'UTF-8');
                     }
-                } catch (TransportExceptionInterface|\Exception $e) {
-                    // Ignore error.
+
+                    return $carry;
+                }, []);
+
+                if (in_array($lowercaseDirector, $directors)) {
+                    // If more than one director, bail out.
+                    if (null !== $chosenResult) {
+                        return null;
+                    }
+                    $chosenResult = $result;
                 }
             }
         }
@@ -156,8 +153,6 @@ class TheMovieDatabaseApiService
      *   The request method
      *
      * @return \stdClass
-     *
-     * @throws TransportExceptionInterface
      */
     private function sendRequest(string $queryUrl, array $query = null, string $method = 'GET'): \stdClass
     {
@@ -170,40 +165,40 @@ class TheMovieDatabaseApiService
             ];
         }
 
-        // Send the request to The Movie Database.
-        $response = $this->httpClient->request($method, $queryUrl, $query);
-
-        // Respect api rate limits: https://developers.themoviedb.org/3/getting-started/request-rate-limiting
-        // If 429 rate limit has been hit. Retry request after Retry-After.
-        if (429 === $response->getStatusCode()) {
-            $headers = $response->getHeaders();
-            $retryAfterHeader = $headers['retry-after'];
-            $retryAfterHeader = reset($retryAfterHeader);
-            if (is_numeric($retryAfterHeader)) {
-                $retryAfter = (int) $retryAfterHeader;
-            } else {
-                $retryAfter = (int) (new \DateTime((string) $retryAfterHeader))->format('U') - time();
-            }
-
-            // Rate limit hit. Wait until 'Retry-After' header, then retry.
-            $this->logger->alert(sprintf('Rate limit hit. Sleeping for %d seconds', $retryAfter + 1));
-
-            if ($retryAfter > 0) {
-                sleep($retryAfter);
-            } else {
-                throw new \InvalidArgumentException('Sleep only accepts positive-int values');
-            }
-
-            // Retry request.
-            $response = $this->httpClient->request($method, $queryUrl, $query);
-        }
-
-        // Get the response content.
-        $content = $response->getContent();
-
         try {
+            // Send the request to The Movie Database.
+            $response = $this->httpClient->request($method, $queryUrl, $query);
+
+            // Respect api rate limits: https://developers.themoviedb.org/3/getting-started/request-rate-limiting
+            // If 429 rate limit has been hit. Retry request after Retry-After.
+            if (429 === $response->getStatusCode()) {
+                $headers = $response->getHeaders();
+                $retryAfterHeader = $headers['retry-after'];
+                $retryAfterHeader = reset($retryAfterHeader);
+                if (is_numeric($retryAfterHeader)) {
+                    $retryAfter = (int) $retryAfterHeader;
+                } else {
+                    $retryAfter = (int) (new \DateTime((string) $retryAfterHeader))->format('U') - time();
+                }
+
+                // Rate limit hit. Wait until 'Retry-After' header, then retry.
+                $this->logger->alert(sprintf('Rate limit hit. Sleeping for %d seconds', $retryAfter + 1));
+
+                if ($retryAfter > 0) {
+                    sleep($retryAfter);
+                } else {
+                    throw new \InvalidArgumentException('Sleep only accepts positive-int values');
+                }
+
+                // Retry request.
+                $response = $this->httpClient->request($method, $queryUrl, $query);
+            }
+
+            // Get the response content.
+            $content = $response->getContent();
+
             return json_decode($content, false, 512, JSON_THROW_ON_ERROR);
-        } catch (\Exception) {
+        } catch (HttpExceptionInterface|TransportExceptionInterface|\JsonException|\Exception $e) {
             return new \stdClass();
         }
     }

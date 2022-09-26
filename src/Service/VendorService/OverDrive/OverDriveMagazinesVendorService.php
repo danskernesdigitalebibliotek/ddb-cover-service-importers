@@ -6,40 +6,39 @@
 
 namespace App\Service\VendorService\OverDrive;
 
+use App\Exception\UninitializedPropertyException;
 use App\Exception\UnknownVendorServiceException;
-use App\Service\DataWell\SearchService;
+use App\Service\DataWell\DataWellClient;
+use App\Service\VendorService\AbstractDataWellVendorService;
 use App\Service\VendorService\OverDrive\Api\Client;
-use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorServiceImporterInterface;
-use App\Service\VendorService\VendorServiceTrait;
-use App\Utils\Message\VendorImportResultMessage;
-use App\Utils\Types\IdentifierType;
-use App\Utils\Types\VendorStatus;
+use App\Service\VendorService\OverDrive\Api\Exception\AccountException;
+use App\Service\VendorService\OverDrive\Api\Exception\AuthException;
+use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 
 /**
  * Class OverDriveMagazinesVendorService.
  */
-class OverDriveMagazinesVendorService implements VendorServiceImporterInterface
+class OverDriveMagazinesVendorService extends AbstractDataWellVendorService
 {
-    use ProgressBarTrait;
-    use VendorServiceTrait;
-
     protected const VENDOR_ID = 16;
-
-    private const VENDOR_SEARCH_TERM = 'facet.acSource="ereolen magazines"';
     private const VENDOR_MAGAZINE_URL_BASE = 'link.overdrive.com';
+
+    protected array $datawellQueries = ['facet.acSource="ereolen magazines"'];
 
     /**
      * OverDriveMagazinesVendorService constructor.
      *
-     * @param SearchService $searchService
+     * @param DataWellClient $datawell
      *   Datawell search service
      * @param Client $apiClient
      *   Api client for the OverDrive API
      */
     public function __construct(
-        private readonly SearchService $searchService,
+        protected readonly DataWellClient $datawell,
         private readonly Client $apiClient
     ) {
     }
@@ -47,99 +46,43 @@ class OverDriveMagazinesVendorService implements VendorServiceImporterInterface
     /**
      * {@inheritdoc}
      */
-    public function load(): VendorImportResultMessage
+    protected function extractData(object $jsonContent): array
     {
-        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
-            return VendorImportResultMessage::error(self::ERROR_RUNNING);
-        }
+        $pidArray = $this->datawell->extractData($jsonContent);
 
-        $this->loadConfig();
+        // Get the OverDrive APIs title urls from the results
+        $pidTitleUrlArray = array_map('self::getTitleUrlFromDatawellIdentifiers', $pidArray);
+        $pidTitleUrlArray = array_filter($pidTitleUrlArray);
 
-        $status = new VendorStatus();
+        // Get the OverDrive APIs crossRefIds from the results
+        $pidTitleIdArray = array_map('self::getTitleIdFromUrl', $pidTitleUrlArray);
+        $pidTitleIdArray = array_filter($pidTitleIdArray);
 
-        $this->progressStart('Search data well for: "'.self::VENDOR_SEARCH_TERM.'"');
+        // Get the OverDrive cover urls
+        $pidCoverUrlArray = array_map('self::getCoverUrl', $pidTitleIdArray);
 
-        $offset = 1;
-        try {
-            do {
-                $this->progressMessage('Search data well for: "'.self::VENDOR_SEARCH_TERM.'" (Offset: '.$offset.')');
-
-                // Search the data well for material with acSource set to "ereolen magazines".
-                [$pidResultArray, $more, $offset] = $this->searchService->search(self::VENDOR_SEARCH_TERM, $offset);
-
-                // Get the OverDrive APIs title urls from the results
-                $pidTitleUrlArray = array_map('self::getTitleUrlFromDatableIdentifiers', $pidResultArray);
-                $pidTitleUrlArray = array_filter($pidTitleUrlArray);
-
-                // Get the OverDrive APIs crossRefIds from the results
-                $pidTitleIdArray = array_map('self::getTitleIdFromUrl', $pidTitleUrlArray);
-                $pidTitleIdArray = array_filter($pidTitleIdArray);
-
-                // Get the OverDrive cover urls
-                $pidCoverUrlArray = array_map('self::getCoverUrl', $pidTitleIdArray);
-                $pidCoverUrlArray = array_filter($pidCoverUrlArray);
-
-                // Remove null values
-                array_filter($pidCoverUrlArray);
-
-                $batchSize = count($pidCoverUrlArray);
-                $this->vendorCoreService->updateOrInsertMaterials($status, $pidCoverUrlArray, IdentifierType::PID, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, $batchSize);
-
-                $this->progressMessageFormatted($status);
-                $this->progressAdvance();
-
-                if ($this->limit && $status->records >= $this->limit) {
-                    $more = false;
-                }
-            } while ($more);
-
-            $this->vendorCoreService->releaseLock($this->getVendorId());
-
-            return VendorImportResultMessage::success($status);
-        } catch (\Exception $exception) {
-            return VendorImportResultMessage::error($exception->getMessage());
-        }
-    }
-
-    /**
-     * Set config from service from DB vendor object.
-     *
-     * @throws UnknownVendorServiceException
-     */
-    private function loadConfig(): void
-    {
-        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
-
-        $clientId = $vendor->getDataServerUser();
-        $clientSecret = $vendor->getDataServerPassword();
-        $libraryAccountEndpoint = $vendor->getDataServerURI();
-
-        if (!empty($clientId) && !empty($clientSecret) && !empty($libraryAccountEndpoint)) {
-            $this->apiClient->setLibraryAccountEndpoint($libraryAccountEndpoint);
-            $this->apiClient->setCredentials($clientId, $clientSecret);
-        } else {
-            throw new \InvalidArgumentException('Missing configuration');
-        }
+        return array_filter($pidCoverUrlArray);
     }
 
     /**
      * Get the OverDrive title urls from the data well result.
      *
-     * @param array $result
+     * @param object $result
      *   A data well result array
      *
+     * @return string|null
      *   Title url or null
      */
-    private function getTitleUrlFromDatableIdentifiers(array $result): ?string
+    private function getTitleUrlFromDatawellIdentifiers(object $result): ?string
     {
-        $identifiers = $result['record']['identifier'];
+        $identifiers = $result->record->identifier;
 
         // Loop through identifiers to look for urls starting with 'http://link.overdrive.com/'
         // E.g. http://link.overdrive.com/?websiteID=100515&titleID=5849553
         foreach ($identifiers as $identifier) {
-            $pos = strpos((string) $identifier['$'], self::VENDOR_MAGAZINE_URL_BASE);
+            $pos = strpos((string) $identifier->{'$'}, self::VENDOR_MAGAZINE_URL_BASE);
             if (false !== $pos) {
-                return $identifier['$'];
+                return $identifier->{'$'};
             }
         }
 
@@ -172,11 +115,39 @@ class OverDriveMagazinesVendorService implements VendorServiceImporterInterface
      *
      *   The cover url or null
      *
-     * @throws Api\Exception\AuthException
+     * @return string|null
+     *
+     * @throws AccountException
+     * @throws AuthException
      * @throws InvalidArgumentException
+     * @throws IdentityProviderException
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
      */
     private function getCoverUrl(string $crossRefID): ?string
     {
         return $this->apiClient->getCoverUrl($crossRefID);
+    }
+
+    /**
+     * Set config from service from DB vendor object.
+     *
+     * @throws UnknownVendorServiceException
+     */
+    protected function loadConfig(): void
+    {
+        $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
+
+        $libraryAccountEndpoint = $vendor->getDataServerURI();
+        $clientId = $vendor->getDataServerUser();
+        $clientSecret = $vendor->getDataServerPassword();
+
+        if (null === $libraryAccountEndpoint || null === $clientId || null === $clientSecret) {
+            throw new UninitializedPropertyException('Incomplete config for '.self::class);
+        }
+
+        $this->apiClient->setLibraryAccountEndpoint($libraryAccountEndpoint);
+        $this->apiClient->setCredentials($clientId, $clientSecret);
     }
 }

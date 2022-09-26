@@ -99,25 +99,11 @@
       <code>isset($this-&gt;newIndexName)</code>
     </RedundantPropertyInitializationCheck>
   </file>
-  <file src="src/Service/VendorService/DataWell/DataWellVendorService.php">
-    <PossiblyNullArgument occurrences="3">
-      <code>$vendor-&gt;getDataServerPassword()</code>
-      <code>$vendor-&gt;getDataServerURI()</code>
-      <code>$vendor-&gt;getDataServerUser()</code>
-    </PossiblyNullArgument>
-  </file>
   <file src="src/Service/VendorService/OverDrive/OverDriveBooksVendorService.php">
     <PossiblyNullArgument occurrences="3">
       <code>$clientId</code>
       <code>$clientSecret</code>
       <code>$libraryAccountEndpoint</code>
-    </PossiblyNullArgument>
-  </file>
-  <file src="src/Service/VendorService/PressReader/PressReaderVendorService.php">
-    <PossiblyNullArgument occurrences="3">
-      <code>$vendor-&gt;getDataServerPassword()</code>
-      <code>$vendor-&gt;getDataServerURI()</code>
-      <code>$vendor-&gt;getDataServerUser()</code>
     </PossiblyNullArgument>
   </file>
   <file src="src/Service/VendorService/VendorServiceTrait.php">

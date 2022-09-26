@@ -6,7 +6,7 @@
 
 namespace Tests\Service\VendorService\DataWell\DataConverter;
 
-use App\Service\VendorService\DataWell\DataConverter\AmazonPublicUrlConverter;
+use App\Service\VendorService\ComicsPlus\DataConverter\AmazonPublicUrlConverter;
 use PHPUnit\Framework\TestCase;
 
 class AmazonPublicUrlConverterTest extends TestCase
