@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ed9585b1355b180a86a11259024b1c1a",
+    "content-hash": "cac27264cd53fddc54772ccbafcc0ebc",
     "packages": [
         {
             "name": "box/spout",
@@ -2528,6 +2528,65 @@
             "time": "2022-08-01T20:46:23+00:00"
         },
         {
+            "name": "oefenweb/damerau-levenshtein",
+            "version": "v3.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Oefenweb/damerau-levenshtein.git",
+                "reference": "3f63a83b647fd24c3822b7cff0cde6ae3d25cff9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Oefenweb/damerau-levenshtein/zipball/3f63a83b647fd24c3822b7cff0cde6ae3d25cff9",
+                "reference": "3f63a83b647fd24c3822b7cff0cde6ae3d25cff9",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "php": ">=7.1.0"
+            },
+            "require-dev": {
+                "oefenweb/cakephp-codesniffer": "^2.0",
+                "phpmd/phpmd": "^2.0",
+                "phpstan/phpstan": "^0.12.66",
+                "phpunit/phpunit": "^7.5",
+                "sebastian/phpcpd": "^4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Oefenweb\\DamerauLevenshtein\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ph4r05",
+                    "homepage": "http://www.phpclasses.org/package/7021-PHP-Get-text-similarity-level-with-Damerau-Levenshtein.html"
+                },
+                {
+                    "name": "Oefenweb.nl BV team",
+                    "homepage": "https://github.com/Oefenweb/damerau-levenshtein/contributors"
+                }
+            ],
+            "description": "Get text similarity level with Damerau-Levenshtein distance",
+            "homepage": "http://github.com/Oefenweb/damerau-levenshtein",
+            "keywords": [
+                "damerau",
+                "distance",
+                "levenshtein",
+                "similarity"
+            ],
+            "support": {
+                "issues": "https://github.com/Oefenweb/damerau-levenshtein/issues",
+                "source": "https://github.com/Oefenweb/damerau-levenshtein"
+            },
+            "time": "2022-03-23T10:44:48+00:00"
+        },
+        {
             "name": "pear/file_marc",
             "version": "1.4.1",
             "source": {
@@ -2898,6 +2957,51 @@
                 }
             ],
             "time": "2022-06-08T13:14:56+00:00"
+        },
+        {
+            "name": "prinsfrank/standards",
+            "version": "v1.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/PrinsFrank/standards.git",
+                "reference": "9b352fcfd0ac51e5484858a59603c89c13446cce"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/PrinsFrank/standards/zipball/9b352fcfd0ac51e5484858a59603c89c13446cce",
+                "reference": "9b352fcfd0ac51e5484858a59603c89c13446cce",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "composer/composer": "^2.3",
+                "dbrekelmans/bdi": "^1.0",
+                "ext-dom": "*",
+                "ext-intl": "*",
+                "ext-mbstring": "*",
+                "friendsofphp/php-cs-fixer": "^3.8",
+                "phpstan/phpstan": "^1.8",
+                "phpunit/phpunit": "^9.5",
+                "symfony/panther": "^2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "PrinsFrank\\Standards\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "A collection of standards as PHP Enums: ISO3166, ISO4217, ISO639...",
+            "support": {
+                "issues": "https://github.com/PrinsFrank/standards/issues",
+                "source": "https://github.com/PrinsFrank/standards/tree/v1.3.0"
+            },
+            "time": "2022-08-24T20:01:35+00:00"
         },
         {
             "name": "promphp/prometheus_client_php",
@@ -6807,6 +6911,144 @@
                 "source": "https://github.com/teapot-php/status-code/tree/v1.1.2"
             },
             "time": "2020-11-03T17:14:32+00:00"
+        },
+        {
+            "name": "thecodingmachine/safe",
+            "version": "v2.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thecodingmachine/safe.git",
+                "reference": "dc8df8f5047e7d3021a3f41f492dc99f8b3dc475"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thecodingmachine/safe/zipball/dc8df8f5047e7d3021a3f41f492dc99f8b3dc475",
+                "reference": "dc8df8f5047e7d3021a3f41f492dc99f8b3dc475",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^1.5",
+                "phpunit/phpunit": "^9.5",
+                "squizlabs/php_codesniffer": "^3.2",
+                "thecodingmachine/phpstan-strict-rules": "^1.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.2.x-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "deprecated/apc.php",
+                    "deprecated/array.php",
+                    "deprecated/datetime.php",
+                    "deprecated/libevent.php",
+                    "deprecated/password.php",
+                    "deprecated/mssql.php",
+                    "deprecated/stats.php",
+                    "deprecated/strings.php",
+                    "lib/special_cases.php",
+                    "deprecated/mysqli.php",
+                    "generated/apache.php",
+                    "generated/apcu.php",
+                    "generated/array.php",
+                    "generated/bzip2.php",
+                    "generated/calendar.php",
+                    "generated/classobj.php",
+                    "generated/com.php",
+                    "generated/cubrid.php",
+                    "generated/curl.php",
+                    "generated/datetime.php",
+                    "generated/dir.php",
+                    "generated/eio.php",
+                    "generated/errorfunc.php",
+                    "generated/exec.php",
+                    "generated/fileinfo.php",
+                    "generated/filesystem.php",
+                    "generated/filter.php",
+                    "generated/fpm.php",
+                    "generated/ftp.php",
+                    "generated/funchand.php",
+                    "generated/gettext.php",
+                    "generated/gmp.php",
+                    "generated/gnupg.php",
+                    "generated/hash.php",
+                    "generated/ibase.php",
+                    "generated/ibmDb2.php",
+                    "generated/iconv.php",
+                    "generated/image.php",
+                    "generated/imap.php",
+                    "generated/info.php",
+                    "generated/inotify.php",
+                    "generated/json.php",
+                    "generated/ldap.php",
+                    "generated/libxml.php",
+                    "generated/lzf.php",
+                    "generated/mailparse.php",
+                    "generated/mbstring.php",
+                    "generated/misc.php",
+                    "generated/mysql.php",
+                    "generated/network.php",
+                    "generated/oci8.php",
+                    "generated/opcache.php",
+                    "generated/openssl.php",
+                    "generated/outcontrol.php",
+                    "generated/pcntl.php",
+                    "generated/pcre.php",
+                    "generated/pgsql.php",
+                    "generated/posix.php",
+                    "generated/ps.php",
+                    "generated/pspell.php",
+                    "generated/readline.php",
+                    "generated/rpminfo.php",
+                    "generated/rrd.php",
+                    "generated/sem.php",
+                    "generated/session.php",
+                    "generated/shmop.php",
+                    "generated/sockets.php",
+                    "generated/sodium.php",
+                    "generated/solr.php",
+                    "generated/spl.php",
+                    "generated/sqlsrv.php",
+                    "generated/ssdeep.php",
+                    "generated/ssh2.php",
+                    "generated/stream.php",
+                    "generated/strings.php",
+                    "generated/swoole.php",
+                    "generated/uodbc.php",
+                    "generated/uopz.php",
+                    "generated/url.php",
+                    "generated/var.php",
+                    "generated/xdiff.php",
+                    "generated/xml.php",
+                    "generated/xmlrpc.php",
+                    "generated/yaml.php",
+                    "generated/yaz.php",
+                    "generated/zip.php",
+                    "generated/zlib.php"
+                ],
+                "classmap": [
+                    "lib/DateTime.php",
+                    "lib/DateTimeImmutable.php",
+                    "lib/Exceptions/",
+                    "deprecated/Exceptions/",
+                    "generated/Exceptions/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "PHP core functions that throw exceptions instead of returning FALSE on error",
+            "support": {
+                "issues": "https://github.com/thecodingmachine/safe/issues",
+                "source": "https://github.com/thecodingmachine/safe/tree/v2.3.0"
+            },
+            "time": "2022-09-13T15:49:48+00:00"
         }
     ],
     "packages-dev": [
@@ -7782,6 +8024,59 @@
                 }
             ],
             "time": "2022-07-22T08:43:51+00:00"
+        },
+        {
+            "name": "hectorj/safe-php-psalm-plugin",
+            "version": "v1.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/hectorj/safe-php-psalm-plugin.git",
+                "reference": "a08fa3152f72d4522bfa8d9612e987ecff2f80a1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/hectorj/safe-php-psalm-plugin/zipball/a08fa3152f72d4522bfa8d9612e987ecff2f80a1",
+                "reference": "a08fa3152f72d4522bfa8d9612e987ecff2f80a1",
+                "shasum": ""
+            },
+            "require": {
+                "ext-simplexml": "*",
+                "php": "^7.4 || ^8.0",
+                "thecodingmachine/safe": "^1.1|^2.1",
+                "vimeo/psalm": "^4.0"
+            },
+            "require-dev": {
+                "ext-json": "*",
+                "phpunit/phpunit": "^9.0"
+            },
+            "type": "psalm-plugin",
+            "extra": {
+                "psalm": {
+                    "pluginClass": "HectorJ\\SafePHPPsalmPlugin\\Plugin"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "HectorJ\\SafePHPPsalmPlugin\\": [
+                        "./src"
+                    ]
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "hectorj"
+                }
+            ],
+            "description": "vimeo/psalm plugin for thecodingmachine/safe",
+            "support": {
+                "issues": "https://github.com/hectorj/safe-php-psalm-plugin/issues",
+                "source": "https://github.com/hectorj/safe-php-psalm-plugin/tree/v1.4.0"
+            },
+            "time": "2022-05-21T19:45:24+00:00"
         },
         {
             "name": "jetbrains/phpstorm-attributes",

@@ -108,11 +108,11 @@ class DataWellClient
 
         if (isset($jsonContent->searchResponse?->result?->searchResult)) {
             foreach ($jsonContent->searchResponse->result->searchResult as $searchResult) {
-                foreach ($searchResult->collection?->object as $object) {
+                foreach ($searchResult->collection?->object ?? [] as $object) {
                     $pid = $object->identifier?->{'$'};
                     if (null !== $pid) {
                         $data[$pid] = null;
-                        foreach ($object->relations?->relation as $relation) {
+                        foreach ($object->relations?->relation ?? [] as $relation) {
                             if ($coverUrlRelationKey === $relation->relationType?->{'$'}) {
                                 $coverUrl = $relation->relationUri?->{'$'};
                                 $data[$pid] = (string) $coverUrl;
@@ -140,8 +140,8 @@ class DataWellClient
         $data = [];
 
         if (isset($jsonContent->searchResponse?->result?->searchResult)) {
-            foreach ($jsonContent->searchResponse?->result?->searchResult as $searchResult) {
-                foreach ($searchResult->collection?->object as $object) {
+            foreach ($jsonContent->searchResponse?->result?->searchResult ?? [] as $searchResult) {
+                foreach ($searchResult->collection?->object ?? [] as $object) {
                     $pid = $object->identifier?->{'$'};
                     if (null !== $pid) {
                         $data[$pid] = $object;

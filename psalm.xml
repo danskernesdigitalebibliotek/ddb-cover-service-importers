@@ -13,15 +13,8 @@
             <directory name="vendor"/>
         </ignoreFiles>
     </projectFiles>
-    <issueHandlers>
-        <PossiblyNullIterator>
-            <errorLevel type="suppress">
-                <file name="src/Service/DataWell/DataWellClient.php"/>
-                <file name="src/Service/VendorService/TheMovieDatabase/TheMovieDatabaseVendorService.php"/>
-            </errorLevel>
-        </PossiblyNullIterator>
-    </issueHandlers>
     <plugins>
+        <pluginClass class="HectorJ\SafePHPPsalmPlugin\Plugin"/>
         <pluginClass class="Psalm\SymfonyPsalmPlugin\Plugin">
             <containerXml>var/cache/dev/App_KernelDevDebugContainer.xml</containerXml>
         </pluginClass>
