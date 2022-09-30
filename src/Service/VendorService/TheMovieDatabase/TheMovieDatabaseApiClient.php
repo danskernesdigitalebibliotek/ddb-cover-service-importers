@@ -96,10 +96,12 @@ class TheMovieDatabaseApiClient
     /**
      * Search in the movie database for a poster url by title, specific year and director.
      *
+     * @see https://developers.themoviedb.org/3/movies/get-movie-images
+     *
      * @param string $title
-     *   The title of the item
+     *   The TMDB "title" of the item
      * @param string $originalTitle
-     *   The original title of the item
+     *   The TMDB "original title" of the item
      * @param int $originalYear
      *   The release year of the item
      * @param array $creators
@@ -119,7 +121,6 @@ class TheMovieDatabaseApiClient
     ): ?string {
         $posterUrl = null;
 
-        // @see https://developers.themoviedb.org/3/movies/get-movie-images
         $query = [
             'query' => [
                 'query' => $title,
@@ -142,10 +143,7 @@ class TheMovieDatabaseApiClient
             }
         } catch (\Exception) {
             // Catch all exceptions to avoid crashing.
-        }
-
-        if (null === $posterUrl) {
-            $d = 1;
+            // @TODO add proper logging
         }
 
         return $posterUrl;
@@ -172,9 +170,10 @@ class TheMovieDatabaseApiClient
 
         foreach ($tmdbResults as $tmdbResult) {
             // Validate title against result->title or result->original_title.
+            // Use 0.8 relative Damerau Levenshtein distance to allow for minor differences in spelling.
             // Minimum length of 3 for title contain check is risky - Think "The..."
             // We back it up by validating creators.
-            if ($this->getTitlesHasMatch($tmdbResult->title, $tmdbResult->original_title, $dwTitle, $dwOriginalTitle, 0.8, 3)) {
+            if ($this->titlesHasMatch($tmdbResult->title, $tmdbResult->original_title, $dwTitle, $dwOriginalTitle, 0.8, 3)) {
                 if ($this->validateCreators($tmdbResult->id, $dwCreators)) {
                     return $tmdbResult;
                 }
@@ -185,19 +184,28 @@ class TheMovieDatabaseApiClient
     }
 
     /**
-     * Validate Datawell creators are found in the TMDB crew list.
+     * Validate that Datawell creators are found in the TMDB crew list.
      *
      * @see https://developers.themoviedb.org/3/movies/get-movie-credits
      *
      * @param int $tmdbId
+     *   The Movie Database id of the movie to get creators for
      * @param array $dwCreators
-     * @param float $relativeDistance
+     *   Array of creators found in the datawell
+     * @param float $minRelativeDistance
+     *   The minimum Damerau Levenshtein relative distance to accept for a match
      *
      * @return bool
+     *   Return true if the datawell creators are found in the TMDB crew list
      */
-    private function validateCreators(int $tmdbId, array $dwCreators, float $relativeDistance = 0.8): bool
+    private function validateCreators(int $tmdbId, array $dwCreators, float $minRelativeDistance = 0.8): bool
     {
         $count = count($dwCreators);
+        if (0 === $count) {
+            // No basis for comparison
+            return false;
+        }
+
         $found = 0;
 
         $queryUrl = 'https://api.themoviedb.org/3/movie/'.$tmdbId.'/credits';
@@ -213,6 +221,8 @@ class TheMovieDatabaseApiClient
         }
 
         // There can never be more matches than the lowest count of "$dwCreators" and "$tmdbCrew"
+        // Example: If we have found 3 crew in TMDB and 5 crew in the datawell. The maximum possible
+        // number of matches is 3
         $count = $count < count($tmdbCrew) ? $count : count($tmdbCrew);
 
         foreach ($dwCreators as $dwCreator) {
@@ -221,29 +231,42 @@ class TheMovieDatabaseApiClient
 
                 $dl = new DamerauLevenshtein($dwCreator, $crew);
 
-                if ($crew === $dwCreator || $relativeDistance < $dl->getRelativeDistance()) {
+                if ($crew === $dwCreator || $minRelativeDistance < $dl->getRelativeDistance()) {
                     ++$found;
                     break;
                 }
             }
         }
 
-        return $count > 0 && $count === $found;
+        return $count === $found;
     }
 
     /**
-     * Check for match between the TMDB and Datawell titles.
+     * Check for match between the TMDB and Datawell titles. USes both "contains" and "distance"
+     * to perform the match.
+     *
+     * Both the datawell and The Movie Database hae the concepts of "title"
+     * and "original title". E.g. "In China They Eat Dogs" and "I Kina spiser de hunde".
+     * But we cannot trust that they agree on which is which. So we have to compare both
+     * datawell titles to both TMDB titles.
      *
      * @param string $tmdbTitle
+     *   The Movie Database "title"
      * @param string $tmdbOrigTitle
+     *   The Movie Database "original title"
      * @param string $dwTitle
+     *   The datawell "title"
      * @param string $dwOriginalTitle
-     * @param float $relativeDistance
+     *   The datawell "original title"
+     * @param float $minRelativeDistance
+     *   The minimum Damerau Levenshtein relative distance to accept for a match
      * @param int $minLength
+     *   The minimum length of a title to consider is contained
      *
      * @return bool
+     *   Return true if any combination of dw titles and tmdb titles match either by distance or are contained
      */
-    private function getTitlesHasMatch(string $tmdbTitle, string $tmdbOrigTitle, string $dwTitle, string $dwOriginalTitle, float $relativeDistance = 0.8, int $minLength = 5): bool
+    private function titlesHasMatch(string $tmdbTitle, string $tmdbOrigTitle, string $dwTitle, string $dwOriginalTitle, float $minRelativeDistance = 0.8, int $minLength = 5): bool
     {
         // Lowercase all strings for comparison.
         $tmdbTitle = mb_strtolower($tmdbTitle, 'UTF-8');
@@ -251,8 +274,8 @@ class TheMovieDatabaseApiClient
         $dwTitle = mb_strtolower($dwTitle, 'UTF-8');
         $dwOriginalTitle = mb_strtolower($dwOriginalTitle, 'UTF-8');
 
-        return $this->getTitleContained($tmdbTitle, $tmdbOrigTitle, $dwTitle, $dwOriginalTitle, $minLength)
-            || $this->getTitlesMatchByDistance($tmdbTitle, $tmdbOrigTitle, $dwTitle, $dwOriginalTitle, $relativeDistance);
+        return $this->titlesContained($tmdbTitle, $tmdbOrigTitle, $dwTitle, $dwOriginalTitle, $minLength)
+            || $this->titlesMatchByDistance($tmdbTitle, $tmdbOrigTitle, $dwTitle, $dwOriginalTitle, $minRelativeDistance);
     }
 
     /**
@@ -264,14 +287,21 @@ class TheMovieDatabaseApiClient
      * @see https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance
      *
      * @param string $tmdbTitle
+     *   The Movie Database "title"
      * @param string $tmdbOrigTitle
+     *   The Movie Database "original title"
      * @param string $dwTitle
+     *   The datawell "title"
      * @param string $dwOriginalTitle
-     * @param float $relativeDistance
+     *   The datawell "original title"
+     * @param float $minRelativeDistance
+     *   The minimum Damerau Levenshtein relative distance to accept for a match
      *
      * @return bool
+     *   Return true if the relative distance between any combination of dw titles and tmdb titles
+     *   is greater than $minRelativeDistance
      */
-    private function getTitlesMatchByDistance(string $tmdbTitle, string $tmdbOrigTitle, string $dwTitle, string $dwOriginalTitle, float $relativeDistance): bool
+    private function titlesMatchByDistance(string $tmdbTitle, string $tmdbOrigTitle, string $dwTitle, string $dwOriginalTitle, float $minRelativeDistance): bool
     {
         $dls = [];
         $dls[] = new DamerauLevenshtein($tmdbTitle, $dwTitle);
@@ -280,7 +310,7 @@ class TheMovieDatabaseApiClient
         $dls[] = new DamerauLevenshtein($tmdbOrigTitle, $dwOriginalTitle);
 
         foreach ($dls as $dl) {
-            if ($relativeDistance < $dl->getRelativeDistance()) {
+            if ($minRelativeDistance < $dl->getRelativeDistance()) {
                 return true;
             }
         }
@@ -289,20 +319,27 @@ class TheMovieDatabaseApiClient
     }
 
     /**
-     * Check if the Datawell title(s) are contained in the TMDB titles.
+     * Check if the Datawell title(s) are contained in the TMDB titles or vice versa.
      *
-     * The Datawell sometimes has a shorter title than TMDB. E.g.
-     * "Heroes & Villains: Napoleon" vs. "Napoleon"
+     * The title in one is sometimes shorter than the title in the other.
+     * E.g. "Heroes & Villains: Napoleon" vs. "Napoleon"
      *
      * @param string $tmdbTitle
+     *   The Movie Database "title"
      * @param string $tmdbOrigTitle
+     *   The Movie Database "original title"
      * @param string $dwTitle
+     *   The datawell "title"
      * @param string $dwOriginalTitle
+     *   The datawell "original title"
      * @param int $minLength
+     *   The minimum length of a title to consider is contained
      *
      * @return bool
+     *   Return true if any datawell title longer than $minLength is contained in the TMDB titles
+     *   or vice versa
      */
-    private function getTitleContained(string $tmdbTitle, string $tmdbOrigTitle, string $dwTitle, string $dwOriginalTitle, int $minLength): bool
+    private function titlesContained(string $tmdbTitle, string $tmdbOrigTitle, string $dwTitle, string $dwOriginalTitle, int $minLength): bool
     {
         $loop = [
             $tmdbTitle => [$dwTitle, $dwOriginalTitle],

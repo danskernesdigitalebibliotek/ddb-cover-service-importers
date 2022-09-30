@@ -311,12 +311,13 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implem
     }
 
     /**
-     * Extract the creators from the DC list creators excluding sort entries.
+     * Extract the creators from the datawell creators excluding sort entries.
      *
      * @param array $creators
      *   Search array of creators
      *
      * @return array
+     *   Array of sanitized creator names excluding "oss:sort" duplicates or empty array if none found
      */
     private function getCreators(array $creators): array
     {
@@ -339,8 +340,10 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implem
      * Get the sanitized title without additional text added by the datawell.
      *
      * @param string $datawellTitle
+     *   The title to sanitize
      *
      * @return string
+     *   The sanitized title
      */
     private function getSanitizedTitle(string $datawellTitle): string
     {
@@ -357,8 +360,10 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implem
      * Get the sanitized creator name without additional text added by the datawell.
      *
      * @param string $datawellName
+     *   The name to sanitize
      *
      * @return string
+     *   The sanitized name
      */
     private function getSanitizedCreator(string $datawellName): string
     {
@@ -367,8 +372,6 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implem
         // E.g. "George Miller" for "George Miller (1945 March 3-)"
         // E.g. "Margaret Mitchell" for "Margaret Mitchell (f. 1900)"
         $datawellName = preg_replace('/(\(.*\d{4}).*\)$/', '', $datawellName);
-
-        // Margaret Mitchell (f. 1900)
 
         return trim($datawellName);
     }
