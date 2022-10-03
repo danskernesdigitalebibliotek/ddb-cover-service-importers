@@ -24,6 +24,11 @@ class VendorImageValidatorService
 
     /**
      * Validate that remote image exists by sending an HTTP HEAD request.
+     *
+     * @param VendorImageItem $item
+     * @param string $httpRequestMethod
+     *
+     * @return void
      */
     public function validateRemoteImage(VendorImageItem $item, string $httpRequestMethod = Request::METHOD_HEAD): void
     {
