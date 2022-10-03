@@ -92,8 +92,15 @@ class Client
      *
      *   The cover url or null
      *
+     * @return string|null
+     *
+     * @throws AccountException
      * @throws AuthException
+     * @throws ClientExceptionInterface
+     * @throws IdentityProviderException
      * @throws InvalidArgumentException
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
      */
     public function getCoverUrl(string $crossRefId): ?string
     {
@@ -139,10 +146,15 @@ class Client
      *
      *   Array of 'products' serialized as stdClass
      *
+     * @return array
+     *
      * @throws AccountException
      * @throws AuthException
+     * @throws ClientExceptionInterface
      * @throws IdentityProviderException
      * @throws InvalidArgumentException
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
      */
     public function getProducts(int $limit, int $offset): array
     {
@@ -168,10 +180,15 @@ class Client
      *
      *   The total number of products
      *
+     * @return int
+     *
      * @throws AccountException
      * @throws AuthException
+     * @throws ClientExceptionInterface
      * @throws IdentityProviderException
      * @throws InvalidArgumentException
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
      */
     public function getTotalProducts(): int
     {

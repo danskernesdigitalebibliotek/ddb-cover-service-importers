@@ -6,145 +6,77 @@
 
 namespace App\Service\VendorService\EbookCentral;
 
-use App\Exception\UnknownVendorResourceFormatException;
-use App\Service\VendorService\ProgressBarTrait;
-use App\Service\VendorService\VendorServiceImporterInterface;
-use App\Service\VendorService\VendorServiceTrait;
-use App\Utils\Message\VendorImportResultMessage;
+use App\Exception\UnsupportedIdentifierTypeException;
+use App\Service\VendorService\AbstractDataWellVendorService;
+use App\Service\VendorService\VendorServiceSingleIdentifierInterface;
+use App\Utils\CoverVendor\UnverifiedVendorImageItem;
 use App\Utils\Types\IdentifierType;
-use App\Utils\Types\VendorStatus;
-use Box\Spout\Common\Exception\IOException;
-use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
-use Box\Spout\Reader\XLSX\Reader;
-use Symfony\Component\Config\FileLocator;
 
 /**
  * Class EbookCentralVendorService.
  */
-class EbookCentralVendorService implements VendorServiceImporterInterface
+class EbookCentralVendorService extends AbstractDataWellVendorService implements VendorServiceSingleIdentifierInterface
 {
-    use ProgressBarTrait;
-    use VendorServiceTrait;
-
     protected const VENDOR_ID = 2;
+    private const URL_PATTERN = 'https://syndetics.com/index.php?client=primo&isbn=%s/lc.jpg';
 
-    private const VENDOR_ARCHIVE_DIR = 'EbookCentral';
-    private const VENDOR_ARCHIVE_NAME = 'cover images title list ddbdk.xlsx';
+    protected array $datawellQueries = ['facet.acSource="ebook central', 'facet.acSource="ebook central plus'];
 
     /**
-     * EbookCentralVendorService constructor.
-     *
-     * @param string $resourcesDir
-     *   The application resource dir
+     * {@inheritDoc}
      */
-    public function __construct(
-        private readonly string $resourcesDir
-    ) {
+    public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
+    {
+        if (!$this->supportsIdentifierType($type)) {
+            throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
+        }
+
+        $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
+
+        $item = new UnverifiedVendorImageItem();
+        $item->setIdentifier($identifier);
+        $item->setIdentifierType($type);
+        $item->setVendor($vendor);
+        $item->setOriginalFile($this->getVendorImageUrl($identifier));
+
+        return $item;
     }
 
     /**
-     * {@inheritdoc}
+     * {@inheritDoc}
      */
-    public function load(): VendorImportResultMessage
+    public function supportsIdentifierType(string $type): bool
     {
-        if (!$this->vendorCoreService->acquireLock($this->getVendorId(), $this->ignoreLock)) {
-            return VendorImportResultMessage::error(self::ERROR_RUNNING);
-        }
+        return IdentifierType::ISBN === $type;
+    }
 
-        $status = new VendorStatus();
+    /**
+     * {@inheritDoc}
+     */
+    protected function extractData(object $jsonContent): array
+    {
+        $pidObjectArray = $this->datawell->extractData($jsonContent);
 
-        try {
-            $this->progressStart('Opening sheet: "'.self::VENDOR_ARCHIVE_NAME.'"');
-
-            $reader = $this->getSheetReader();
-
-            $totalRows = 0;
-            $consecutivelyEmptyRows = 0;
-
-            $isbnArray = [];
-
-            foreach ($reader->getSheetIterator() as $sheet) {
-                foreach ($sheet->getRowIterator() as $row) {
-                    $cellsArray = $row->getCells();
-                    if (0 === $totalRows) {
-                        if ('PrintIsbn' !== $cellsArray[2]->getValue() || 'EIsbn' !== $cellsArray[3]->getVAlue() || 'http://ebookcentral.proquest.com/covers/Document ID-l.jpg' !== $cellsArray[6]->getValue()) {
-                            throw new UnknownVendorResourceFormatException('Unknown columns in xlsx resource file.');
-                        }
-                    } else {
-                        $imageUrl = $cellsArray[6]->getVAlue();
-                        if (!empty($imageUrl)) {
-                            $printIsbn = $cellsArray[2]->getValue();
-                            $eIsbn = $cellsArray[3]->getValue();
-
-                            if (!empty($printIsbn)) {
-                                $isbnArray[$printIsbn] = $imageUrl;
-                            }
-                            if (!empty($eIsbn)) {
-                                $isbnArray[$eIsbn] = $imageUrl;
-                            }
-                        }
-
-                        // Monitor empty row count to terminate loop.
-                        if (empty($printIsbn) && empty($eIsbn)) {
-                            ++$consecutivelyEmptyRows;
-                        } else {
-                            $consecutivelyEmptyRows = 0;
-                        }
-                    }
-                    ++$totalRows;
-
-                    if ($this->limit && $totalRows >= $this->limit) {
-                        break;
-                    }
-
-                    if (0 === $totalRows % 100) {
-                        $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
-                        $isbnArray = [];
-
-                        $this->progressMessageFormatted($status);
-                        $this->progressAdvance();
-                    }
-
-                    // Sheet has 1 mil+ rows and the last ~850k are empty. Stop when we get to them.
-                    // File also has large gaps of rows withs no ISBNs the first ~150k rows so we can't
-                    // just stop at first empty row.
-                    //
-                    // And yes - import format sucks. Don't mention the war.
-                    if ($consecutivelyEmptyRows > 10000) {
-                        $this->progressMessage('Seen 10000 empty rows, skipping the rest....');
-
-                        break;
-                    }
-                }
+        $pidArray = [];
+        foreach ($pidObjectArray as $pid => $datawellObject) {
+            $isbn = $this->datawell->extractIsbn($datawellObject);
+            if (null !== $isbn) {
+                $pidArray[$pid] = $this->getVendorImageUrl($isbn);
             }
-
-            $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
-
-            $this->progressFinish();
-
-            $this->vendorCoreService->releaseLock($this->getVendorId());
-
-            return VendorImportResultMessage::success($status);
-        } catch (\Exception $exception) {
-            return VendorImportResultMessage::error($exception->getMessage());
         }
+
+        return $pidArray;
     }
 
     /**
-     * Get a xlsx file reader reference for the import source.
+     * Get Vendors image URL from ISBN.
      *
-     * @throws IOException
+     * @param string $isbn
+     *
+     * @return string
      */
-    private function getSheetReader(): Reader
+    private function getVendorImageUrl(string $isbn): string
     {
-        $resourceDirectories = [$this->resourcesDir.'/'.self::VENDOR_ARCHIVE_DIR];
-
-        $fileLocator = new FileLocator($resourceDirectories);
-        $filePath = $fileLocator->locate(self::VENDOR_ARCHIVE_NAME, null, true);
-
-        $reader = ReaderEntityFactory::createXLSXReader();
-        $reader->open($filePath);
-
-        return $reader;
+        return \sprintf(self::URL_PATTERN, $isbn);
     }
 }

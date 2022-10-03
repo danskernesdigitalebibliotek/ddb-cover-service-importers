@@ -18,7 +18,7 @@ trait VendorServiceTrait
     private bool $withoutQueue = false;
     private \DateTime $withUpdatesDate;
     private bool $ignoreLock = false;
-    private VendorCoreService $vendorCoreService;
+    protected VendorCoreService $vendorCoreService;
 
     /**
      * Set core vendor service.
@@ -101,7 +101,7 @@ trait VendorServiceTrait
      *
      * @return void
      */
-    public function setWithUpdatesDate(\DateTime $date)
+    public function setWithUpdatesDate(\DateTime $date): void
     {
         $this->withUpdatesDate = $date;
     }
@@ -116,7 +116,7 @@ trait VendorServiceTrait
      *
      * @return void
      */
-    public function setIgnoreLock(bool $force = false)
+    public function setIgnoreLock(bool $force = false): void
     {
         $this->ignoreLock = $force;
     }

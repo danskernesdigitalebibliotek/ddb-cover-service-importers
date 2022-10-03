@@ -1,0 +1,170 @@
+{
+  "record": {
+    "identifier": [{
+      "$": "EBC1133139|150008",
+      "@": "ac"
+    }, {
+      "$": "http:\/\/ebookcentral.proquest.com\/lib\/SITEID\/detail.action?docID=1133139",
+      "@type": {
+        "$": "dcterms:URI",
+        "@": "xsi"
+      },
+      "@": "dc"
+    }],
+    "source": [{
+      "$": "Ebook Central",
+      "@": "ac"
+    }],
+    "title": [{
+      "$": "Music and Modernism, c. 1849-1950",
+      "@": "dc"
+    }, {
+      "$": "Music and Modernism, c. 1849-1950",
+      "@type": {
+        "$": "dkdcplus:full",
+        "@": "xsi"
+      },
+      "@": "dc"
+    }],
+    "creator": [{
+      "$": "Charlotte de Mille",
+      "@type": {
+        "$": "dkdcplus:aut",
+        "@": "xsi"
+      },
+      "@": "dc"
+    }, {
+      "$": "Mille, Charlotte de",
+      "@type": {
+        "$": "oss:sort",
+        "@": "xsi"
+      },
+      "@": "dc"
+    }],
+    "subject": [{
+      "$": "Arts, Modern -- 19th century",
+      "@type": {
+        "$": "dcterms:LCSH",
+        "@": "xsi"
+      },
+      "@": "dc"
+    }, {
+      "$": "Arts, Modern -- 20th century",
+      "@type": {
+        "$": "dcterms:LCSH",
+        "@": "xsi"
+      },
+      "@": "dc"
+    }, {
+      "$": "Electronic books",
+      "@type": {
+        "$": "dcterms:LCSH",
+        "@": "xsi"
+      },
+      "@": "dc"
+    }, {
+      "$": "Modernism (Art)",
+      "@type": {
+        "$": "dcterms:LCSH",
+        "@": "xsi"
+      },
+      "@": "dc"
+    }, {
+      "$": "Modernism (Music)",
+      "@type": {
+        "$": "dcterms:LCSH",
+        "@": "xsi"
+      },
+      "@": "dc"
+    }, {
+      "$": "Music -- 19th century -- Philosophy and aesthetics",
+      "@type": {
+        "$": "dcterms:LCSH",
+        "@": "xsi"
+      },
+      "@": "dc"
+    }, {
+      "$": "Music -- 20th century -- Philosophy and aesthetics",
+      "@type": {
+        "$": "dcterms:LCSH",
+        "@": "xsi"
+      },
+      "@": "dc"
+    }],
+    "abstract": [{
+      "$": "Summary: Music and Modernism is a collection of essays which re-evaluate the significant connections between the disciplines of music, fine art and architecture in the period covering the emergence and flowering of modernism, c. 1849 - 1950. Combining established scholars in the field with those at the start of their careers, this book presents an exceptional cross-section of European and American modernism through a series of detailed case-studies. Avoiding a simplistic engagement with cross- or inte",
+      "@": "dcterms"
+    }],
+    "description": [{
+      "$": "Print version: Mille, Charlotte de ; Music and Modernism, c. 1849-1950",
+      "@": "dc"
+    }, {
+      "$": "Intro -- TABLE OF CONTENTS -- LIST OF ILLUSTRATIONS -- ACKNOWLEDGEMENTS -- INTRODUCTION -- HOW TO PAINT A FUGUE -- PART I -- CHAPTER ONE -- CHAPTER TWO -- CHAPTER THREE -- PART II -- CHAPTER FOUR -- CHAPTER FIVE -- PART III -- CHAPTER SIX -- CHAPTER SEVEN -- PART IV -- CHAPTER EIGHT -- CHAPTER NINE -- PART V -- CHAPTER TEN -- CHAPTER ELEVEN -- BIBLIOGRAPHY -- CONTRIBUTORS -- INDEX",
+      "@": "dc"
+    }],
+    "audience": [{
+      "$": "voksenmaterialer",
+      "@": "dcterms"
+    }],
+    "version": [{
+      "$": "1. ed.",
+      "@": "dkdcplus"
+    }],
+    "publisher": [{
+      "$": "Cambridge Scholars Publisher",
+      "@": "dc"
+    }],
+    "date": [{
+      "$": "2011",
+      "@": "dc"
+    }],
+    "type": [{
+      "$": "Ebog",
+      "@type": {
+        "$": "dkdcplus:BibDK-Type",
+        "@": "xsi"
+      },
+      "@": "dc"
+    }],
+    "format": [{
+      "$": "1 online resource (363 s.)",
+      "@": "dc"
+    }],
+    "language": [{
+      "$": "eng",
+      "@type": {
+        "$": "dcterms:ISO639-2",
+        "@": "xsi"
+      },
+      "@": "dc"
+    }, {
+      "$": "engelsk",
+      "@": "dc"
+    }],
+    "@": "dkabm"
+  },
+  "identifier": {
+    "$": "150008-academic:EBC1133139"
+  },
+  "primaryObjectIdentifier": {
+    "$": "150008-academic:EBC1133139"
+  },
+  "recordStatus": {
+    "$": "active"
+  },
+  "creationDate": {
+    "$": "2022-08-11"
+  },
+  "formatsAvailable": {
+    "format": [{
+      "$": "dkabm"
+    }, {
+      "$": "marcxchange"
+    }]
+  },
+  "objectsAvailable": {
+    "identifier": [{
+      "$": "150008-academic:EBC1133139"
+    }]
+  }
+}

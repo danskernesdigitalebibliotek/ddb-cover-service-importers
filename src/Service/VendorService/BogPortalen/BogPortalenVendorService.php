@@ -120,7 +120,7 @@ class BogPortalenVendorService implements VendorServiceImporterInterface, Vendor
     /**
      * {@inheritDoc}
      */
-    public function getUnverifiedVendorImageItem(string $identifier, string $type): UnverifiedVendorImageItem
+    public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
     {
         if (!$this->supportsIdentifierType($type)) {
             throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);

@@ -46,7 +46,7 @@ class FtpDownloadService
         }
     }
 
-    private function makeDir($localArchive): void
+    private function makeDir(string $localArchive): void
     {
         $path = dirname($localArchive);
         if (!is_dir($path)) {
