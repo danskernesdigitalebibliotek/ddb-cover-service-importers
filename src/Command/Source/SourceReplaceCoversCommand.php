@@ -68,6 +68,10 @@ class SourceReplaceCoversCommand extends Command
         $identifier = $input->getOption('identifier');
         $url = $input->getOption('url');
 
+        if (null === $vendorId || null === $identifier || null === $url) {
+            $output->writeln('<error>Required parameters was not given</error>');
+        }
+
         /** @var Vendor $vendor */
         $vendor = $this->vendorRepository->findOneBy(['id' => $vendorId]);
         /** @var Source $source */
@@ -83,8 +87,8 @@ class SourceReplaceCoversCommand extends Command
         // Trigger download, validate and reindex with the new cover.
         $message = new VendorImageMessage();
         $message->setOperation(VendorState::UPDATE)
-            ->setIdentifier($identifier)
-            ->setVendorId($vendorId)
+            ->setIdentifier($source->getMatchId())
+            ->setVendorId($source->getVendor()->getId())
             ->setIdentifierType($source->getMatchType());
         $this->bus->dispatch($message);
 
