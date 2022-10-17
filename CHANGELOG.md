@@ -11,6 +11,9 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+### Changed
+- Map no-hit faust search to katelog posts, when possible.
+
 ## [3.3.0] - 2022-10-03
 
 ### Added

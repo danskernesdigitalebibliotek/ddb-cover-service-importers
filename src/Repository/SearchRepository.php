@@ -7,6 +7,7 @@
 namespace App\Repository;
 
 use App\Entity\Search;
+use App\Utils\Types\IdentifierType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -87,5 +88,27 @@ class SearchRepository extends ServiceEntityRepository
         $queryBuilder->orderBy('s.id', 'ASC');
 
         return $queryBuilder->getQuery();
+    }
+
+    /**
+     * Find single katelog search record base on faust.
+     *
+     * @param string $faust
+     *   Faust to search for katelog record
+     *
+     * @return false|Search
+     *   If non found false else the search found
+     */
+    public function findKatelogSearchesByFaust(string $faust): false|Search
+    {
+        $queryBuilder = $this->createQueryBuilder('s');
+        $queryBuilder->select('s')
+            ->where('s.isType = :type')
+            ->andWhere('s.isIdentifier LIKE :faust')
+            ->setParameter('type', IdentifierType::PID)
+            ->setParameter('faust', '%-katalog:'.$faust);
+        $res = $queryBuilder->getQuery()->getResult();
+
+        return reset($res);
     }
 }
