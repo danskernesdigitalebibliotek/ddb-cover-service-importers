@@ -11,6 +11,8 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+## [3.3.0] - 2022-10-03
+
 ### Added
 - Abstract DatawellVendor.
 - BlockBuster vendor service.
