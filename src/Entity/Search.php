@@ -12,7 +12,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *            columns={"is_type", "is_identifier"})
  *    },
  *     indexes={
- *        @ORM\Index(name="is_identifier_type_idx", columns={"is_identifier", "is_type"})
+ *        @ORM\Index(name="is_identifier_type_idx", columns={"is_identifier", "is_type"}),
+ *        @ORM\Index(name="is_identifier_fulltext_idx", columns={"is_identifier"}, flags={"fulltext"})
  *    }
  * )
  *

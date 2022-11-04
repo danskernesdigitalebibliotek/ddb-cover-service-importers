@@ -415,28 +415,41 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
             // wrap our search/update/insert in a transaction.
             $this->em->getConnection()->beginTransaction();
 
-            try {
-                $newSearch = new Search();
-                $newSearch->setIsType(IdentifierType::FAUST)
-                    ->setIsIdentifier($faust)
-                    ->setSource($search->getSource())
-                    ->setImageUrl((string) $search->getImageUrl())
-                    ->setImageFormat((string) $search->getImageFormat())
-                    ->setWidth($search->getWidth())
-                    ->setHeight($search->getHeight());
-                $this->em->persist($newSearch);
+            $exists = $searchRepos->findBy(['isIdentifier' => $faust, 'isType' => IdentifierType::FAUST]);
 
-                $this->em->flush();
-                $this->em->getConnection()->commit();
-
-                // Log that a new record was created.
-                $this->metricsService->counter('no_hit_katelog_mapped', 'No-hit katelog was mapped', 1, ['type' => 'nohit']);
-
+            if ($exists) {
+                // If another process has already found the identifier we just return 'true'
+                // to stop further processing in the handler
                 return true;
-            } catch (DBALException $exception) {
-                $this->em->getConnection()->rollBack();
+            } else {
+                try {
+                    $newSearch = new Search();
+                    $newSearch->setIsType(IdentifierType::FAUST)
+                        ->setIsIdentifier($faust)
+                        ->setSource($search->getSource())
+                        ->setImageUrl((string) $search->getImageUrl())
+                        ->setImageFormat((string) $search->getImageFormat())
+                        ->setWidth($search->getWidth())
+                        ->setHeight($search->getHeight());
+                    $this->em->persist($newSearch);
 
-                throw $exception;
+                    $this->em->flush();
+                    $this->em->getConnection()->commit();
+
+                    // Log that a new record was created.
+                    $this->metricsService->counter(
+                        'no_hit_katelog_mapped',
+                        'No-hit katelog was mapped',
+                        1,
+                        ['type' => 'nohit']
+                    );
+
+                    return true;
+                } catch (DBALException $exception) {
+                    $this->em->getConnection()->rollBack();
+
+                    throw $exception;
+                }
             }
         }
 
