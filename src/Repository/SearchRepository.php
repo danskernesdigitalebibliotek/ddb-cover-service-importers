@@ -7,6 +7,8 @@
 namespace App\Repository;
 
 use App\Entity\Search;
+use App\Entity\Source;
+use App\Utils\Types\IdentifierType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
@@ -87,5 +89,36 @@ class SearchRepository extends ServiceEntityRepository
         $queryBuilder->orderBy('s.id', 'ASC');
 
         return $queryBuilder->getQuery();
+    }
+
+    /**
+     * Find single katalog search record base on faust.
+     *
+     * @param string $faust
+     *   Faust to search for katalog record
+     *
+     * @return false|Search
+     *   If non found false else the search found
+     */
+    public function findKatelogSearchesByFaust(string $faust): false|Search
+    {
+        // We use a native SQL query because MATCH ... AGAINST is not supported
+        // by doctrine and the function supplied by beberlei/doctrineextensions
+        // and others didn't give the needed query.
+
+        $em = $this->getEntityManager();
+
+        $rsm = new Query\ResultSetMappingBuilder($em);
+        $rsm->addRootEntityFromClassMetadata(Search::class, 'se');
+        $rsm->addJoinedEntityFromClassMetadata(Source::class, 'so', 'se', 'source', ['id' => 'source_id']);
+
+        $sql = 'SELECT * FROM search WHERE is_type = ? AND MATCH(is_identifier) AGAINST (? IN BOOLEAN MODE) LIMIT 1';
+        $query = $this->getEntityManager()->createNativeQuery($sql, $rsm);
+        $query->setParameter(1, IdentifierType::PID);
+        $query->setParameter(2, '+katalog:'.$faust);
+
+        $res = $query->getResult();
+
+        return reset($res);
     }
 }
