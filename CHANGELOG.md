@@ -13,6 +13,7 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ### Changed
 - Map no-hit faust search to katelog posts, when possible.
+- Fixed double covers for matching ISBN11 and 13
 
 ## [3.3.0] - 2022-10-03
 
