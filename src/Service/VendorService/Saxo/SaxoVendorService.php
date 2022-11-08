@@ -13,9 +13,8 @@ use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
-use Box\Spout\Common\Exception\IOException;
-use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
-use Box\Spout\Reader\XLSX\Reader;
+use OpenSpout\Common\Exception\IOException;
+use OpenSpout\Reader\XLSX\Reader;
 use Symfony\Component\Config\FileLocator;
 
 /**
@@ -64,9 +63,9 @@ class SaxoVendorService implements VendorServiceImporterInterface
             foreach ($reader->getSheetIterator() as $sheet) {
                 foreach ($sheet->getRowIterator() as $row) {
                     $cellsArray = $row->getCells();
-                    $isbn = (string) $cellsArray[0]->getValue();
+                    $isbn = $cellsArray[0]->getValue();
 
-                    if (!empty($isbn)) {
+                    if (!empty($isbn) && is_string($isbn)) {
                         $isbnArray[$isbn] = $this->getVendorsImageUrl($isbn);
                     }
 
@@ -86,6 +85,8 @@ class SaxoVendorService implements VendorServiceImporterInterface
                     }
                 }
             }
+
+            $reader->close();
 
             $this->vendorCoreService->updateOrInsertMaterials($status, $isbnArray, IdentifierType::ISBN, $this->getVendorId(), $this->withUpdatesDate, $this->withoutQueue, self::BATCH_SIZE);
 
@@ -123,7 +124,7 @@ class SaxoVendorService implements VendorServiceImporterInterface
         $fileLocator = new FileLocator($resourceDirectories);
         $filePath = $fileLocator->locate(self::VENDOR_ARCHIVE_NAME);
 
-        $reader = ReaderEntityFactory::createXLSXReader();
+        $reader = new Reader();
         $reader->open($filePath);
 
         return $reader;
