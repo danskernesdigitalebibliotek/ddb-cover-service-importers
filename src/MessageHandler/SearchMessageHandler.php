@@ -9,7 +9,6 @@ namespace App\MessageHandler;
 
 use App\Entity\Source;
 use App\Exception\MaterialTypeException;
-use App\Exception\OpenPlatformAuthException;
 use App\Exception\OpenPlatformSearchException;
 use App\Message\IndexMessage;
 use App\Message\SearchMessage;
@@ -45,7 +44,6 @@ class SearchMessageHandler implements MessageHandlerInterface
     /**
      * @param SearchMessage $message
      *
-     * @throws OpenPlatformAuthException
      * @throws OpenPlatformSearchException
      */
     public function __invoke(SearchMessage $message)

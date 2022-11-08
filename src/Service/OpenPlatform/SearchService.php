@@ -264,7 +264,6 @@ class SearchService
                     // Try to get both ISBN-10 and ISBN-13 into query to match wider.
                     $extraISBN = $this->convertIsbn($identifier);
 
-                    $query = '';
                     if (!is_null($extraISBN)) {
                         $query = 'term.isbn='.$extraISBN.' OR ';
                     }
