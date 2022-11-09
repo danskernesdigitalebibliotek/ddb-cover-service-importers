@@ -20,15 +20,21 @@ class CoverUserUploadMessage
     private string $imageUrl;
     private string $accrediting;
     private ?int $vendorId;
-    private string $traceId;
+    private ?string $agency = null;
+    private ?string $profile = null;
 
+    /**
+     * @return string
+     */
     public function getOperation(): string
     {
         return $this->operation;
     }
 
     /**
-     * @return static
+     * @param string $operation
+     *
+     * @return CoverUserUploadMessage
      */
     public function setOperation(string $operation): self
     {
@@ -37,13 +43,18 @@ class CoverUserUploadMessage
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getIdentifierType(): string
     {
         return $this->identifierType;
     }
 
     /**
-     * @return static
+     * @param string $type
+     *
+     * @return CoverUserUploadMessage
      */
     public function setIdentifierType(string $type): self
     {
@@ -52,13 +63,18 @@ class CoverUserUploadMessage
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getIdentifier(): string
     {
         return $this->identifier;
     }
 
     /**
-     * @return static
+     * @param string $identifier
+     *
+     * @return CoverUserUploadMessage
      */
     public function setIdentifier(string $identifier): self
     {
@@ -67,13 +83,18 @@ class CoverUserUploadMessage
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getImageUrl(): string
     {
         return $this->imageUrl;
     }
 
     /**
-     * @return static
+     * @param string $imageUrl
+     *
+     * @return CoverUserUploadMessage
      */
     public function setImageUrl(string $imageUrl): self
     {
@@ -83,7 +104,9 @@ class CoverUserUploadMessage
     }
 
     /**
-     * @return static
+     * @param string $accrediting
+     *
+     * @return CoverUserUploadMessage
      */
     public function setAccrediting(string $accrediting): self
     {
@@ -92,13 +115,16 @@ class CoverUserUploadMessage
         return $this;
     }
 
+    /**
+     * @return string
+     */
     public function getAccrediting(): string
     {
         return $this->accrediting;
     }
 
     /**
-     * @return ?int
+     * @return int|null
      */
     public function getVendorId(): ?int
     {
@@ -106,9 +132,9 @@ class CoverUserUploadMessage
     }
 
     /**
-     * @param ?int $vendorId
+     * @param mixed $vendorId
      *
-     * @return static
+     * @return CoverUserUploadMessage
      */
     public function setVendorId(?int $vendorId): self
     {
@@ -118,26 +144,51 @@ class CoverUserUploadMessage
     }
 
     /**
-     * Get trace id (which is unique for the whole request).
+     * Get agency id.
      *
-     *   The trace id
+     * This is an optional field that maybe used to change what agency is used during search.
+     *
+     * @return string
+     *   Library agency id, if set else empty string.
      */
-    public function getTraceId(): string
+    public function getAgency(): string
     {
-        return $this->traceId;
+        return $this->agency ?? '';
     }
 
     /**
-     * Set trace id (which is unique for the whole request).
+     * Set agency id
      *
-     * @param string $traceId
-     *   The trace id used to trace this message between services
+     * @param string $agency
+     *   Library agency id
      *
-     * @return $this
+     * @return CoverUserUploadMessage
      */
-    public function setTraceId(string $traceId): self
+    public function setAgency(string $agency): self
     {
-        $this->traceId = $traceId;
+        $this->agency = $agency;
+
+        return $this;
+    }
+
+    /**
+     * Get OpenPlatform search profile
+     *
+     * @return string
+     */
+    public function getProfile(): string
+    {
+        return $this->profile ?? '';
+    }
+
+    /**
+     * @param string $profile
+     *
+     * @return CoverUserUploadMessage
+     */
+    public function setProfile(string $profile): self
+    {
+        $this->profile = $profile;
 
         return $this;
     }
