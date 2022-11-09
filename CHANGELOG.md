@@ -11,7 +11,7 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
-### Changed
+## [3.4.0] - 2022-11-08
 - Map no-hit faust search to katelog posts, when possible.
 - Fixed double covers for matching ISBN11 and 13
 
@@ -34,6 +34,7 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 - Ordered services.yaml and changed "datawell.*" from parameters to direct injection.
 - EbookCentralVendorService has been refactored to use the Abstract DatawellVendor.
 - EbookCentralVendorService now supports single cover no hits processing.
+- `box/spout` (abandoned) replaced by `openspout/openspout` which seems to be the community replacement
 
 ## [3.2.1] - 2022-09-15
 
