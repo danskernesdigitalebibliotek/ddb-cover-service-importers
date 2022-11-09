@@ -276,4 +276,26 @@ class Material implements \Stringable
 
         throw new MaterialConversionException('The PID given was not an katelog PID - '.$pid);
     }
+
+    /**
+     * Get agency id based from katelog post.
+     *
+     * @param string $pid
+     *   The katelog pid to extract agency from
+     *
+     * @return string
+     *   The agency id
+     *
+     * @throws MaterialConversionException
+     */
+    public static function getAgencyFromKatelog(string $pid): string
+    {
+        if (strpos($pid, '-katalog:')) {
+            $parts = explode('-', $pid);
+
+            return $parts[0];
+        }
+
+        throw new MaterialConversionException('The PID given was not an katelog PID - '.$pid);
+    }
 }

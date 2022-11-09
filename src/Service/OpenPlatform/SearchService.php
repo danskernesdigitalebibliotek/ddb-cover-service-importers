@@ -27,6 +27,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 class SearchService
 {
     final public const SEARCH_LIMIT = 50;
+    private const FALLBACK_PROFILE = 'opac';
 
     private array $fields = [
         'title',
@@ -92,7 +93,17 @@ class SearchService
     {
         // Check if input parameters are set, if not fallback to default configuration.
         $agencyId = empty($agencyId) ? $this->agency : $agencyId;
-        $profile = empty($profile) ? $this->searchProfile : $profile;
+        if (empty($profile)) {
+            if (empty($agencyId)) {
+                // Both profile and agency is not set explicit. So profile should
+                // be the one configured.
+                $profile = $this->searchProfile;
+            } else {
+                // Agency have been set but no profile to default to "opac" profile, which
+                // all libraries should have.
+                $profile = self::FALLBACK_PROFILE;
+            }
+        }
 
         try {
             // Build cache key base on function parameters with fallback to configuration (default values).

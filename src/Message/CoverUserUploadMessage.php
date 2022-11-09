@@ -149,7 +149,7 @@ class CoverUserUploadMessage
      * This is an optional field that maybe used to change what agency is used during search.
      *
      * @return string
-     *   Library agency id, if set else empty string.
+     *   Library agency id, if set else empty string
      */
     public function getAgency(): string
     {
@@ -157,7 +157,7 @@ class CoverUserUploadMessage
     }
 
     /**
-     * Set agency id
+     * Set agency id.
      *
      * @param string $agency
      *   Library agency id
@@ -172,7 +172,7 @@ class CoverUserUploadMessage
     }
 
     /**
-     * Get OpenPlatform search profile
+     * Get OpenPlatform search profile.
      *
      * @return string
      */

@@ -78,7 +78,7 @@ class SearchMessageHandler implements MessageHandlerInterface
         }
 
         try {
-            $material = $this->searchService->search($message->getIdentifier(), $message->getIdentifierType(), !$message->useSearchCache());
+            $material = $this->searchService->search($message->getIdentifier(), $message->getIdentifierType(), $message->getAgency(), $message->getProfile(), !$message->useSearchCache());
         } catch (OpenPlatformSearchException $e) {
             $this->logger->error('Search request exception', [
                 'service' => 'SearchProcessor',
@@ -114,6 +114,8 @@ class SearchMessageHandler implements MessageHandlerInterface
                 ->setOperation($message->getOperation())
                 ->setVendorId($message->getVendorId())
                 ->setImageId($message->getImageId())
+                ->setAgency($message->getAgency())
+                ->setProfile($message->getProfile())
                 ->setMaterial($material);
 
             $this->bus->dispatch($indexMessage);

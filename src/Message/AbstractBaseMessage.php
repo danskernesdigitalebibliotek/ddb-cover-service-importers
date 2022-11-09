@@ -150,7 +150,7 @@ abstract class AbstractBaseMessage
      * This is an optional field that maybe used to change what agency is used during search.
      *
      * @return string
-     *   Library agency id, if set else empty string.
+     *   Library agency id, if set else empty string
      */
     public function getAgency(): string
     {
@@ -158,18 +158,22 @@ abstract class AbstractBaseMessage
     }
 
     /**
-     * Set agency id
+     * Set agency id.
      *
      * @param string $agency
      *   Library agency id
+     *
+     * @return $this
      */
-    public function setAgency(string $agency): void
+    public function setAgency(string $agency): self
     {
         $this->agency = $agency;
+
+        return $this;
     }
 
     /**
-     * Get OpenPlatform search profile
+     * Get OpenPlatform search profile.
      *
      * @return string
      */
