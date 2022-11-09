@@ -39,7 +39,7 @@ class SearchServiceTest extends TestCase
     {
         $body = '{"statusCode":200,"data":[{"title":["Tempelridderen"],"creator":["Jan Guillou"],"date":["2008"],"publisher":["Modtryk"],"pid":["870970-basis:27073301"],"identifierISBN":["9788770531214"]}],"hitCount":4,"more":false}';
         $service = $this->getAuthenticationService(false, $body);
-        $material = $service->search($this::IDENTIFIER, 'isbn', 1);
+        $material = $service->search($this::IDENTIFIER, 'isbn', '', '', true);
 
         // Test basic information.
         $this->assertEquals('Tempelridderen', $material->getTitle());

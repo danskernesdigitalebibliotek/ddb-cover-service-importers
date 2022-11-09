@@ -15,7 +15,10 @@ use App\Utils\Types\IdentifierType;
 use Nicebooks\Isbn\Isbn;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -38,16 +41,9 @@ class SearchService
         'acIdentifier',
     ];
 
-    private readonly int $searchCacheTTL;
-    private readonly string $searchURL;
-    private readonly string $searchProfile;
-    private readonly int $searchLimit;
-
     /**
      * SearchService constructor.
      *
-     * @param ParameterBagInterface $params
-     *   Access to environment variables
      * @param CacheItemPoolInterface $cache
      *   Cache object to store results
      * @param AuthenticationService $authenticationService
@@ -56,15 +52,15 @@ class SearchService
      *   Http Client
      */
     public function __construct(
-        private readonly ParameterBagInterface $params,
         private readonly CacheItemPoolInterface $cache,
         private readonly AuthenticationService $authenticationService,
-        private readonly HttpClientInterface $httpClient
+        private readonly HttpClientInterface $httpClient,
+        private readonly string $searchURL,
+        private readonly string $searchProfile,
+        private readonly string $agency,
+        private readonly int $searchLimit,
+        private readonly int $searchCacheTTL,
     ) {
-        $this->searchURL = $this->params->get('openPlatform.search.url');
-        $this->searchCacheTTL = (int) $this->params->get('openPlatform.search.ttl');
-        $this->searchProfile = $this->params->get('openPlatform.search.profile');
-        $this->searchLimit = (int) $this->params->get('openPlatform.search.limit');
     }
 
     /**
@@ -76,6 +72,10 @@ class SearchService
      *   The identifier to search for
      * @param string $type
      *   The type of identifier
+     * @param string $agencyId
+     *   Optional agency to use
+     * @param string $profile
+     *   Optional search profile to use
      * @param bool $refresh
      *   If set to TRUE the cache is by-passed. Default: FALSE.
      *
@@ -83,21 +83,32 @@ class SearchService
      *
      * @throws MaterialTypeException
      * @throws OpenPlatformSearchException
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
      */
-    public function search(string $identifier, string $type, bool $refresh = false): Material
+    public function search(string $identifier, string $type, string $agencyId = '', string $profile = '', bool $refresh = false): Material
     {
+        // Check if input parameters are set, if not fallback to default configuration.
+        $agencyId = empty($agencyId) ? $this->agency : $agencyId;
+        $profile = empty($profile) ? $this->searchProfile : $profile;
+
         try {
+            // Build cache key base on function parameters with fallback to configuration (default values).
+            $key = md5(str_replace(':', '', $identifier).$agencyId.$profile);
+
             // Try getting item from cache.
-            $item = $this->cache->getItem('openplatform.search_query'.str_replace(':', '', $identifier));
-        } catch (\Psr\Cache\InvalidArgumentException  $exception) {
+            $item = $this->cache->getItem('openplatform.search_query'.$key);
+        } catch (InvalidArgumentException  $exception) {
             throw new OpenPlatformSearchException('Invalid cache argument');
         }
 
         // Check if cache should be used if item have been located.
         if ($refresh || !$item->isHit()) {
             try {
-                $token = $this->authenticationService->getAccessToken();
-                $res = $this->recursiveSearch($token, $identifier, $type);
+                $token = $this->authenticationService->getAccessToken($agencyId);
+                $res = $this->recursiveSearch($token, $identifier, $type, $profile);
             } catch (OpenPlatformAuthException|\JsonException|InvalidArgumentException $exception) {
                 throw new OpenPlatformSearchException($exception->getMessage(), (int) $exception->getCode(), $exception);
             }
@@ -224,8 +235,8 @@ class SearchService
     /**
      * Recursive search until no more results exists for the query.
      *
-     * This is need as the open platform allows an max limit of 50 elements, so
-     * if more results exists this calls it self to get all results.
+     * This is need as the open platform allows a max limit of 50 elements, so
+     * if more results exists this calls itself to get all results.
      *
      * @param string $token
      *   Access token
@@ -233,6 +244,8 @@ class SearchService
      *   The identifier to search for
      * @param string $type
      *   The identifier type
+     * @param string $profile
+     *   The search profile to use
      * @param string $query
      *   Search query to execute. Defaults to empty string, which means that the function will build the query based on
      *   the other parameters.
@@ -243,9 +256,14 @@ class SearchService
      *
      *   The results currently found. If recursion is completed all the results.
      *
+     * @throws ClientExceptionInterface
      * @throws OpenPlatformSearchException
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws \JsonException
      */
-    private function recursiveSearch(string $token, string $identifier, string $type, string $query = '', int $offset = 0, array &$results = []): array
+    private function recursiveSearch(string $token, string $identifier, string $type, string $profile, string $query = '', int $offset = 0, array &$results = []): array
     {
         // HACK HACK HACK.
         // Temporary protection against non-real identifiers and search on library only ids.
@@ -295,7 +313,7 @@ class SearchService
                 'q' => $query,
                 'offset' => $offset,
                 'limit' => $this::SEARCH_LIMIT,
-                'profile' => $this->searchProfile,
+                'profile' => $profile,
             ],
         ]);
 
@@ -321,7 +339,7 @@ class SearchService
 
         // If there are more results get the next chunk and results are smaller than the limit.
         if (isset($json['hitCount']) && false !== $json['more'] && (is_countable($results['pid']) ? count($results['pid']) : 0) < $this->searchLimit) {
-            $this->recursiveSearch($token, $identifier, $type, $query, $offset + $this::SEARCH_LIMIT, $results);
+            $this->recursiveSearch($token, $identifier, $type, $profile, $query, $offset + $this::SEARCH_LIMIT, $results);
         } elseif (!isset($results['basicSearchPerformed']) && isset($results['pid']) && !$this->isBasicInArray($results['pid'])) {
             // As we are using a library's open platform access it may have a "påhængsposter/lokaleposter" which
             // prevents os from getting the basic post. This can only be fixed by asking the open platform for the same
@@ -331,7 +349,7 @@ class SearchService
             // To ensure that we don't end in a loop, if no basic post is found this extra stopgab is added.
             $results['basicSearchPerformed'] = true;
 
-            $this->recursiveSearch($token, $identifier, $type, $query, $offset, $results);
+            $this->recursiveSearch($token, $identifier, $type, $profile, $query, $offset, $results);
         }
 
         return $results;
