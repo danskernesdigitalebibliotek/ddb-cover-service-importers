@@ -105,7 +105,9 @@ class VendorImageMessageHandler implements MessageHandlerInterface
                 ->setImageId($message->getImageId())
                 ->setOperation($message->getOperation())
                 ->setUseSearchCache($message->useSearchCache())
-                ->setVendorId($message->getVendorId());
+                ->setVendorId($message->getVendorId())
+                ->setAgency($message->getAgency())
+                ->setProfile($message->getProfile());
             $this->bus->dispatch($coverStoreMessage);
         } else {
             $source->setOriginalLastModified(null);
@@ -141,7 +143,9 @@ class VendorImageMessageHandler implements MessageHandlerInterface
                 ->setImageId($message->getImageId())
                 ->setOperation($message->getOperation())
                 ->setUseSearchCache($message->useSearchCache())
-                ->setVendorId($message->getVendorId());
+                ->setVendorId($message->getVendorId())
+                ->setAgency($message->getAgency())
+                ->setProfile($message->getProfile());
             $this->bus->dispatch($coverStoreMessage);
         } else {
             $this->logger->info('Remote image is not updated', [
