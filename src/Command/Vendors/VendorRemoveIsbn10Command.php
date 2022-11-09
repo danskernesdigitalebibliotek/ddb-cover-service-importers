@@ -15,6 +15,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -38,8 +39,7 @@ class VendorRemoveIsbn10Command extends Command
 
     protected function configure(): void
     {
-        $this
-            ->addArgument('vendorId', InputArgument::REQUIRED, 'Vendor id found in the database');
+        $this->addOption('vendorId', null, InputOption::VALUE_REQUIRED, 'Vendor id found in the database');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -48,7 +48,7 @@ class VendorRemoveIsbn10Command extends Command
         $progressBar = new ProgressBar($output);
         $progressBar->setFormat('debug');
 
-        $vendorId = (int) $input->getArgument('vendorId');
+        $vendorId = (int) $input->getOption('vendorId');
         $vendor = $this->vendorRepository->find($vendorId);
         $offset = 0;
 
