@@ -172,7 +172,7 @@ class Material implements \Stringable
     }
 
     /**
-     * Get all identifiers for this material.
+     * Set all identifiers for this material.
      *
      * @param MaterialIdentifier[] $identifiers
      *
