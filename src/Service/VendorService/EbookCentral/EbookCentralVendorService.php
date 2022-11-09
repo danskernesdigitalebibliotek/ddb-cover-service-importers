@@ -32,7 +32,6 @@ class EbookCentralVendorService extends AbstractDataWellVendorService implements
     public function __construct(
         protected readonly DataWellClient $datawell
     ) {
-        parent::__construct($this->datawell);
         $this->tools = new IsbnTools();
     }
 
