@@ -18,6 +18,8 @@ abstract class AbstractBaseMessage
     private ?int $imageId = null;
     private bool $useSearchCache = true;
     private ?string $traceId = null;
+    private ?string $agency = null;
+    private ?string $profile = null;
 
     public function getOperation(): string
     {
@@ -138,6 +140,56 @@ abstract class AbstractBaseMessage
     public function setTraceId(string $traceId): self
     {
         $this->traceId = $traceId;
+
+        return $this;
+    }
+
+    /**
+     * Get agency id.
+     *
+     * This is an optional field that maybe used to change what agency is used during search.
+     *
+     * @return string
+     *   Library agency id, if set else empty string
+     */
+    public function getAgency(): string
+    {
+        return $this->agency ?? '';
+    }
+
+    /**
+     * Set agency id.
+     *
+     * @param string $agency
+     *   Library agency id
+     *
+     * @return $this
+     */
+    public function setAgency(string $agency): self
+    {
+        $this->agency = $agency;
+
+        return $this;
+    }
+
+    /**
+     * Get OpenPlatform search profile.
+     *
+     * @return string
+     */
+    public function getProfile(): string
+    {
+        return $this->profile ?? '';
+    }
+
+    /**
+     * @param string $profile
+     *
+     * @return $this
+     */
+    public function setProfile(string $profile): self
+    {
+        $this->profile = $profile;
 
         return $this;
     }

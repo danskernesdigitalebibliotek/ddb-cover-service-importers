@@ -5,14 +5,6 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     locale: 'en'
-    openPlatform.auth.id: '%env(OPENPLATFORM_AUTH_ID)%'
-    openPlatform.auth.secret: '%env(OPENPLATFORM_AUTH_SECRET)%'
-    openPlatform.auth.url: '%env(OPENPLATFORM_AUTH_URL)%'
-    openPlatform.auth.agency: '%env(OPENPLATFORM_AUTH_AGENCY)%'
-    openPlatform.search.url: '%env(OPENPLATFORM_SEARCH_URL)%'
-    openPlatform.search.ttl: '%env(OPENPLATFORM_SEARCH_TTL)%'
-    openPlatform.search.profile: '%env(OPENPLATFORM_SEARCH_PROFILE)%'
-    openPlatform.search.limit: '%env(OPENPLATFORM_SEARCH_LIMIT)%'
     es_config: {'hosts': ['%env(INDEXING_URL)%']}
 
 services:
@@ -76,6 +68,21 @@ services:
             $searchURL: '%env(string:DATAWELL_VENDOR_SEARCH_URL)%'
             $user: '%env(string:DATAWELL_VENDOR_USER)%'
             $password: '%env(string:DATAWELL_VENDOR_PASSWORD)%'
+
+    App\Service\OpenPlatform\AuthenticationService:
+        arguments:
+            $authUrl: '%env(string:OPENPLATFORM_AUTH_URL)%'
+            $agency: '%env(string:OPENPLATFORM_AUTH_AGENCY)%'
+            $clientId: '%env(string:OPENPLATFORM_AUTH_ID)%'
+            $clientSecret: '%env(string:OPENPLATFORM_AUTH_SECRET)%'
+
+    App\Service\OpenPlatform\SearchService:
+        arguments:
+            $searchURL: '%env(string:OPENPLATFORM_SEARCH_URL)%'
+            $searchCacheTTL: '%env(int:OPENPLATFORM_SEARCH_TTL)%'
+            $searchProfile: '%env(string:OPENPLATFORM_SEARCH_PROFILE)%'
+            $searchLimit: '%env(int:OPENPLATFORM_SEARCH_LIMIT)%'
+            $agency: '%env(string:OPENPLATFORM_AUTH_AGENCY)%'
 
     App\Service\HasCoverService:
         arguments:

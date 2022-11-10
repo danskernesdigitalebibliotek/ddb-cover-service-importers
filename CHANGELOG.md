@@ -11,6 +11,9 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+### Changed
+- Added support for switching agency and profile doing searches in OpenPlatform
+
 ## [3.4.1] - 2022-11-09
 
 ### Fixed
@@ -19,7 +22,7 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 ## [3.4.0] - 2022-11-08
 
 ### Added
-- Map no-hit faust search to katelog posts, when possible.
+- Map no-hit faust search to katalog posts, when possible.
 
 ## [3.3.0] - 2022-10-03
 
