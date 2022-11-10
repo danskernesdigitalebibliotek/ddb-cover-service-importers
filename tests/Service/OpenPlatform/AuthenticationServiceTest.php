@@ -15,7 +15,6 @@ use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -91,11 +90,6 @@ class AuthenticationServiceTest extends TestCase
      */
     private function getAuthenticationService(bool $cacheHit, HttpClientInterface $client): AuthenticationService
     {
-        $parameters = $this->createMock(ParameterBagInterface::class);
-        $parameters->expects($this->any())
-            ->method('get')
-            ->willReturn('test');
-
         // Setup basic cache.
         $cacheItem = $this->createMock(CacheItemInterface::class);
         $cacheItem->expects($this->any())
@@ -112,6 +106,6 @@ class AuthenticationServiceTest extends TestCase
 
         $logger = $this->createMock(LoggerInterface::class);
 
-        return new AuthenticationService($parameters, $cache, $logger, $client);
+        return new AuthenticationService($cache, $logger, $client, '', '', '', '');
     }
 }

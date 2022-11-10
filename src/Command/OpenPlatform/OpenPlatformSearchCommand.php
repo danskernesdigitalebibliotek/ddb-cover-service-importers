@@ -41,21 +41,25 @@ class OpenPlatformSearchCommand extends Command
             ->setHelp('Try search request against the open platform')
             ->addOption('type', null, InputOption::VALUE_REQUIRED, 'The material id (isbn, faust, pid)')
             ->addOption('identifier', null, InputOption::VALUE_REQUIRED, 'Identifier type e.g. ISBN.')
-            ->addOption('without-search-cache', null, InputOption::VALUE_NONE, 'If set do not use search cache during re-index');
+            ->addOption('without-search-cache', null, InputOption::VALUE_NONE, 'If set do not use search cache during re-index')
+            ->addOption('agency-id', null, InputOption::VALUE_OPTIONAL, 'Use this agency id in the search request', '')
+            ->addOption('profile', null, InputOption::VALUE_OPTIONAL, 'Use this search profile in the search request', '');
     }
 
     /**
      * {@inheritdoc}
      *
-     * Execute an data well search and output the result.
+     * Execute a data well search and output the result.
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $is = (string) $input->getOption('identifier');
         $type = (string) $input->getOption('type');
         $withOutSearchCache = $input->getOption('without-search-cache');
+        $agencyId = (string) $input->getOption('agency-id');
+        $profile = (string) $input->getOption('profile');
 
-        $material = $this->search->search($is, $type, $withOutSearchCache);
+        $material = $this->search->search($is, $type, $agencyId, $profile, $withOutSearchCache);
         $output->writeln((string) $material);
 
         return Command::SUCCESS;

@@ -9,7 +9,6 @@ namespace App\MessageHandler;
 
 use App\Entity\Source;
 use App\Exception\MaterialTypeException;
-use App\Exception\OpenPlatformAuthException;
 use App\Exception\OpenPlatformSearchException;
 use App\Message\IndexMessage;
 use App\Message\SearchMessage;
@@ -45,7 +44,6 @@ class SearchMessageHandler implements MessageHandlerInterface
     /**
      * @param SearchMessage $message
      *
-     * @throws OpenPlatformAuthException
      * @throws OpenPlatformSearchException
      */
     public function __invoke(SearchMessage $message)
@@ -80,7 +78,7 @@ class SearchMessageHandler implements MessageHandlerInterface
         }
 
         try {
-            $material = $this->searchService->search($message->getIdentifier(), $message->getIdentifierType(), !$message->useSearchCache());
+            $material = $this->searchService->search($message->getIdentifier(), $message->getIdentifierType(), $message->getAgency(), $message->getProfile(), !$message->useSearchCache());
         } catch (OpenPlatformSearchException $e) {
             $this->logger->error('Search request exception', [
                 'service' => 'SearchProcessor',
@@ -116,6 +114,8 @@ class SearchMessageHandler implements MessageHandlerInterface
                 ->setOperation($message->getOperation())
                 ->setVendorId($message->getVendorId())
                 ->setImageId($message->getImageId())
+                ->setAgency($message->getAgency())
+                ->setProfile($message->getProfile())
                 ->setMaterial($material);
 
             $this->bus->dispatch($indexMessage);

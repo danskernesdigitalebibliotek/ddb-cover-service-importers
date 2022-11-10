@@ -100,7 +100,7 @@ class SearchRepository extends ServiceEntityRepository
      * @return false|Search
      *   If non found false else the search found
      */
-    public function findKatelogSearchesByFaust(string $faust): false|Search
+    public function findKatalogSearchesByFaust(string $faust): false|Search
     {
         // We use a native SQL query because MATCH ... AGAINST is not supported
         // by doctrine and the function supplied by beberlei/doctrineextensions

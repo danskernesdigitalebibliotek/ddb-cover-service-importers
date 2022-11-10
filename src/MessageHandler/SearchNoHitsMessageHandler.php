@@ -9,12 +9,12 @@ namespace App\MessageHandler;
 
 use App\Entity\Search;
 use App\Entity\Source;
+use App\Exception\MaterialConversionException;
 use App\Exception\UnknownVendorServiceException;
 use App\Exception\UnsupportedIdentifierTypeException;
 use App\Message\SearchMessage;
 use App\Message\SearchNoHitsMessage;
 use App\Message\VendorImageMessage;
-use App\Repository\SearchRepository;
 use App\Service\OpenPlatform\SearchService;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Service\VendorService\VendorServiceSingleIdentifierInterface;
@@ -64,32 +64,26 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
         try {
             $identifier = $message->getIdentifier();
             $type = $message->getIdentifierType();
-            $found = false;
 
-            if (IdentifierType::PID === $type) {
-                // For PID's of type '-katalog' we might not have access to them
-                // in the datawell through our search profile. We try to guess the
-                // faust from the PID and search by that too instead.
-                $found = $this->mapCatalogIdentifier($identifier);
+            // If this is katalog post, then one should be able to extract agency from
+            // the pid and search in that datawell.
+            $agency = $message->getAgency();
+            if (IdentifierType::PID === $type && strpos($identifier, '-katalog:')) {
+                try {
+                    $agency = 'DK-'.Material::getAgencyFromKatalog($identifier);
+                } catch (MaterialConversionException $e) {
+                    // Don't do anything. The search later on in the code may still
+                    // yield something.
+                }
             }
 
-            if (IdentifierType::FAUST === $type) {
-                // If a katelog post have been uploaded through UserUploadService and is not in the datawell data we
-                // are mapping in. It should be linked together with faust. The faust is valid for the library that
-                // uploaded the katelog post and faust is unique across libraries. So we map the katelog post to a new
-                // faust post.
-                $found = $this->mapFaustToCatalogIdentifier($identifier);
-            }
+            // Try to search the data well and match source entity. If the 'source'
+            // have been added by the vendor before it's available in the datawell
+            // it will not have been indexed.
+            $material = $this->searchService->search($identifier, $type, $agency, $message->getProfile());
+            $found = $this->mapDatawellSearch($material, $agency, $message->getProfile());
 
-            if (!$found) {
-                // Try to search the data well and match source entity. If the 'source'
-                // have been added by the vendor before it's available in the datawell
-                // it will not have been indexed.
-                $material = $this->searchService->search($identifier, $type);
-                $found = $this->mapDatawellSearch($material);
-            }
-
-            if (!$found && isset($material) && $this->cacheCheckSingleCoverVendors($message)) {
+            if (!$found && $this->cacheCheckSingleCoverVendors($message)) {
                 // Some vendors can return a potential URL for the cover given an identifier.
                 // Get a list of these from the matched identifiers in the datawell.
                 $unverifiedVendorImageItems = $this->getUnverifiedVendorImageItems($material);
@@ -279,7 +273,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
      *
      * @return bool
      */
-    private function mapDatawellSearch(Material $material): bool
+    private function mapDatawellSearch(Material $material, string $agency, string $profile): bool
     {
         $found = false;
 
@@ -302,6 +296,8 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                         ->setIdentifierType($source->getMatchType())
                         ->setVendorId($source->getVendor()->getId())
                         ->setImageId($source->getImage()->getId())
+                        ->setAgency($agency)
+                        ->setProfile($profile)
                         ->setUseSearchCache(true);
                     $this->bus->dispatch($message);
 
@@ -329,131 +325,6 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
         }
 
         return $found;
-    }
-
-    /**
-     * Map 'katalog' identifier to 'basis' identifier.
-     *
-     * @param string $identifier
-     *
-     * @return bool
-     *
-     * @throws DBALException
-     */
-    private function mapCatalogIdentifier(string $identifier): bool
-    {
-        // If it's a "katalog" identifier, we will try to check if a matching
-        // "faust" identifier exits and create the mapping.
-        if (strpos($identifier, '-katalog:')) {
-            $searchRepos = $this->em->getRepository(Search::class);
-
-            // Try to get basic pid.
-            $faust = Material::translatePidToFaust($identifier);
-
-            // There may exist a race condition when multiple queues are
-            // running. To ensure we don't insert duplicates we need to
-            // wrap our search/update/insert in a transaction.
-            $this->em->getConnection()->beginTransaction();
-
-            try {
-                /* @var Search $search */
-                $search = $searchRepos->findOneBy([
-                    'isIdentifier' => $faust,
-                    'isType' => IdentifierType::FAUST,
-                ]);
-
-                if (!empty($search)) {
-                    $newSearch = new Search();
-                    $newSearch->setIsType(IdentifierType::PID)
-                            ->setIsIdentifier($identifier)
-                            ->setSource($search->getSource())
-                            ->setImageUrl((string) $search->getImageUrl())
-                            ->setImageFormat((string) $search->getImageFormat())
-                            ->setWidth($search->getWidth())
-                            ->setHeight($search->getHeight());
-                    $this->em->persist($newSearch);
-
-                    $this->em->flush();
-                    $this->em->getConnection()->commit();
-
-                    // Log that a new record was created.
-                    $this->metricsService->counter('no_hit_katelog_mapped', 'No-hit katelog was mapped', 1, ['type' => 'nohit']);
-
-                    return true;
-                } else {
-                    $this->metricsService->counter('no_hit_katelog_not_mapped', 'No-hit katelog not mapped', 1, ['type' => 'nohit']);
-                }
-            } catch (DBALException $exception) {
-                $this->em->getConnection()->rollBack();
-
-                throw $exception;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Map faust to katelog post, if possible.
-     *
-     * @param string $faust
-     *   Faust to map to katelog post
-     *
-     * @return bool
-     *
-     * @throws DBALException
-     */
-    private function mapFaustToCatalogIdentifier(string $faust): bool
-    {
-        /** @var SearchRepository $searchRepos */
-        $searchRepos = $this->em->getRepository(Search::class);
-        $search = $searchRepos->findKatelogSearchesByFaust($faust);
-
-        if ($search) {
-            // There may exist a race condition when multiple queues are
-            // running. To ensure we don't insert duplicates we need to
-            // wrap our search/update/insert in a transaction.
-            $this->em->getConnection()->beginTransaction();
-
-            $exists = $searchRepos->findBy(['isIdentifier' => $faust, 'isType' => IdentifierType::FAUST]);
-
-            if ($exists) {
-                // If another process has already found the identifier we just return 'true'
-                // to stop further processing in the handler
-                return true;
-            } else {
-                try {
-                    $newSearch = new Search();
-                    $newSearch->setIsType(IdentifierType::FAUST)
-                        ->setIsIdentifier($faust)
-                        ->setSource($search->getSource())
-                        ->setImageUrl((string) $search->getImageUrl())
-                        ->setImageFormat((string) $search->getImageFormat())
-                        ->setWidth($search->getWidth())
-                        ->setHeight($search->getHeight());
-                    $this->em->persist($newSearch);
-
-                    $this->em->flush();
-                    $this->em->getConnection()->commit();
-
-                    // Log that a new record was created.
-                    $this->metricsService->counter(
-                        'no_hit_katelog_mapped',
-                        'No-hit katelog was mapped',
-                        1,
-                        ['type' => 'nohit']
-                    );
-
-                    return true;
-                } catch (DBALException $exception) {
-                    $this->em->getConnection()->rollBack();
-
-                    throw $exception;
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
