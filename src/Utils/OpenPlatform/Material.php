@@ -207,12 +207,12 @@ class Material implements \Stringable
     }
 
     /**
-     * If this material is part of an collection.
+     * If this material is part of a collection.
      *
-     * Can be used to determined if an book cover should be overridden by a collection from the same vendor or another
+     * Can be used to determined if a book cover should be overridden by a collection from the same vendor or another
      * vendor.
      *
-     *   If true it is an collection. Default false.
+     *   If true it is a collection. Default false.
      */
     public function isCollection(): bool
     {
@@ -256,17 +256,17 @@ class Material implements \Stringable
     }
 
     /**
-     * Get basic PID from katelog PID.
+     * Get basic PID from katalog PID.
      *
      * @param string $pid
-     *   Katelog PID to be converted
+     *   Katalog PID to be converted
      *
      * @return string Basic PID
      *
      * @throws materialConversionException
-     *   If the input is not a katelog PID
+     *   If the input is not a katalog PID
      */
-    public static function convertKatelogPidToBasicPid(string $pid): string
+    public static function convertKatalogPidToBasicPid(string $pid): string
     {
         if (strpos($pid, '-katalog:')) {
             $faust = Material::translatePidToFaust($pid);
@@ -274,21 +274,21 @@ class Material implements \Stringable
             return '870970-basis:'.$faust;
         }
 
-        throw new MaterialConversionException('The PID given was not an katelog PID - '.$pid);
+        throw new MaterialConversionException('The PID given was not an katalog PID - '.$pid);
     }
 
     /**
-     * Get agency id based from katelog post.
+     * Get agency id based from katalog post.
      *
      * @param string $pid
-     *   The katelog pid to extract agency from
+     *   The katalog pid to extract agency from
      *
      * @return string
      *   The agency id
      *
      * @throws MaterialConversionException
      */
-    public static function getAgencyFromKatelog(string $pid): string
+    public static function getAgencyFromKatalog(string $pid): string
     {
         if (strpos($pid, '-katalog:')) {
             $parts = explode('-', $pid);
@@ -296,6 +296,6 @@ class Material implements \Stringable
             return $parts[0];
         }
 
-        throw new MaterialConversionException('The PID given was not an katelog PID - '.$pid);
+        throw new MaterialConversionException('The PID given was not an katalog PID - '.$pid);
     }
 }

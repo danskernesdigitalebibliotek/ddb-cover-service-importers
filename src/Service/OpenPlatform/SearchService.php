@@ -128,7 +128,7 @@ class SearchService
 
             // Check that the searched for identifier is part of the parsed result. As this is not
             // always the case. e.g. 9788798970804. This will also mean that we trust the information vendor provided
-            // information. This will also fix the issue where upload service provide a "katelog" post that we are not
+            // information. This will also fix the issue where upload service provide a "katalog" post that we are not
             // able to find in the datawell (doing to the way the datawell works). Because the datawell does not allow
             // for non-scoped search, the result we get will always be scoped to the agency credentials we search with.
             // Materials that are not part of that agency´s collection will not be searchable.

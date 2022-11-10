@@ -65,12 +65,12 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
             $identifier = $message->getIdentifier();
             $type = $message->getIdentifierType();
 
-            // If this is katelog post, then one should be able to extract agency from
+            // If this is katalog post, then one should be able to extract agency from
             // the pid and search in that datawell.
             $agency = $message->getAgency();
             if (IdentifierType::PID === $type && strpos($identifier, '-katalog:')) {
                 try {
-                    $agency = 'DK-'.Material::getAgencyFromKatelog($identifier);
+                    $agency = 'DK-'.Material::getAgencyFromKatalog($identifier);
                 } catch (MaterialConversionException $e) {
                     // Don't do anything. The search later on in the code may still
                     // yield something.

@@ -19,7 +19,7 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 ## [3.4.0] - 2022-11-08
 
 ### Added
-- Map no-hit faust search to katelog posts, when possible.
+- Map no-hit faust search to katalog posts, when possible.
 
 ## [3.3.0] - 2022-10-03
 
