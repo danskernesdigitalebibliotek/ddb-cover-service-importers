@@ -11,6 +11,9 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+### Changed
+- Added support for switching agency and profile doing searches in OpenPlatform
+
 ## [3.4.1] - 2022-11-09
 
 ### Fixed
