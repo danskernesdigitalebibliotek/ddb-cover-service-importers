@@ -10,8 +10,8 @@ namespace App\Command\OpenPlatform;
 use App\Service\OpenPlatform\AuthenticationService;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -20,8 +20,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 #[AsCommand(name: 'app:openplatform:auth')]
 class OpenPlatformAuthCommand extends Command
 {
-    private bool $refresh = false;
-
     /**
      * OpenPlatformAuthCommand constructor.
      *
@@ -41,7 +39,8 @@ class OpenPlatformAuthCommand extends Command
     {
         $this->setDescription('Use environment configuration to test authentication')
             ->setHelp('Gets oAuth2 access token to the Open Platform')
-            ->addArgument('refresh', InputArgument::OPTIONAL, 'Refresh the access token');
+            ->addOption('refresh', null, InputOption::VALUE_NONE, 'Refresh the access token')
+            ->addOption('agency-id', null, InputOption::VALUE_OPTIONAL, 'Use this agency id in the auth request (defaults to environment configured)', '');
     }
 
     /**
@@ -52,9 +51,9 @@ class OpenPlatformAuthCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $arg = $input->getArgument('refresh');
-        $this->refresh = $arg ? (bool) $arg : $this->refresh;
-        $token = $this->authentication->getAccessToken($this->refresh);
+        $refresh = $input->getOption('refresh');
+        $agency = (string) $input->getOption('agency-id');
+        $token = $this->authentication->getAccessToken($agency, $refresh);
 
         $msg = 'Access token: '.$token;
         $separator = str_repeat('-', strlen($msg) + 2);

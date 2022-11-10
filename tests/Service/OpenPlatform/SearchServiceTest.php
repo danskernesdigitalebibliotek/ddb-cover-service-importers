@@ -15,8 +15,6 @@ use App\Service\OpenPlatform\SearchService;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
@@ -39,7 +37,7 @@ class SearchServiceTest extends TestCase
     {
         $body = '{"statusCode":200,"data":[{"title":["Tempelridderen"],"creator":["Jan Guillou"],"date":["2008"],"publisher":["Modtryk"],"pid":["870970-basis:27073301"],"identifierISBN":["9788770531214"]}],"hitCount":4,"more":false}';
         $service = $this->getAuthenticationService(false, $body);
-        $material = $service->search($this::IDENTIFIER, 'isbn', 1);
+        $material = $service->search($this::IDENTIFIER, 'isbn', '', '', true);
 
         // Test basic information.
         $this->assertEquals('Tempelridderen', $material->getTitle());
@@ -73,17 +71,6 @@ class SearchServiceTest extends TestCase
      */
     private function getAuthenticationService(bool $cacheHit, string $body): SearchService
     {
-        // Configure the parameters used in service constructor.
-        $parameters = $this->createMock(ParameterBagInterface::class);
-        $parameters->expects($this->atMost(4))
-            ->method('get')
-            ->withAnyParameters([
-                'openPlatform.search.url',
-                'openPlatform.search.index',
-                'openPlatform.search.ttl',
-            ])
-            ->willReturn('https://search.local/', 'dkcclterm.is', 600);
-
         // Setup basic cache.
         $cacheItem = $this->createMock(CacheItemInterface::class);
         $cacheItem->expects($this->any())
@@ -101,8 +88,6 @@ class SearchServiceTest extends TestCase
             ->method('getItem')
             ->willReturn($cacheItem);
 
-        $logger = $this->createMock(LoggerInterface::class);
-
         $authentication = $this->createMock(AuthenticationService::class);
         $authentication->expects($this->any())
             ->method('getAccessToken')
@@ -112,6 +97,6 @@ class SearchServiceTest extends TestCase
             new MockResponse($body, ['http_code' => empty($body) ? 500 : 200]),
         ]);
 
-        return new SearchService($parameters, $cache, $authentication, $client);
+        return new SearchService($cache, $authentication, $client, 'https://search.local/', 'opac', '775100', 50, 600);
     }
 }

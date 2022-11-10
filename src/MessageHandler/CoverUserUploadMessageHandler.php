@@ -82,7 +82,9 @@ class CoverUserUploadMessageHandler implements MessageHandlerInterface
 
         $message->setIdentifier($userUploadMessage->getIdentifier())
             ->setIdentifierType($userUploadMessage->getIdentifierType())
-            ->setVendorId($vendor->getId());
+            ->setVendorId($vendor->getId())
+            ->setAgency($userUploadMessage->getAgency())
+            ->setProfile($userUploadMessage->getProfile());
 
         $this->bus->dispatch($message);
 
