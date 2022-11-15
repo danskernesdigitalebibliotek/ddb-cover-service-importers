@@ -270,6 +270,8 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
      * Try to search the datawell and match source entity.
      *
      * @param Material $material
+     * @param string $agency
+     * @param string $profile
      *
      * @return bool
      */
