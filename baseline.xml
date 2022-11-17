@@ -99,13 +99,6 @@
       <code>isset($this-&gt;newIndexName)</code>
     </RedundantPropertyInitializationCheck>
   </file>
-  <file src="src/Service/VendorService/OverDrive/OverDriveBooksVendorService.php">
-    <PossiblyNullArgument occurrences="3">
-      <code>$clientId</code>
-      <code>$clientSecret</code>
-      <code>$libraryAccountEndpoint</code>
-    </PossiblyNullArgument>
-  </file>
   <file src="src/Service/VendorService/VendorServiceTrait.php">
     <UndefinedConstant occurrences="1">
       <code>$this::VENDOR_ID</code>
