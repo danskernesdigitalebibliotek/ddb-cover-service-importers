@@ -11,6 +11,10 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+### Changed
+- Added `app:vendor:remove-by-url-pattern` command to remove covers based on original filename
+- Filter default covers out of global overdrive vendor importer
+
 ## [3.5.0] - 2022-14-09
 
 ### Changed
