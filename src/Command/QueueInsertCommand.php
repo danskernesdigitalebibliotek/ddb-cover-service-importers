@@ -68,7 +68,7 @@ class QueueInsertCommand extends Command
                         ->setIdentifier('870970-basis:27002056')
                         ->setVendorId(15)
                         ->setImageUrl('https://images.bogportalen.dk/images/9788740050134.jpg')
-                        ->setAgency(775100)
+                        ->setAgency('775100')
                         ->setOperation($vendorState ?? VendorState::INSERT);
                     break;
 

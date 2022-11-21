@@ -43,7 +43,7 @@ class VendorRemoveByUrlPatternCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $vendorId = (int) $input->getOption('vendor-id');
-        $pattern = (string) $input->getOption('pattern');
+        $pattern = $input->getOption('pattern');
 
         $progressBar = new ProgressBar($output);
         $progressBar->setFormat('debug');
