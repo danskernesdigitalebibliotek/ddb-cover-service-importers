@@ -64,11 +64,12 @@ class QueueInsertCommand extends Command
             switch ($topic) {
                 case 'UserUploadImage':
                     $message = new CoverUserUploadMessage();
-                    $message->setIdentifierType(IdentifierType::PID);
-                    $message->setIdentifier('1234567890');
-                    $message->setVendorId(15);
-                    $message->setImageUrl('https://images.bogportalen.dk/images/9788740050134.jpg');
-                    $message->setOperation($vendorState ?? VendorState::INSERT);
+                    $message->setIdentifierType(IdentifierType::PID)
+                        ->setIdentifier('870970-basis:27002056')
+                        ->setVendorId(15)
+                        ->setImageUrl('https://images.bogportalen.dk/images/9788740050134.jpg')
+                        ->setAgency('775100')
+                        ->setOperation($vendorState ?? VendorState::INSERT);
                     break;
 
                 case 'Search':

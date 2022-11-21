@@ -17,6 +17,9 @@ use App\Utils\Message\VendorImportResultMessage;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorStatus;
 use Psr\Cache\InvalidArgumentException;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
 
 /**
  * Class OverDriveBooksVendorService.
@@ -27,6 +30,12 @@ class OverDriveBooksVendorService implements VendorServiceImporterInterface
     use VendorServiceTrait;
 
     protected const VENDOR_ID = 14;
+
+    // Pattern for matching URLs for "Upcomming Release" generic cover. E.g.
+    // https://img1.od-cdn.com/ImageType-100/8174-1/{00000000-0000-0000-0000-000000000229}Img100.jpg
+    // https://img1.od-cdn.com/ImageType-100/0292-1/{00000000-0000-0000-0000-000000000303}Img100.jpg
+    // https://img1.od-cdn.com/ImageType-100/1219-1/{00000000-0000-0000-0000-000000000007}Img100.jpg
+    protected const GENERIC_COVERS_PATTERN = 'https://img1.od-cdn.com/.*/{(0|-)*\d*}Img100.jpg';
 
     /**
      * OverDriveBooksVendorService constructor.
@@ -42,8 +51,13 @@ class OverDriveBooksVendorService implements VendorServiceImporterInterface
     /**
      * {@inheritdoc}
      *
+     * @return VendorImportResultMessage
+     *
      * @throws InvalidArgumentException
      * @throws UnknownVendorServiceException
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
      */
     public function load(): VendorImportResultMessage
     {
@@ -69,6 +83,11 @@ class OverDriveBooksVendorService implements VendorServiceImporterInterface
                 $isbnImageUrlArray = [];
                 foreach ($products as $product) {
                     $coverImageUrl = $product->images->cover->href ?? null;
+
+                    // Exclude (set null) URLs for known generic covers
+                    if (null !== $coverImageUrl) {
+                        $coverImageUrl = $this->isGenericCover($coverImageUrl) ? null : $coverImageUrl;
+                    }
 
                     foreach ($product->formats as $format) {
                         foreach ($format->identifiers as $identifier) {
@@ -118,5 +137,19 @@ class OverDriveBooksVendorService implements VendorServiceImporterInterface
 
         $this->apiClient->setLibraryAccountEndpoint($libraryAccountEndpoint);
         $this->apiClient->setCredentials($clientId, $clientSecret);
+    }
+
+    /**
+     * Is the cover a known generic cover.
+     *
+     * @param string $imageUrl
+     *   The image URL to check
+     *
+     * @return bool
+     *   True for known generic covers
+     */
+    private function isGenericCover(string $imageUrl): bool
+    {
+        return (bool) \preg_match(self::GENERIC_COVERS_PATTERN, $imageUrl);
     }
 }
