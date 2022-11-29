@@ -66,7 +66,7 @@ services:
       - '6379'
 
   elasticsearch:
-    image: elasticsearch:8.2.2
+    image: elasticsearch:8.5.2
     networks:
       - app
     environment:
