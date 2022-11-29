@@ -11,11 +11,13 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+## [3.5.1] - 2022-11-21
+
 ### Changed
 - Added `app:vendor:remove-by-url-pattern` command to remove covers based on original filename
 - Filter default covers out of global overdrive vendor importer
 
-## [3.5.0] - 2022-14-09
+## [3.5.0] - 2022-10-11
 
 ### Changed
 - Added support for switching agency and profile doing searches in OpenPlatform
