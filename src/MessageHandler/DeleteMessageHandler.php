@@ -82,7 +82,7 @@ class DeleteMessageHandler implements MessageHandlerInterface
                         $this->em->remove($search);
 
                         // Remove this search entity from the search index.
-                        $this->indexingService->remove($search->getId());
+                        $this->indexingService->delete($search->getId());
                     }
 
                     // Remove image entity.

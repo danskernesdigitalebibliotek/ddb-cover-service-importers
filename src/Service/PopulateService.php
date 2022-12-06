@@ -98,7 +98,7 @@ class PopulateService
                 }
 
                 // Send bulk.
-                $this->indexingService->bulkAdd($items);
+                $this->indexingService->bulk($items);
 
                 // Update progress message.
                 yield sprintf('%s of %s added', number_format($entriesAdded, 0, ',', '.'), number_format($numberOfRecords, 0, ',', '.'));
