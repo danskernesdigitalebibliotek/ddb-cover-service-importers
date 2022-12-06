@@ -239,7 +239,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
       - name: Yarn install
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: '18'
       - run: yarn install
@@ -250,7 +250,7 @@ jobs:
     name: Helm
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
 
       - uses: azure/setup-helm@v1
         name: Install helm
