@@ -5,7 +5,6 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     locale: 'en'
-    es_config: {'hosts': ['%env(INDEXING_URL)%']}
 
 services:
     # default configuration for services in *this* file
@@ -104,7 +103,9 @@ services:
 
     Elastic\Elasticsearch\Client:
         factory: ['@Elastic\Elasticsearch\ClientBuilder', fromConfig]
-        arguments: ['%es_config%']
+        arguments:
+            $config:
+                hosts: ['%env(INDEXING_URL)%']
 
     Elastic\Elasticsearch\ClientBuilder: ~
 
