@@ -79,8 +79,6 @@ class IndexMessageHandler implements MessageHandlerInterface
                     ]);
 
                     if (empty($search)) {
-                        // It did not exist, so create new record. Which will automatically update the search indexes
-                        // on flush.
                         $search = new Search();
                         $search->setIsType($identifier->getType())
                             ->setIsIdentifier($identifier->getId())
@@ -103,7 +101,6 @@ class IndexMessageHandler implements MessageHandlerInterface
                         }
                     }
 
-                    // Make it stick.
                     $this->em->flush();
 
                     // Send data into the index.
@@ -115,7 +112,7 @@ class IndexMessageHandler implements MessageHandlerInterface
                         ->setImageFormat((string) $search->getImageFormat())
                         ->setWidth($search->getWidth())
                         ->setHeight($search->getHeight());
-                    $this->indexingService->add($item);
+                    $this->indexingService->index($item);
 
                     // Add hasCover message to queue system after flushing data to ensure no errors.
                     if (IdentifierType::PID === $identifier->getType()) {
