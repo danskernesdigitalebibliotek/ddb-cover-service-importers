@@ -142,7 +142,7 @@ class IndexingElasticService implements IndexingServiceInterface
         try {
             $this->client->indices()->refresh(['index' => $indexName]);
         } catch (ClientResponseException|ServerResponseException $e) {
-            throw new SearchIndexException('Unable to create new index', (int) $e->getCode(), $e);
+            throw new SearchIndexException('Unable to refresh index', (int) $e->getCode(), $e);
         }
     }
 
