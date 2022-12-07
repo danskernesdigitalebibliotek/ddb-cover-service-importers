@@ -7,10 +7,12 @@ use Elastic\Elasticsearch\Client;
 use Elastic\Elasticsearch\Exception\ClientResponseException;
 use Elastic\Elasticsearch\Exception\MissingParameterException;
 use Elastic\Elasticsearch\Exception\ServerResponseException;
+use Elastic\Elasticsearch\Response\Elasticsearch;
+use Symfony\Component\HttpFoundation\Response;
 
 class IndexingElasticService implements IndexingServiceInterface
 {
-    private string $newIndexName;
+    private ?string $newIndexName = null;
 
     public function __construct(
         private readonly string $indexAliasName,
@@ -21,7 +23,7 @@ class IndexingElasticService implements IndexingServiceInterface
     /**
      * {@inheritdoc}
      */
-    public function add(IndexItem $item): void
+    public function index(IndexItem $item): void
     {
         /** @var IndexItem $item */
         $params = [
@@ -31,21 +33,21 @@ class IndexingElasticService implements IndexingServiceInterface
         ];
 
         try {
+            /** @var Elasticsearch $response */
             $response = $this->client->index($params);
-            $this->refreshIndex($this->indexAliasName);
-        } catch (SearchIndexException|ClientResponseException|MissingParameterException|ServerResponseException $e) {
-            throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
-        }
 
-        if (201 !== $response->getStatusCode()) {
-            throw new SearchIndexException('Unable to add item to index', $response->getStatusCode());
+            if (Response::HTTP_OK !== $response->getStatusCode() && Response::HTTP_CREATED !== $response->getStatusCode() && Response::HTTP_NO_CONTENT !== $response->getStatusCode()) {
+                throw new SearchIndexException('Unable to add item to index', $response->getStatusCode());
+            }
+        } catch (ClientResponseException|MissingParameterException|ServerResponseException $e) {
+            throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function remove(int $id): void
+    public function delete(int $id): void
     {
         $params = [
             'index' => $this->indexAliasName,
@@ -53,41 +55,41 @@ class IndexingElasticService implements IndexingServiceInterface
         ];
 
         try {
+            /** @var Elasticsearch $response */
             $response = $this->client->delete($params);
-            $this->refreshIndex($this->indexAliasName);
-        } catch (SearchIndexException|ClientResponseException|MissingParameterException|ServerResponseException $e) {
-            throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
-        }
 
-        if (200 !== $response->getStatusCode()) {
-            throw new SearchIndexException('Unable to remove item from index', $response->getStatusCode());
+            if (Response::HTTP_OK !== $response->getStatusCode() && Response::HTTP_ACCEPTED !== $response->getStatusCode() && Response::HTTP_NO_CONTENT !== $response->getStatusCode()) {
+                throw new SearchIndexException('Unable to delete item from index', $response->getStatusCode());
+            }
+        } catch (ClientResponseException|MissingParameterException|ServerResponseException $e) {
+            throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function bulkAdd(array $items): void
+    public function bulk(array $items): void
     {
-        if (!isset($this->newIndexName)) {
-            $this->newIndexName = $this->indexAliasName.'_'.date('Y-m-d-His');
-            $this->createIndex($this->newIndexName);
-        }
-
-        $params = [];
-        foreach ($items as $item) {
-            /* @var IndexItem $item */
-            $params['body'][] = [
-                'index' => [
-                    '_index' => $this->newIndexName,
-                    '_id' => $item->getId(),
-                ],
-            ];
-
-            $params['body'][] = $item->toArray();
-        }
-
         try {
+            if (null === $this->newIndexName) {
+                $this->newIndexName = $this->indexAliasName.'_'.date('Y-m-d-His');
+                $this->createIndex($this->newIndexName);
+            }
+
+            $params = [];
+            foreach ($items as $item) {
+                /* @var IndexItem $item */
+                $params['body'][] = [
+                    'index' => [
+                        '_index' => $this->newIndexName,
+                        '_id' => $item->getId(),
+                    ],
+                ];
+
+                $params['body'][] = $item->toArray();
+            }
+
             $this->client->bulk($params);
         } catch (ClientResponseException|ServerResponseException $e) {
             throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
@@ -101,14 +103,14 @@ class IndexingElasticService implements IndexingServiceInterface
      */
     public function switchIndex(): void
     {
-        if (!isset($this->newIndexName)) {
-            throw new SearchIndexException('New index not found');
+        if (null === $this->newIndexName) {
+            throw new SearchIndexException('New index name cannot be null');
         }
 
-        $existingIndexName = $this->getCurrentActiveIndexName();
-        $this->refreshIndex($this->newIndexName);
-
         try {
+            $existingIndexName = $this->getCurrentActiveIndexName();
+            $this->refreshIndex($this->newIndexName);
+
             $this->client->indices()->updateAliases([
                 'body' => [
                     'actions' => [
@@ -140,7 +142,7 @@ class IndexingElasticService implements IndexingServiceInterface
         try {
             $this->client->indices()->refresh(['index' => $indexName]);
         } catch (ClientResponseException|ServerResponseException $e) {
-            throw new SearchIndexException('Unable to create new index', (int) $e->getCode(), $e);
+            throw new SearchIndexException('Unable to refresh index', (int) $e->getCode(), $e);
         }
     }
 
@@ -155,19 +157,20 @@ class IndexingElasticService implements IndexingServiceInterface
     private function getCurrentActiveIndexName(): string
     {
         try {
+            /** @var Elasticsearch $response */
             $response = $this->client->indices()->getAlias(['name' => $this->indexAliasName]);
+
+            if (Response::HTTP_OK !== $response->getStatusCode()) {
+                throw new SearchIndexException('Unable to get aliases', $response->getStatusCode());
+            }
+
+            $aliases = $response->asArray();
+            $aliases = array_keys($aliases);
+
+            return array_pop($aliases);
         } catch (ClientResponseException|ServerResponseException $e) {
             throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
         }
-
-        if (200 !== $response->getStatusCode()) {
-            throw new SearchIndexException('Unable to get aliases', $response->getStatusCode());
-        }
-
-        $aliases = $response->asArray();
-        $aliases = array_keys($aliases);
-
-        return array_pop($aliases);
     }
 
     /**
@@ -181,6 +184,7 @@ class IndexingElasticService implements IndexingServiceInterface
     private function createIndex(string $indexName): void
     {
         try {
+            /** @var Elasticsearch $response */
             $response = $this->client->indices()->create([
                 'index' => $indexName,
                 'body' => [
@@ -212,12 +216,12 @@ class IndexingElasticService implements IndexingServiceInterface
                     ],
                 ],
             ]);
+
+            if (Response::HTTP_OK !== $response->getStatusCode() && Response::HTTP_NO_CONTENT !== $response->getStatusCode()) {
+                throw new SearchIndexException('Unable to create new index', $response->getStatusCode());
+            }
         } catch (ClientResponseException|MissingParameterException|ServerResponseException $e) {
             throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
-        }
-
-        if (200 !== $response->getStatusCode()) {
-            throw new SearchIndexException('Unable to create new index', $response->getStatusCode());
         }
     }
 }

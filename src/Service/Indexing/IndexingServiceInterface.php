@@ -14,7 +14,7 @@ interface IndexingServiceInterface
      *
      * @throws SearchIndexException
      */
-    public function add(IndexItem $item): void;
+    public function index(IndexItem $item): void;
 
     /**
      * Remove single item from the index.
@@ -24,7 +24,7 @@ interface IndexingServiceInterface
      *
      * @throws SearchIndexException
      */
-    public function remove(int $id): void;
+    public function delete(int $id): void;
 
     /**
      * Bulk add IndexItem objects.
@@ -34,7 +34,7 @@ interface IndexingServiceInterface
      *
      * @throws SearchIndexException
      */
-    public function bulkAdd(array $items);
+    public function bulk(array $items);
 
     /**
      * Switch new index with old.
