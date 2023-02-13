@@ -11,6 +11,13 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+## [3.5.4] - 2023-02-13
+
+### Changed
+- Bumped version to update service
+
+## [3.5.3] - 2022-12-07
+
 ### Fixed
 - Fixed http response status checks for elastic index service
 
