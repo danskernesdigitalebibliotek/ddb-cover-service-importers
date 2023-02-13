@@ -35,7 +35,7 @@ class OverDriveBooksVendorService implements VendorServiceImporterInterface
     // https://img1.od-cdn.com/ImageType-100/8174-1/{00000000-0000-0000-0000-000000000229}Img100.jpg
     // https://img1.od-cdn.com/ImageType-100/0292-1/{00000000-0000-0000-0000-000000000303}Img100.jpg
     // https://img1.od-cdn.com/ImageType-100/1219-1/{00000000-0000-0000-0000-000000000007}Img100.jpg
-    protected const GENERIC_COVERS_PATTERN = 'https://img1.od-cdn.com/.*/{(0|-)*\d*}Img100.jpg';
+    protected const GENERIC_COVERS_PATTERN = '/https://img1.od-cdn.com/.*/{(0|-)*\d*}Img100.jpg/';
 
     /**
      * OverDriveBooksVendorService constructor.
