@@ -173,6 +173,7 @@ class BogPortalenVendorService implements VendorServiceImporterInterface, Vendor
      * @return string[]
      *
      * @throws UnknownVendorServiceException
+     *
      * @psalm-return array<string, string>
      */
     private function buildIsbnImageUrlArray(array &$isbnList): array
@@ -229,6 +230,7 @@ class BogPortalenVendorService implements VendorServiceImporterInterface, Vendor
      * Get valid and unique ISBNs from list of paths.
      *
      * @return string[]
+     *
      * @psalm-return array<int, string>
      */
     private function getIsbnNumbers(array &$filePaths): array

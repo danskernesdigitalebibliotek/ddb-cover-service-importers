@@ -8,10 +8,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * @ORM\Table(name="search",
  *    uniqueConstraints={
+ *
  *        @ORM\UniqueConstraint(name="record_unique",
  *            columns={"is_type", "is_identifier"})
  *    },
  *     indexes={
+ *
  *        @ORM\Index(name="is_identifier_type_idx", columns={"is_identifier", "is_type"}),
  *    }
  * )
@@ -22,7 +24,9 @@ class Search
 {
     /**
      * @ORM\Id()
+     *
      * @ORM\GeneratedValue()
+     *
      * @ORM\Column(type="integer")
      */
     private int $id;

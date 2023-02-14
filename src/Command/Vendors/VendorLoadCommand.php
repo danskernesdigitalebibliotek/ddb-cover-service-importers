@@ -185,6 +185,7 @@ class VendorLoadCommand extends Command
      *
      * @return string
      *   The emoji base on success parameter
+     *
      * @psalm-return '✅'|'❌'
      */
     private function getSuccessString(bool $success): string

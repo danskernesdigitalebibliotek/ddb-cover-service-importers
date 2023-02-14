@@ -75,17 +75,9 @@ services:
       - ELASTIC_PASSWORD="password"
       - xpack.license.self_generated.type=trial
       - xpack.security.enabled=false
-      - xpack.security.http.ssl.enabled=false
-      - xpack.security.http.ssl.key=/usr/share/elasticsearch/data/es01/es01.key
-      - xpack.security.http.ssl.certificate_authorities=/usr/share/elasticsearch/data/ca/ca.crt
-      - xpack.security.http.ssl.certificate=/usr/share/elasticsearch/data/es01/es01.crt
       - xpack.security.transport.ssl.enabled=false
-      - xpack.security.transport.ssl.verification_mode=certificate
-      - xpack.security.transport.ssl.certificate_authorities=/usr/share/elasticsearch/data/ca/ca.crt
-      - xpack.security.transport.ssl.certificate=/usr/share/elasticsearch/data/es01/es01.crt
-      - xpack.security.transport.ssl.key=/usr/share/elasticsearch/data/es01/es01.key
     volumes:
-      - ./.docker/es:/usr/share/elasticsearch/data:rw
+      - esdata:/usr/share/elasticsearch/data:rw
     ports:
       - '9200'
       - '9300'
@@ -101,3 +93,7 @@ services:
       - RABBITMQ_DEFAULT_USER=user
       - RABBITMQ_DEFAULT_PASS=password
       - RABBITMQ_ERLANG_COOKIE='d53f319cd7376f8f840aaf9889f315ab'
+
+volumes:
+  esdata:
+    driver: local
