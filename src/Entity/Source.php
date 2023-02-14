@@ -10,21 +10,26 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Table(name="source",
  *    uniqueConstraints={
+ *
  *        @ORM\UniqueConstraint(name="vendor_unique",
  *            columns={"vendor_id", "match_id"})
  *    },
  *    indexes={
+ *
  *        @ORM\Index(name="is_type_vendor_idx", columns={"match_id", "match_type", "vendor_id"}),
  *        @ORM\Index(name="is_vendor_idx", columns={"match_id", "vendor_id"})
  *    }
  * )
+ *
  * @ORM\Entity(repositoryClass="App\Repository\SourceRepository")
  */
 class Source
 {
     /**
      * @ORM\Id()
+     *
      * @ORM\GeneratedValue()
+     *
      * @ORM\Column(type="integer")
      */
     private int $id;
@@ -36,6 +41,7 @@ class Source
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Vendor", inversedBy="sources")
+     *
      * @ORM\JoinColumn(nullable=false)
      */
     private ?Vendor $vendor;
