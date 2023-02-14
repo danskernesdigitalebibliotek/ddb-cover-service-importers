@@ -11,6 +11,11 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+## [3.5.5] - 2023-02-13
+
+### Changed
+- Fixed regex pattern in OverDriveBooks
+
 ## [3.5.4] - 2023-02-13
 
 ### Changed
