@@ -17,6 +17,7 @@
         "ext-zend-opcache": "*",
         "ext-zip": "*",
         "cloudinary/cloudinary_php": "^2",
+        "doctrine/annotations": "^2.0",
         "doctrine/doctrine-bundle": "^2.4",
         "doctrine/doctrine-migrations-bundle": "^3.0",
         "doctrine/orm": "^2.10",
@@ -73,7 +74,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "symfony/flex": true,
-            "symfony/runtime": true
+            "symfony/runtime": true,
+            "php-http/discovery": true
         }
     },
     "autoload": {
