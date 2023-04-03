@@ -16,7 +16,7 @@ class VendorImageItem implements \Stringable
     private Vendor $vendor;
     private string $originalFile;
     private \DateTime $originalLastModified;
-    private int $originalContentLength;
+    private int $originalContentLength = 0;
 
     public function __toString(): string
     {
@@ -130,7 +130,9 @@ class VendorImageItem implements \Stringable
      */
     public function setOriginalContentLength(?int $originalContentLength): self
     {
-        $this->originalContentLength = $originalContentLength;
+        if (null !== $originalContentLength) {
+            $this->originalContentLength = $originalContentLength;
+        }
 
         return $this;
     }

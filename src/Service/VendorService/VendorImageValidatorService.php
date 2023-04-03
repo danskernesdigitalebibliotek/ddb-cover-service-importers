@@ -36,29 +36,38 @@ class VendorImageValidatorService
             $response = $this->httpClient->request($httpRequestMethod, $item->getOriginalFile());
             $headers = $response->getHeaders();
 
-            $contentLengthArray = [];
-            if (isset($headers['content-length'])) {
-                $contentLengthArray = $headers['content-length'];
-            }
-            if (empty($contentLengthArray)) {
-                // This is a hack since image services such as flickr don't set content length header.
-                $contentLengthArray = $headers['imagewidth'];
-            }
-
-            $lastModifiedArray = $headers['last-modified'];
-
+            // Last Modified
             $timezone = new \DateTimeZone('UTC');
-            if (empty($lastModifiedArray)) {
+            if (isset($headers['last-modified'])) {
+                $lastModified = \DateTime::createFromFormat(
+                    'D, d M Y H:i:s \G\M\T',
+                    array_shift($headers['last-modified']),
+                    $timezone
+                );
+            } else {
                 // Not all server send last modified headers so fallback to now.
                 $lastModified = new \DateTime('now', $timezone);
-            } else {
-                $lastModified = \DateTime::createFromFormat('D, d M Y H:i:s \G\M\T', array_shift($lastModifiedArray), $timezone);
+            }
+            $item->setOriginalLastModified($lastModified);
+
+            // Content Length check - Some images exist (return 200) but have no content
+            // @TODO verify if this is still the case and document for which vendors
+            $contentLengthArray = [];
+            if (isset($headers['content-length']) && !empty($headers['content-length'])) {
+                $contentLengthArray = $headers['content-length'];
+            } elseif (array_key_exists('imagewidth', $headers)) {
+                // This is a hack since image services such as flickr don't set content length header.
+                // @TODO refactor so that custom checks can be configured per vendor
+                $contentLengthArray = $headers['imagewidth'];
+            } elseif (str_starts_with($item->getOriginalFile(), 'https://covers.openlibrary.org')) {
+                // openlibrary.org returns correct http code but not ContentLength or
+                // ImageWith headers so we need this hack for their covers to validate
+                // @TODO refactor so that custom checks can be configured per vendor
+                $contentLengthArray[] = 200 === $response->getStatusCode() ? 1 : 0;
             }
 
             $item->setOriginalContentLength(array_shift($contentLengthArray));
-            $item->setOriginalLastModified($lastModified);
 
-            // Some images exist (return 200) but have no content
             $found = $item->getOriginalContentLength() > 0;
             $item->setFound($found);
         } catch (\Throwable $e) {
