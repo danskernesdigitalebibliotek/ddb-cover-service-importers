@@ -8,6 +8,8 @@
 namespace Tests\Service\VendorService;
 
 use App\Entity\Source;
+use App\Entity\Vendor;
+use App\Service\VendorService\VendorImageDefaultValidator;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
 use PHPUnit\Framework\TestCase;
@@ -35,10 +37,12 @@ class VendorImageValidatorServiceTest extends TestCase
             ]),
         ]);
 
-        $item = new VendorImageItem();
-        $item->setOriginalFile($this->url);
+        $vendor = $this->createMock(Vendor::class);
+        $vendor->setId(1);
+        $item = new VendorImageItem($this->url, $vendor);
 
-        $service = new VendorImageValidatorService($client);
+        $defaultValidator = new VendorImageDefaultValidator($client);
+        $service = new VendorImageValidatorService($defaultValidator, []);
         $service->validateRemoteImage($item);
 
         $this->assertEquals(true, $item->isFound());
@@ -59,10 +63,13 @@ class VendorImageValidatorServiceTest extends TestCase
             ]),
         ]);
 
-        $item = new VendorImageItem();
+        $vendor = $this->createMock(Vendor::class);
+        $vendor->setId(1);
+        $item = new VendorImageItem($this->url, $vendor);
         $item->setOriginalFile($this->url);
 
-        $service = new VendorImageValidatorService($client);
+        $defaultValidator = new VendorImageDefaultValidator($client);
+        $service = new VendorImageValidatorService($defaultValidator, []);
         $service->validateRemoteImage($item);
 
         $this->assertEquals(false, $item->isFound());
@@ -86,7 +93,9 @@ class VendorImageValidatorServiceTest extends TestCase
         $timezone = new \DateTimeZone('UTC');
         $lastModifiedDateTime = \DateTime::createFromFormat('D, d M Y H:i:s \G\M\T', $this->lastModified, $timezone);
 
-        $item = new VendorImageItem();
+        $vendor = $this->createMock(Vendor::class);
+        $vendor->setId(1);
+        $item = new VendorImageItem($this->url, $vendor);
         $item->setOriginalFile($this->url)
             ->setOriginalContentLength($this->contentLength)
             ->setOriginalLastModified($lastModifiedDateTime);
@@ -96,7 +105,8 @@ class VendorImageValidatorServiceTest extends TestCase
             ->setOriginalContentLength($this->contentLength)
             ->setOriginalLastModified($lastModifiedDateTime);
 
-        $service = new VendorImageValidatorService($client);
+        $defaultValidator = new VendorImageDefaultValidator($client);
+        $service = new VendorImageValidatorService($defaultValidator, []);
         $service->isRemoteImageUpdated($item, $source);
 
         $this->assertEquals(false, $item->isUpdated());
@@ -120,7 +130,9 @@ class VendorImageValidatorServiceTest extends TestCase
         $timezone = new \DateTimeZone('UTC');
         $lastModifiedDateTime = \DateTime::createFromFormat('D, d M Y H:i:s \G\M\T', $this->lastModified, $timezone);
 
-        $item = new VendorImageItem();
+        $vendor = $this->createMock(Vendor::class);
+        $vendor->setId(1);
+        $item = new VendorImageItem($this->url, $vendor);
         $item->setOriginalFile($this->url)
             ->setOriginalContentLength($this->contentLength)
             ->setOriginalLastModified($lastModifiedDateTime);
@@ -130,30 +142,11 @@ class VendorImageValidatorServiceTest extends TestCase
             ->setOriginalContentLength($this->contentLength + 200)
             ->setOriginalLastModified($lastModifiedDateTime);
 
-        $service = new VendorImageValidatorService($client);
+        $defaultValidator = new VendorImageDefaultValidator($client);
+        $service = new VendorImageValidatorService($defaultValidator, []);
         $service->isRemoteImageUpdated($item, $source);
 
         $this->assertEquals(true, $item->isFound());
         $this->assertEquals(true, $item->isUpdated());
-    }
-
-    /**
-     * Test remoteImageHeader parser.
-     */
-    public function testRemoteImageHeader()
-    {
-        $client = new MockHttpClient([
-            new MockResponse('', [
-                'http_code' => 200,
-                'response_headers' => [
-                    'cf-polished' => 'origFmt=png, origSize=25272',
-                ],
-            ]),
-        ]);
-
-        $service = new VendorImageValidatorService($client);
-        $headers = $service->remoteImageHeader('cf-polished', $this->url);
-
-        $this->assertEquals(['origFmt=png, origSize=25272'], $headers);
     }
 }

@@ -74,7 +74,7 @@ class Source
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private ?string $eTag;
+    private ?string $eTag = null;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Image", inversedBy="source", cascade={"persist", "remove"})
