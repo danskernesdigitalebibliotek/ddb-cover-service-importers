@@ -139,7 +139,7 @@ class VendorImageItem implements \Stringable
      *
      * @return static
      */
-    public function setOriginalContentLength(int $originalContentLength): self
+    public function setOriginalContentLength(?int $originalContentLength): self
     {
         if (null !== $originalContentLength) {
             $this->originalContentLength = $originalContentLength;

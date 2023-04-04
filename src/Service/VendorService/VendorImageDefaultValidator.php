@@ -12,7 +12,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 /**
  * Class VendorImageValidatorService.
  */
-class VendorImageDefaultValidator implements VendorImageValidatorInterface
+class VendorImageDefaultValidator
 {
     /**
      * VendorImageValidatorService constructor.
@@ -53,12 +53,6 @@ class VendorImageDefaultValidator implements VendorImageValidatorInterface
         } finally {
             return $response;
         }
-    }
-
-    /** {@inheritDoc} */
-    public function supports(VendorImageItem $item): bool
-    {
-        return false;
     }
 
     /**
