@@ -136,4 +136,22 @@ class VendorImageItem implements \Stringable
 
         return $this;
     }
+
+    /**
+     * @return string|null
+     */
+    public function getETag(): ?string
+    {
+        return $this->eTag;
+    }
+
+    /**
+     * @return static
+     */
+    public function setETag(string $eTag): self
+    {
+        $this->eTag = $eTag;
+
+        return $this;
+    }
 }
