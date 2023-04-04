@@ -25,7 +25,7 @@ class SaxoVendorService implements VendorServiceImporterInterface
     use ProgressBarTrait;
     use VendorServiceTrait;
 
-    protected const VENDOR_ID = 3;
+    public const VENDOR_ID = 3;
 
     private const VENDOR_ARCHIVE_DIR = 'Saxo';
     private const VENDOR_ARCHIVE_NAME = 'Danske bogforsider.xlsx';

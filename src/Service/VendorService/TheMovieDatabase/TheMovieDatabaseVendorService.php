@@ -20,7 +20,7 @@ use PrinsFrank\Standards\Language\ISO639_2_Alpha_3_Common;
  */
 class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implements VendorServiceSingleIdentifierInterface
 {
-    protected const VENDOR_ID = 6;
+    public const VENDOR_ID = 6;
 
     protected array $datawellQueries = [
         'phrase.type="blu-ray" and facet.typeCategory="film"',

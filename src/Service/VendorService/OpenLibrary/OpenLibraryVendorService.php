@@ -12,7 +12,7 @@ class OpenLibraryVendorService implements VendorServiceSingleIdentifierInterface
 {
     use VendorServiceTrait;
 
-    private const VENDOR_ID = 20;
+    public const VENDOR_ID = 20;
 
     /**
      * Example: https://covers.openlibrary.org/b/isbn/9780385472579-L.jpg.

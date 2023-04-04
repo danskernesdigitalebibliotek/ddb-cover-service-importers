@@ -27,7 +27,7 @@ class BogPortalenVendorService implements VendorServiceImporterInterface, Vendor
     use ProgressBarTrait;
     use VendorServiceTrait;
 
-    private const VENDOR_ID = 1;
+    public const VENDOR_ID = 1;
     private const VENDOR_ARCHIVE_NAMES = ['BOP-ProductAll.zip', 'BOP-ProductAll-EXT.zip', 'BOP-Actual.zip', 'BOP-Actual-EXT.zip'];
     private const VENDOR_ARCHIVE_DIR = 'BogPortalen';
     private const VENDOR_ROOT_DIR = 'Public';

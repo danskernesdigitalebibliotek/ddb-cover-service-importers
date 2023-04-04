@@ -14,7 +14,7 @@ use App\Service\VendorService\AbstractDataWellVendorService;
  */
 class BlockBusterVendorService extends AbstractDataWellVendorService
 {
-    protected const VENDOR_ID = 21;
+    public const VENDOR_ID = 21;
     protected const DATAWELL_URL_RELATION = 'dbcaddi:hasImage';
 
     protected array $datawellQueries = ['term.acSource="Libry films"'];

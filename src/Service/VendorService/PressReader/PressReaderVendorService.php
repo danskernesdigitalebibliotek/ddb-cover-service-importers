@@ -16,7 +16,7 @@ use App\Service\VendorService\VendorImageValidatorService;
  */
 class PressReaderVendorService extends AbstractDataWellVendorService
 {
-    protected const VENDOR_ID = 19;
+    public const VENDOR_ID = 19;
     private const URL_PATTERN = 'https://i.prcdn.co/img?cid=%s&page=1&width=1200';
     private const MIN_IMAGE_SIZE = 40000;
 
