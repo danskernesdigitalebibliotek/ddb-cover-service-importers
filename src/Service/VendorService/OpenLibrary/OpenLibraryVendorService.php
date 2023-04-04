@@ -8,7 +8,7 @@ use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\CoverVendor\UnverifiedVendorImageItem;
 use App\Utils\Types\IdentifierType;
 
-class OpenLibraryVendor implements VendorServiceSingleIdentifierInterface
+class OpenLibraryVendorService implements VendorServiceSingleIdentifierInterface
 {
     use VendorServiceTrait;
 
