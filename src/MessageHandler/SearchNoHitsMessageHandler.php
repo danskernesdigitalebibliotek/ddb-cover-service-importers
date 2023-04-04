@@ -311,8 +311,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                 elseif (is_null($source->getImage()) && !is_null($source->getOriginalFile())) {
                     $this->metricsService->counter('no_hit_without_image', 'No-hit source found without image', 1, ['type' => 'nohit']);
 
-                    $item = new VendorImageItem();
-                    $item->setOriginalFile($source->getOriginalFile());
+                    $item = new VendorImageItem($source->getOriginalFile(), $source->getVendor());
                     $this->validatorService->validateRemoteImage($item);
 
                     if ($item->isFound()) {

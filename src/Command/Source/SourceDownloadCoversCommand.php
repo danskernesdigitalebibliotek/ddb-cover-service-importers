@@ -93,8 +93,7 @@ class SourceDownloadCoversCommand extends Command
 
         /** @var Source $source */
         foreach ($query->toIterable() as $source) {
-            $item = new VendorImageItem();
-            $item->setOriginalFile($source->getOriginalFile());
+            $item = new VendorImageItem($source->getOriginalFile(), $source->getVendor());
             $this->validator->validateRemoteImage($item);
 
             if ($item->isFound()) {

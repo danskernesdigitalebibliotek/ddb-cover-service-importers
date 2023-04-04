@@ -85,8 +85,7 @@ class VendorImageMessageHandler implements MessageHandlerInterface
      */
     private function processInsert(VendorImageMessage $message, Source $source): void
     {
-        $item = new VendorImageItem();
-        $item->setOriginalFile($source->getOriginalFile());
+        $item = new VendorImageItem($source->getOriginalFile(), $source->getVendor());
 
         // If the image is validated the isFound() will return true/false. The LastModified and ContentLength length
         // will also be set on the $item variable.
@@ -131,8 +130,7 @@ class VendorImageMessageHandler implements MessageHandlerInterface
      */
     private function processUpdate(VendorImageMessage $message, Source $source): void
     {
-        $item = new VendorImageItem();
-        $item->setOriginalFile($source->getOriginalFile());
+        $item = new VendorImageItem($source->getOriginalFile(), $source->getVendor());
 
         $this->imageValidator->isRemoteImageUpdated($item, $source);
 
