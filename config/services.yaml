@@ -97,6 +97,11 @@ services:
 
     App\Service\Indexing\IndexingServiceInterface: '@App\Service\Indexing\IndexingElasticService'
 
+    App\Service\VendorService\ForsiderDk\ImageValidator:
+        arguments:
+            $username: '%env(string:FORSIDERDK_USER)%'
+            $password: '%env(string:FORSIDERDK_PASSWORD)%'
+
     App\Service\VendorService\TheMovieDatabase\TheMovieDatabaseApiClient:
         arguments:
             $apiKey: '%env(string:THEMOVIEDATABASE_APIKEY)%'
