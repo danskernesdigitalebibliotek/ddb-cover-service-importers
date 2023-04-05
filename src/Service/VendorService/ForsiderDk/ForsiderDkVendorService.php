@@ -22,12 +22,17 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
     private const COVER_URL_FORMAT = 'https://data.forsider.dk/law/covers/%s/%s.jpg';
 
     /**
+     * Forsider.dk only supplies covers for materials from the EBSCO masterfile
+     */
+    private const PID_PREFIX = '150010-master';
+
+    /**
      * {@inheritDoc}
      */
     public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
     {
-        if (!$this->supportsIdentifier($type)) {
-            throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
+        if (!$this->supportsIdentifier($identifier, $type)) {
+            throw new UnsupportedIdentifierTypeException(\sprinf('Unsupported single identifier: %s (%s)', $identifier, $type));
         }
 
         $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
@@ -44,7 +49,7 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
      */
     public function supportsIdentifier(string $identifier, string $type): bool
     {
-        return IdentifierType::PID === $type;
+        return IdentifierType::PID === $type && \str_starts_with($identifier, self::PID_PREFIX);
     }
 
     /**
