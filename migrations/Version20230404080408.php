@@ -20,12 +20,12 @@ final class Version20230404080408 extends AbstractMigration
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql("UPDATE vendor SET class = 'App\\Service\\VendorService\\OpenLibrary\\OpenLibraryVendorService', name = 'OpenLibrary' WHERE id = 20");
+        $this->addSql("UPDATE vendor SET class = 'App\\\Service\\\VendorService\\\OpenLibrary\\\OpenLibraryVendorService', name = 'OpenLibrary' WHERE id = 20");
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql("UPDATE vendor SET class = 'App\\Service\\VendorService\\OpenLibrary\\OpenLibraryVendor', name = 'OpenLibraryVendor' WHERE id = 20");
+        $this->addSql("UPDATE vendor SET class = 'App\\\Service\\\VendorService\\\OpenLibrary\\\OpenLibraryVendor', name = 'OpenLibraryVendor' WHERE id = 20");
     }
 }
