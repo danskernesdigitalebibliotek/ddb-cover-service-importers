@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\VendorService\Chandos;
+namespace App\Service\VendorService\PressReader;
 
 use App\Exception\ValidateRemoteImageException;
 use App\Service\VendorService\VendorImageDefaultValidator;
@@ -10,6 +10,8 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class ImageValidator implements VendorImageValidatorInterface
 {
+    private const MIN_IMAGE_SIZE = 40000;
+
     public function __construct(
         private readonly VendorImageDefaultValidator $defaultValidator
     ) {
@@ -17,7 +19,7 @@ class ImageValidator implements VendorImageValidatorInterface
 
     public function supports(VendorImageItem $item): bool
     {
-        return ChandosVendorService::VENDOR_ID === $item->getVendor()->getId();
+        return PressReaderVendorService::VENDOR_ID === $item->getVendor()->getId();
     }
 
     /**
@@ -27,15 +29,10 @@ class ImageValidator implements VendorImageValidatorInterface
     {
         $response = $this->defaultValidator->validateRemoteImage($item);
 
-        try {
-            $headers = $response->getHeaders();
-
-            // Chandos CDN will respond with "200" and "text/html" for missing images
-            $contentType = array_pop($headers['content-type']);
-            if (isset($headers['content-type']) && !str_starts_with($contentType, 'image')) {
-                $item->setFound(false);
-            }
-        } catch (\Throwable $e) {
+        // The press reader CDN insert at special image saying that the content is not updated for newest news
+        // cover. See https://i.prcdn.co/img?cid=9L09&page=1&width=1200, but the size will be under 40Kb, so we have
+        // this extra test.
+        if ($item->getOriginalContentLength() < self::MIN_IMAGE_SIZE) {
             $item->setFound(false);
         }
 

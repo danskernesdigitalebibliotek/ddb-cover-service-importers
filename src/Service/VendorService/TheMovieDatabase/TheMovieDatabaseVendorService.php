@@ -58,11 +58,9 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implem
         if (array_key_exists($identifier, $pidArray) && null !== $pidArray[$identifier]) {
             $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
 
-            $item = new UnverifiedVendorImageItem();
+            $item = new UnverifiedVendorImageItem($pidArray[$identifier], $vendor);
             $item->setIdentifier($identifier);
             $item->setIdentifierType($type);
-            $item->setVendor($vendor);
-            $item->setOriginalFile($pidArray[$identifier]);
 
             return $item;
         }

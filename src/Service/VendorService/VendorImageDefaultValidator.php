@@ -2,7 +2,9 @@
 
 namespace App\Service\VendorService;
 
+use App\Exception\ValidateRemoteImageException;
 use App\Utils\CoverVendor\VendorImageItem;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Contracts\HttpClient\Exception\HttpExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
@@ -18,9 +20,11 @@ class VendorImageDefaultValidator
      * VendorImageValidatorService constructor.
      *
      * @param HttpClientInterface $httpClient
+     * @param LoggerInterface $logger
      */
     public function __construct(
         private readonly HttpClientInterface $httpClient,
+        private readonly LoggerInterface $logger
     ) {
     }
 
@@ -30,6 +34,8 @@ class VendorImageDefaultValidator
      * @param VendorImageItem $item
      *
      * @return ResponseInterface
+     *
+     * @throws ValidateRemoteImageException
      */
     public function validateRemoteImage(VendorImageItem $item): ResponseInterface
     {
@@ -47,11 +53,33 @@ class VendorImageDefaultValidator
 
             // Http success (2xx)
             $item->setFound(true);
-        } catch (\Throwable $e) {
+
+            return $response;
+        } catch (HttpExceptionInterface $e) {
             // Http error (4xx/5xx)
             $item->setFound(false);
-        } finally {
-            return $response;
+
+            if (isset($response)) {
+                return $response;
+            } else {
+                throw new ValidateRemoteImageException($e->getMessage(), $e->getCode(), $e);
+            }
+        } catch (TransportExceptionInterface $e) {
+            $item->setFound(false);
+
+            $this->logger->error(
+                sprintf(
+                    'HTTP call failed at transport level: %s (%d)',
+                    $e->getMessage(),
+                    $e->getCode()
+                )
+            );
+
+            if (isset($response)) {
+                return $response;
+            } else {
+                throw new ValidateRemoteImageException($e->getMessage(), $e->getCode(), $e);
+            }
         }
     }
 

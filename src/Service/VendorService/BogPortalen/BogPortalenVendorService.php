@@ -128,11 +128,9 @@ class BogPortalenVendorService implements VendorServiceImporterInterface, Vendor
 
         $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
 
-        $item = new UnverifiedVendorImageItem();
+        $item = new UnverifiedVendorImageItem($this->getVendorImageUrl($identifier), $vendor);
         $item->setIdentifier($identifier);
         $item->setIdentifierType($type);
-        $item->setVendor($vendor);
-        $item->setOriginalFile($this->getVendorsImageUrl($identifier));
 
         return $item;
     }
@@ -180,7 +178,7 @@ class BogPortalenVendorService implements VendorServiceImporterInterface, Vendor
     {
         $isbnArray = [];
         foreach ($isbnList as $isbn) {
-            $isbnArray[$isbn] = $this->getVendorsImageUrl($isbn);
+            $isbnArray[$isbn] = $this->getVendorImageUrl($isbn);
         }
 
         return $isbnArray;
@@ -191,7 +189,7 @@ class BogPortalenVendorService implements VendorServiceImporterInterface, Vendor
      *
      * @throws UnknownVendorServiceException
      */
-    private function getVendorsImageUrl(string $isbn): string
+    private function getVendorImageUrl(string $isbn): string
     {
         $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
 

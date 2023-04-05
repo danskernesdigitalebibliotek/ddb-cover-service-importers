@@ -66,7 +66,7 @@ class SaxoVendorService implements VendorServiceImporterInterface
                     $isbn = $cellsArray[0]->getValue();
 
                     if (!empty($isbn) && is_string($isbn)) {
-                        $isbnArray[$isbn] = $this->getVendorsImageUrl($isbn);
+                        $isbnArray[$isbn] = $this->getVendorImageUrl($isbn);
                     }
 
                     ++$totalRows;
@@ -105,7 +105,7 @@ class SaxoVendorService implements VendorServiceImporterInterface
      *
      * @throws UnknownVendorServiceException
      */
-    private function getVendorsImageUrl(string $isbn): string
+    private function getVendorImageUrl(string $isbn): string
     {
         $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
 

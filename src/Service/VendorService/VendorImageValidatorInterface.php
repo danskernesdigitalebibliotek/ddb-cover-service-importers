@@ -2,6 +2,7 @@
 
 namespace App\Service\VendorService;
 
+use App\Exception\ValidateRemoteImageException;
 use App\Utils\CoverVendor\VendorImageItem;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
@@ -25,6 +26,8 @@ interface VendorImageValidatorInterface
      * @param VendorImageItem $item
      *
      * @return ResponseInterface
+     *
+     * @throws ValidateRemoteImageException
      */
     public function validateRemoteImage(VendorImageItem $item): ResponseInterface;
 }

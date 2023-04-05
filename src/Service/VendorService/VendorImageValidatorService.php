@@ -3,6 +3,7 @@
 namespace App\Service\VendorService;
 
 use App\Entity\Source;
+use App\Exception\ValidateRemoteImageException;
 use App\Utils\CoverVendor\VendorImageItem;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
@@ -15,7 +16,7 @@ class VendorImageValidatorService
      * VendorImageValidatorService constructor.
      *
      * @param VendorImageDefaultValidator $defaultValidator
-     * @param iterable<mixed, VendorImageDefaultValidator> $vendorImageValidators
+     * @param iterable<mixed, VendorImageValidatorInterface> $vendorImageValidators
      */
     public function __construct(
         private readonly VendorImageDefaultValidator $defaultValidator,
@@ -29,6 +30,8 @@ class VendorImageValidatorService
      * @param VendorImageItem $item
      *
      * @return ResponseInterface
+     *
+     * @throws ValidateRemoteImageException
      */
     public function validateRemoteImage(VendorImageItem $item): ResponseInterface
     {
@@ -48,6 +51,8 @@ class VendorImageValidatorService
      * @param Source $source
      *
      * @return void
+     *
+     * @throws ValidateRemoteImageException
      */
     public function isRemoteImageUpdated(VendorImageItem $item, Source $source): void
     {

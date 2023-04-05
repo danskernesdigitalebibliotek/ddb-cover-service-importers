@@ -217,7 +217,7 @@ class Source
 
     public function setETag(?string $eTag): self
     {
-        if (strlen($eTag) <= 255) {
+        if (null !== $eTag && strlen($eTag) <= 255) {
             $this->eTag = $eTag;
         }
 

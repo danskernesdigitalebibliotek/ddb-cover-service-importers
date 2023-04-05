@@ -51,11 +51,9 @@ class EbookCentralVendorService extends AbstractDataWellVendorService implements
             return null;
         }
 
-        $item = new UnverifiedVendorImageItem();
+        $item = new UnverifiedVendorImageItem($this->getVendorImageUrl($identifier), $this->getVendor());
         $item->setIdentifier($identifier);
         $item->setIdentifierType($type);
-        $item->setVendor($this->getVendor());
-        $item->setOriginalFile($this->getVendorImageUrl($identifier));
 
         return $item;
     }
