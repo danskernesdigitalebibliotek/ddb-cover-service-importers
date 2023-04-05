@@ -13,6 +13,7 @@ use App\Service\VendorService\VendorImageDefaultValidator;
 use App\Service\VendorService\VendorImageValidatorService;
 use App\Utils\CoverVendor\VendorImageItem;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
@@ -37,11 +38,13 @@ class VendorImageValidatorServiceTest extends TestCase
             ]),
         ]);
 
+        $logger = $this->createMock(LoggerInterface::class);
+
         $vendor = $this->createMock(Vendor::class);
         $vendor->setId(1);
         $item = new VendorImageItem($this->url, $vendor);
 
-        $defaultValidator = new VendorImageDefaultValidator($client);
+        $defaultValidator = new VendorImageDefaultValidator($client, $logger);
         $service = new VendorImageValidatorService($defaultValidator, []);
         $service->validateRemoteImage($item);
 
@@ -63,12 +66,14 @@ class VendorImageValidatorServiceTest extends TestCase
             ]),
         ]);
 
+        $logger = $this->createMock(LoggerInterface::class);
+
         $vendor = $this->createMock(Vendor::class);
         $vendor->setId(1);
         $item = new VendorImageItem($this->url, $vendor);
         $item->setOriginalFile($this->url);
 
-        $defaultValidator = new VendorImageDefaultValidator($client);
+        $defaultValidator = new VendorImageDefaultValidator($client, $logger);
         $service = new VendorImageValidatorService($defaultValidator, []);
         $service->validateRemoteImage($item);
 
@@ -90,6 +95,8 @@ class VendorImageValidatorServiceTest extends TestCase
             ]),
         ]);
 
+        $logger = $this->createMock(LoggerInterface::class);
+
         $timezone = new \DateTimeZone('UTC');
         $lastModifiedDateTime = \DateTime::createFromFormat('D, d M Y H:i:s \G\M\T', $this->lastModified, $timezone);
 
@@ -105,7 +112,7 @@ class VendorImageValidatorServiceTest extends TestCase
             ->setOriginalContentLength($this->contentLength)
             ->setOriginalLastModified($lastModifiedDateTime);
 
-        $defaultValidator = new VendorImageDefaultValidator($client);
+        $defaultValidator = new VendorImageDefaultValidator($client, $logger);
         $service = new VendorImageValidatorService($defaultValidator, []);
         $service->isRemoteImageUpdated($item, $source);
 
@@ -127,6 +134,8 @@ class VendorImageValidatorServiceTest extends TestCase
             ]),
         ]);
 
+        $logger = $this->createMock(LoggerInterface::class);
+
         $timezone = new \DateTimeZone('UTC');
         $lastModifiedDateTime = \DateTime::createFromFormat('D, d M Y H:i:s \G\M\T', $this->lastModified, $timezone);
 
@@ -142,7 +151,7 @@ class VendorImageValidatorServiceTest extends TestCase
             ->setOriginalContentLength($this->contentLength + 200)
             ->setOriginalLastModified($lastModifiedDateTime);
 
-        $defaultValidator = new VendorImageDefaultValidator($client);
+        $defaultValidator = new VendorImageDefaultValidator($client, $logger);
         $service = new VendorImageValidatorService($defaultValidator, []);
         $service->isRemoteImageUpdated($item, $source);
 

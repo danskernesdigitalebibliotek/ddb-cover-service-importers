@@ -31,9 +31,12 @@ class ImageValidator implements VendorImageValidatorInterface
             $headers = $response->getHeaders();
 
             // Chandos CDN will respond with "200" and "text/html" for missing images
-            $contentType = array_pop($headers['content-type']);
-            if (isset($headers['content-type']) && !str_starts_with($contentType, 'image')) {
-                $item->setFound(false);
+            if (isset($headers['content-type'])) {
+                $contentType = array_pop($headers['content-type']);
+
+                if (!str_starts_with($contentType, 'image')) {
+                    $item->setFound(false);
+                }
             }
         } catch (\Throwable $e) {
             $item->setFound(false);
