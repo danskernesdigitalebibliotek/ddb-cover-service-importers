@@ -26,7 +26,7 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
      */
     public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
     {
-        if (!$this->supportsIdentifierType($type)) {
+        if (!$this->supportsIdentifier($type)) {
             throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
         }
 
@@ -42,7 +42,7 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
     /**
      * {@inheritDoc}
      */
-    public function supportsIdentifierType(string $type): bool
+    public function supportsIdentifier(string $identifier, string $type): bool
     {
         return IdentifierType::PID === $type;
     }

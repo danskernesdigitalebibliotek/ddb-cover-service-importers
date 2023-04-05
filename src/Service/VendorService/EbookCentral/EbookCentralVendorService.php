@@ -40,8 +40,8 @@ class EbookCentralVendorService extends AbstractDataWellVendorService implements
      */
     public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
     {
-        if (!$this->supportsIdentifierType($type)) {
-            throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
+        if (!$this->supportsIdentifier($identifier, $type)) {
+            throw new UnsupportedIdentifierTypeException(\sprinf('Unsupported single identifier: %s (%s)', $identifier, $type));
         }
 
         if (!$this->tools->isValidIsbn13($identifier)) {
@@ -61,7 +61,7 @@ class EbookCentralVendorService extends AbstractDataWellVendorService implements
     /**
      * {@inheritDoc}
      */
-    public function supportsIdentifierType(string $type): bool
+    public function supportsIdentifier(string $identifier, string $type): bool
     {
         return IdentifierType::ISBN === $type;
     }

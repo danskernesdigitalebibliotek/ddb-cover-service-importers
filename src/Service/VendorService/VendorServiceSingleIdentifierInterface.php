@@ -31,11 +31,13 @@ interface VendorServiceSingleIdentifierInterface extends VendorServiceInterface
     /**
      * Does the vendor support this identifier type.
      *
+     * @param string $identifier
+     *   The identifier
      * @param string $type
      *   The identifier type
      *
      * @return bool
      *   Is the identifier type supported
      */
-    public function supportsIdentifierType(string $type): bool;
+    public function supportsIdentifier(string $identifier, string $type): bool;
 }

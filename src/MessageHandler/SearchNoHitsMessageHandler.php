@@ -146,7 +146,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
         foreach ($material->getIdentifiers() as $identifier) {
             /** @var VendorServiceSingleIdentifierInterface $vendor */
             foreach ($this->singleIdentifierVendors as $vendor) {
-                if ($vendor->supportsIdentifierType($identifier->getType())) {
+                if ($vendor->supportsIdentifier($identifier->getId(), $identifier->getType())) {
                     $item = $vendor->getUnverifiedVendorImageItem($identifier->getId(), $identifier->getType());
                     if (null !== $item) {
                         $items[] = $item;

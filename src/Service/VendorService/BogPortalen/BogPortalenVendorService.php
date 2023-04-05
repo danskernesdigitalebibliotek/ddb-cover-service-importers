@@ -122,8 +122,8 @@ class BogPortalenVendorService implements VendorServiceImporterInterface, Vendor
      */
     public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
     {
-        if (!$this->supportsIdentifierType($type)) {
-            throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
+        if (!$this->supportsIdentifier($identifier, $type)) {
+            throw new UnsupportedIdentifierTypeException(\sprinf('Unsupported single identifier: %s (%s)', $identifier, $type));
         }
 
         $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
@@ -138,7 +138,7 @@ class BogPortalenVendorService implements VendorServiceImporterInterface, Vendor
     /**
      * {@inheritDoc}
      */
-    public function supportsIdentifierType(string $type): bool
+    public function supportsIdentifier(string $identifier, string $type): bool
     {
         return IdentifierType::ISBN === $type;
     }
