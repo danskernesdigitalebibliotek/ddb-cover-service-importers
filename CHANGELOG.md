@@ -21,7 +21,10 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ### Added
 - Added ETag to check for "image updated"
-
+- Change `SingleIdentifier` vendors supports function to consider both type and identifier 
+- Added ETag to check for "image updated"
+- Added support for generic covers
+- Added forsider.dk generic cover vendor
 ## [3.5.5] - 2023-02-13
 
 ### Changed
