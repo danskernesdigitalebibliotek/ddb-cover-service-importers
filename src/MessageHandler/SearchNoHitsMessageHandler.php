@@ -12,6 +12,7 @@ use App\Entity\Source;
 use App\Exception\MaterialConversionException;
 use App\Exception\UnknownVendorServiceException;
 use App\Exception\UnsupportedIdentifierTypeException;
+use App\Exception\ValidateRemoteImageException;
 use App\Message\SearchMessage;
 use App\Message\SearchNoHitsMessage;
 use App\Message\VendorImageMessage;
@@ -207,7 +208,8 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
         $message->setOperation($operation)
             ->setIdentifier($source->getMatchId())
             ->setVendorId($source->getVendor()->getId())
-            ->setIdentifierType($source->getMatchType());
+            ->setIdentifierType($source->getMatchType())
+            ->setGenericCover($source->isGenericCover());
         $this->bus->dispatch($message);
     }
 
@@ -247,6 +249,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
                 $source->setMatchId($item->getIdentifier());
                 $source->setMatchType($item->getIdentifierType());
                 $source->setDate(new \DateTime());
+                $source->setGenericCover($item->isGenericCover());
 
                 $this->em->persist($source);
             }
@@ -274,6 +277,8 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
      * @param string $profile
      *
      * @return bool
+     *
+     * @throws ValidateRemoteImageException
      */
     private function mapDatawellSearch(Material $material, string $agency, string $profile): bool
     {

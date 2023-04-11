@@ -22,7 +22,7 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
     private const COVER_URL_FORMAT = 'https://data.forsider.dk/law/covers/%s/%s.jpg';
 
     /**
-     * Forsider.dk only supplies covers for materials from the EBSCO masterfile
+     * Forsider.dk only supplies covers for materials from the EBSCO masterfile.
      */
     private const PID_PREFIX = '150010-master';
 
@@ -40,6 +40,8 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
         $item = new UnverifiedVendorImageItem($this->getVendorImageUrl($identifier), $vendor);
         $item->setIdentifier($identifier);
         $item->setIdentifierType($type);
+
+        $item->setGenericCover(true);
 
         return $item;
     }
@@ -61,8 +63,8 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
         // Mappen for forsiden er de sidste to cifre i ting-objektets id, eller
         // "other" hvis id'et ikke slutter på cifre.
         // @see https://solsort.dk/webdav-forside-server
-        $endChars = substr($pid, -2);
-        $dir = is_numeric($endChars) ? $endChars : 'other';
+        $endChars = \substr($pid, -2);
+        $dir = \is_numeric($endChars) ? $endChars : 'other';
 
         return \sprintf(self::COVER_URL_FORMAT, $dir, $pid);
     }

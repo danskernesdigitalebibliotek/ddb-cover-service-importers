@@ -50,7 +50,7 @@ class IndexMessageHandler implements MessageHandlerInterface
     ) {
     }
 
-    public function __invoke(IndexMessage $message)
+    public function __invoke(IndexMessage $message): void
     {
         try {
             $material = $message->getMaterial();
@@ -87,6 +87,7 @@ class IndexMessageHandler implements MessageHandlerInterface
                             ->setWidth((int) $image->getWidth())
                             ->setHeight((int) $image->getHeight())
                             ->setCollection($material->isCollection())
+                            ->setGenericCover($source->isGenericCover())
                             ->setSource($source);
 
                         $this->em->persist($search);
@@ -97,6 +98,7 @@ class IndexMessageHandler implements MessageHandlerInterface
                                 ->setWidth((int) $image->getWidth())
                                 ->setHeight((int) $image->getHeight())
                                 ->setCollection($material->isCollection())
+                                ->setGenericCover($source->isGenericCover())
                                 ->setSource($source);
                         }
                     }
@@ -111,7 +113,8 @@ class IndexMessageHandler implements MessageHandlerInterface
                         ->setImageUrl((string) $search->getImageUrl())
                         ->setImageFormat((string) $search->getImageFormat())
                         ->setWidth($search->getWidth())
-                        ->setHeight($search->getHeight());
+                        ->setHeight($search->getHeight())
+                        ->setGenericCover($search->isGenericCover());
                     $this->indexingService->index($item);
 
                     // Add hasCover message to queue system after flushing data to ensure no errors.
@@ -193,6 +196,7 @@ class IndexMessageHandler implements MessageHandlerInterface
      * @param int|null $imageId
      *   Database ID for the image
      *
+     * @return Image|null
      *   Image entity if found else null
      */
     private function getImage(?int $imageId): ?Image

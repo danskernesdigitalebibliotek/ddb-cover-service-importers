@@ -62,6 +62,11 @@ class Source
     private ?string $originalFile;
 
     /**
+     * @ORM\Column(type="boolean")
+     */
+    private bool $genericCover = false;
+
+    /**
      * @ORM\Column(type="datetime", nullable=true)
      */
     private ?\DateTime $originalLastModified;
@@ -154,6 +159,18 @@ class Source
     public function setMatchType(string $matchType): self
     {
         $this->matchType = $matchType;
+
+        return $this;
+    }
+
+    public function isGenericCover(): bool
+    {
+        return $this->genericCover;
+    }
+
+    public function setGenericCover(bool $genericCover): self
+    {
+        $this->genericCover = $genericCover;
 
         return $this;
     }
