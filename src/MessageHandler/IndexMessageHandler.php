@@ -118,7 +118,8 @@ class IndexMessageHandler implements MessageHandlerInterface
                     $this->indexingService->index($item);
 
                     // Add hasCover message to queue system after flushing data to ensure no errors.
-                    if (IdentifierType::PID === $identifier->getType()) {
+                    // Exclude generic covers
+                    if (IdentifierType::PID === $identifier->getType() && !$item->isGenericCover()) {
                         $hasCoverMessage = new HasCoverMessage();
                         $hasCoverMessage->setPid($identifier->getId())->setCoverExists(true);
                         $this->bus->dispatch($hasCoverMessage);
