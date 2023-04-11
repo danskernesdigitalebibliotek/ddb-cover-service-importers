@@ -32,7 +32,7 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
     public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
     {
         if (!$this->supportsIdentifier($identifier, $type)) {
-            throw new UnsupportedIdentifierTypeException(\sprinf('Unsupported single identifier: %s (%s)', $identifier, $type));
+            throw new UnsupportedIdentifierTypeException(\sprintf('Unsupported single identifier: %s (%s)', $identifier, $type));
         }
 
         $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
