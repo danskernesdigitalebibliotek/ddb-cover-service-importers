@@ -8,11 +8,11 @@ use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\CoverVendor\UnverifiedVendorImageItem;
 use App\Utils\Types\IdentifierType;
 
-class OpenLibraryVendor implements VendorServiceSingleIdentifierInterface
+class OpenLibraryVendorService implements VendorServiceSingleIdentifierInterface
 {
     use VendorServiceTrait;
 
-    private const VENDOR_ID = 20;
+    public const VENDOR_ID = 20;
 
     /**
      * Example: https://covers.openlibrary.org/b/isbn/9780385472579-L.jpg.
@@ -32,11 +32,9 @@ class OpenLibraryVendor implements VendorServiceSingleIdentifierInterface
 
         $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
 
-        $item = new UnverifiedVendorImageItem();
+        $item = new UnverifiedVendorImageItem($this->getVendorImageUrl($identifier), $vendor);
         $item->setIdentifier($identifier);
         $item->setIdentifierType($type);
-        $item->setVendor($vendor);
-        $item->setOriginalFile($this->getVendorsImageUrl($identifier));
 
         return $item;
     }
@@ -52,7 +50,7 @@ class OpenLibraryVendor implements VendorServiceSingleIdentifierInterface
     /**
      * Get Vendors image URL from ISBN.
      */
-    private function getVendorsImageUrl(string $isbn): string
+    private function getVendorImageUrl(string $isbn): string
     {
         return \sprintf(self::COVER_URL_FORMAT, $isbn);
     }

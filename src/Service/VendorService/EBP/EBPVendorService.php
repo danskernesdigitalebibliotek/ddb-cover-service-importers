@@ -13,7 +13,7 @@ use App\Service\VendorService\AbstractTsvVendorService;
  */
 class EBPVendorService extends AbstractTsvVendorService
 {
-    protected const VENDOR_ID = 13;
+    public const VENDOR_ID = 13;
 
     protected string $vendorArchiveDir = 'EBP';
     protected string $vendorArchiveName = 'ebp.load.tsv';

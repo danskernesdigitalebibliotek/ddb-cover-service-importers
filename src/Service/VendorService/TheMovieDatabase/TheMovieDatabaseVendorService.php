@@ -20,7 +20,7 @@ use PrinsFrank\Standards\Language\ISO639_2_Alpha_3_Common;
  */
 class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implements VendorServiceSingleIdentifierInterface
 {
-    protected const VENDOR_ID = 6;
+    public const VENDOR_ID = 6;
 
     protected array $datawellQueries = [
         'phrase.type="blu-ray" and facet.typeCategory="film"',
@@ -58,11 +58,9 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implem
         if (array_key_exists($identifier, $pidArray) && null !== $pidArray[$identifier]) {
             $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
 
-            $item = new UnverifiedVendorImageItem();
+            $item = new UnverifiedVendorImageItem($pidArray[$identifier], $vendor);
             $item->setIdentifier($identifier);
             $item->setIdentifierType($type);
-            $item->setVendor($vendor);
-            $item->setOriginalFile($pidArray[$identifier]);
 
             return $item;
         }

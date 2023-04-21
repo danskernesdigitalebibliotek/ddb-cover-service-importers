@@ -72,6 +72,11 @@ class Source
     private ?int $originalContentLength;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private ?string $eTag = null;
+
+    /**
      * @ORM\OneToOne(targetEntity="App\Entity\Image", inversedBy="source", cascade={"persist", "remove"})
      */
     private ?Image $image = null;
@@ -201,6 +206,20 @@ class Source
     public function setOriginalContentLength(?int $originalContentLength): self
     {
         $this->originalContentLength = $originalContentLength;
+
+        return $this;
+    }
+
+    public function getETag(): ?string
+    {
+        return $this->eTag;
+    }
+
+    public function setETag(?string $eTag): self
+    {
+        if (null !== $eTag && strlen($eTag) <= 255) {
+            $this->eTag = $eTag;
+        }
 
         return $this;
     }

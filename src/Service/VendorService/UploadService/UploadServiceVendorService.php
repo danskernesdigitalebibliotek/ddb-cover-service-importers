@@ -37,7 +37,7 @@ class UploadServiceVendorService implements VendorServiceImporterInterface
     use ProgressBarTrait;
     use VendorServiceTrait;
 
-    protected const VENDOR_ID = 12;
+    public const VENDOR_ID = 12;
 
     protected const SOURCE_FOLDER = 'BulkUpload';
     protected const DESTINATION_FOLDER = 'UploadService';

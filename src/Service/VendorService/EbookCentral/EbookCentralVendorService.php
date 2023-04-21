@@ -19,7 +19,7 @@ use Nicebooks\Isbn\IsbnTools;
  */
 class EbookCentralVendorService extends AbstractDataWellVendorService implements VendorServiceSingleIdentifierInterface
 {
-    protected const VENDOR_ID = 2;
+    public const VENDOR_ID = 2;
     private const URL_PATTERN = 'https://syndetics.com/index.php?client=primo&isbn=%s/lc.jpg';
 
     protected array $datawellQueries = ['facet.acSource="ebook central', 'facet.acSource="ebook central plus'];
@@ -51,11 +51,9 @@ class EbookCentralVendorService extends AbstractDataWellVendorService implements
             return null;
         }
 
-        $item = new UnverifiedVendorImageItem();
+        $item = new UnverifiedVendorImageItem($this->getVendorImageUrl($identifier), $this->getVendor());
         $item->setIdentifier($identifier);
         $item->setIdentifierType($type);
-        $item->setVendor($this->getVendor());
-        $item->setOriginalFile($this->getVendorImageUrl($identifier));
 
         return $item;
     }

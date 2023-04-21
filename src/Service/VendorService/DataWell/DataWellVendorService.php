@@ -19,5 +19,5 @@ class DataWellVendorService implements VendorServiceInterface
 {
     use VendorServiceTrait;
 
-    protected const VENDOR_ID = 4;
+    public const VENDOR_ID = 4;
 }

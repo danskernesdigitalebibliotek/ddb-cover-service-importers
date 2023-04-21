@@ -11,6 +11,17 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+### Fixed
+- Fixed image validation for OpenLibrary vendor
+- Renamed OpenLibraryVendor -> OpenLibraryVendorService for consistency
+
+### Changed
+- Simplify default validation to be based only on HTTP response code.
+- Allow for custom validators by vendor. This ensures non-standard behavior is scope to the relevant Vendor
+
+### Added
+- Added ETag to check for "image updated"
+
 ## [3.5.5] - 2023-02-13
 
 ### Changed

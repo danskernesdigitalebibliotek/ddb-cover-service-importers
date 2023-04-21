@@ -24,7 +24,7 @@ use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
  */
 class OverDriveMagazinesVendorService extends AbstractDataWellVendorService
 {
-    protected const VENDOR_ID = 16;
+    public const VENDOR_ID = 16;
     private const VENDOR_MAGAZINE_URL_BASE = 'link.overdrive.com';
 
     protected array $datawellQueries = ['facet.acSource="ereolen magazines"'];
