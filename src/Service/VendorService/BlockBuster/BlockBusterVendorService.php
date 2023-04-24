@@ -17,7 +17,7 @@ class BlockBusterVendorService extends AbstractDataWellVendorService
     public const VENDOR_ID = 21;
     protected const DATAWELL_URL_RELATION = 'dbcaddi:hasImage';
 
-    protected array $datawellQueries = ['term.acSource="Libry films"'];
+    protected array $datawellQueries = ['term.acSource="Bibliotekernes filmtjeneste"'];
 
     /**
      * {@inheritdoc}
