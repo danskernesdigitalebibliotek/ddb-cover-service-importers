@@ -38,7 +38,7 @@ class EbookCentralVendorService extends AbstractDataWellVendorService implements
     /**
      * {@inheritDoc}
      */
-    public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
+    public function getUnverifiedVendorImageItems(string $identifier, string $type): \Generator
     {
         if (!$this->supportsIdentifier($identifier, $type)) {
             throw new UnsupportedIdentifierTypeException(\sprintf('Unsupported single identifier: %s (%s)', $identifier, $type));
@@ -55,7 +55,7 @@ class EbookCentralVendorService extends AbstractDataWellVendorService implements
         $item->setIdentifier($identifier);
         $item->setIdentifierType($type);
 
-        return $item;
+        yield $item;
     }
 
     /**

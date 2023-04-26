@@ -7,7 +7,6 @@
 
 namespace App\MessageHandler;
 
-use App\Entity\Search;
 use App\Entity\Source;
 use App\Exception\MaterialConversionException;
 use App\Exception\UnknownVendorServiceException;
@@ -30,13 +29,14 @@ use ItkDev\MetricsBundle\Service\MetricsService;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
+use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class SearchNoHitsMessageHandler.
  */
-class SearchNoHitsMessageHandler implements MessageHandlerInterface
+#[AsMessageHandler]
+class SearchNoHitsMessageHandler
 {
     final public const VENDOR = 'Unknown';
 
@@ -148,8 +148,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
             /** @var VendorServiceSingleIdentifierInterface $vendor */
             foreach ($this->singleIdentifierVendors as $vendor) {
                 if ($vendor->supportsIdentifier($identifier->getId(), $identifier->getType())) {
-                    $item = $vendor->getUnverifiedVendorImageItem($identifier->getId(), $identifier->getType());
-                    if (null !== $item) {
+                    foreach ($vendor->getUnverifiedVendorImageItems($identifier->getId(), $identifier->getType()) as $item) {
                         $items[] = $item;
                     }
                 }
@@ -166,7 +165,7 @@ class SearchNoHitsMessageHandler implements MessageHandlerInterface
      *
      * @return bool
      *
-     * @throws DBALException
+     * @throws DBALException|ValidateRemoteImageException
      */
     private function processUnverifiedImageItems(array $unverifiedImageItems): bool
     {

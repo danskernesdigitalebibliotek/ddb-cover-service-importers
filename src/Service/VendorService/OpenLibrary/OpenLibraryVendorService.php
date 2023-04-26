@@ -24,7 +24,7 @@ class OpenLibraryVendorService implements VendorServiceSingleIdentifierInterface
     /**
      * {@inheritDoc}
      */
-    public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
+    public function getUnverifiedVendorImageItems(string $identifier, string $type): \Generator
     {
         if (!$this->supportsIdentifier($identifier, $type)) {
             throw new UnsupportedIdentifierTypeException(\sprintf('Unsupported single identifier: %s (%s)', $identifier, $type));
@@ -36,7 +36,7 @@ class OpenLibraryVendorService implements VendorServiceSingleIdentifierInterface
         $item->setIdentifier($identifier);
         $item->setIdentifierType($type);
 
-        return $item;
+        yield $item;
     }
 
     /**

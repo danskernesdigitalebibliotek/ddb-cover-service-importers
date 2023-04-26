@@ -43,7 +43,7 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implem
     /**
      * {@inheritDoc}
      */
-    public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
+    public function getUnverifiedVendorImageItems(string $identifier, string $type): \Generator
     {
         if (!$this->supportsIdentifier($identifier, $type)) {
             throw new UnsupportedIdentifierTypeException(\sprintf('Unsupported single identifier: %s (%s)', $identifier, $type));
@@ -62,10 +62,8 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implem
             $item->setIdentifier($identifier);
             $item->setIdentifierType($type);
 
-            return $item;
+            yield $item;
         }
-
-        return null;
     }
 
     /**

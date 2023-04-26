@@ -19,17 +19,34 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
      *
      * @see https://solsort.dk/webdav-forside-server
      */
-    private const COVER_URL_FORMAT = 'https://data.forsider.dk/law/covers/%s/%s.jpg';
+    private const COVER_URL_FORMAT = 'https://data.forsider.dk/%s/covers/%s/%s.jpg';
 
     /**
-     * Forsider.dk only supplies covers for materials from the EBSCO masterfile.
+     * @var array|string[]
+     */
+    private array $subFolder = [
+        'business',
+        'business2',
+        'culture',
+        'economics',
+        'hospitality',
+        'industries',
+        'law',
+        'literature2',
+        'medicine',
+        'politics',
+        'technology',
+    ];
+
+    /**
+     * Forsider.dk only supplies covers for materials from the EBSCO master file.
      */
     private const PID_PREFIX = '150010-master';
 
     /**
      * {@inheritDoc}
      */
-    public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
+    public function getUnverifiedVendorImageItems(string $identifier, string $type): \Generator
     {
         if (!$this->supportsIdentifier($identifier, $type)) {
             throw new UnsupportedIdentifierTypeException(\sprintf('Unsupported single identifier: %s (%s)', $identifier, $type));
@@ -37,13 +54,14 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
 
         $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
 
-        $item = new UnverifiedVendorImageItem($this->getVendorImageUrl($identifier), $vendor);
-        $item->setIdentifier($identifier);
-        $item->setIdentifierType($type);
+        foreach ($this->subFolder as $folder) {
+            $item = new UnverifiedVendorImageItem($this->getVendorImageUrl($identifier, $folder), $vendor);
+            $item->setIdentifier($identifier);
+            $item->setIdentifierType($type);
+            $item->setGenericCover(true);
 
-        $item->setGenericCover(true);
-
-        return $item;
+            yield $item;
+        }
     }
 
     /**
@@ -56,16 +74,15 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
 
     /**
      * Get Vendors image URL from PID.
+     *
+     * @see https://solsort.dk/webdav-forside-server
+     *   For more information about the image URL formats.
      */
-    private function getVendorImageUrl(string $pid): string
+    private function getVendorImageUrl(string $pid, string $folder): string
     {
-        // 00/, 01/, 02/, ..., 99/, og other/ – mapper der indeholder forsiderne.
-        // Mappen for forsiden er de sidste to cifre i ting-objektets id, eller
-        // "other" hvis id'et ikke slutter på cifre.
-        // @see https://solsort.dk/webdav-forside-server
         $endChars = \substr($pid, -2);
         $dir = \is_numeric($endChars) ? $endChars : 'other';
 
-        return \sprintf(self::COVER_URL_FORMAT, $dir, $pid);
+        return \sprintf(self::COVER_URL_FORMAT, $folder, $dir, $pid);
     }
 }

@@ -28,7 +28,7 @@ class ImageValidator implements VendorImageValidatorInterface
     public function validateRemoteImage(VendorImageItem $item): ResponseInterface
     {
         $options = [
-            'auth_basic' => [$this->password, $this->password],
+            'auth_basic' => [$this->username, $this->password],
         ];
 
         return $this->defaultValidator->validateRemoteImage($item, $options);
