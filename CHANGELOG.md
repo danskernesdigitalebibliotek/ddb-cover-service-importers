@@ -22,7 +22,6 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ### Added
 - Added ETag to check for "image updated"
-- Added ETag to check for "image updated"
 - Added support for generic covers
 - Added forsider.dk generic cover vendor
 
