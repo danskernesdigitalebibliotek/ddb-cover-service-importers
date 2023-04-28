@@ -60,7 +60,7 @@ class BlockBusterVendorService extends AbstractDataWellVendorService
      *   Array of the json decoded data
      *   The datawell relation key that holds the cover URL
      *
-     * @return array<string, ?string>
+     * @return array
      *   Array of all pid => url pairs found in response
      */
     private function extractCoverUrl(object $jsonContent): array
