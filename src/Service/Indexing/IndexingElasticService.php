@@ -236,8 +236,8 @@ class IndexingElasticService implements IndexingServiceInterface
                             'height' => [
                                 'type' => 'integer',
                             ],
-                            "generic" => [
-                                "type" => "boolean",
+                            'generic' => [
+                                'type' => 'boolean',
                             ],
                         ],
                     ],
