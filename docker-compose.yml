@@ -71,15 +71,22 @@ services:
     image: elasticsearch:8.5.2
     networks:
       - app
+      - frontend
     environment:
-      - node.name=es01
+      - node.name=es02
       - discovery.type=single-node
       - ELASTIC_PASSWORD="password"
       - xpack.license.self_generated.type=trial
       - xpack.security.enabled=false
       - xpack.security.transport.ssl.enabled=false
+    deploy:
+      resources:
+        limits:
+          memory: 4096M
+        reservations:
+          memory: 4096M
     volumes:
-      - esdata:/usr/share/elasticsearch/data:rw
+      - esdata2:/usr/share/elasticsearch/data
     ports:
       - '9200'
       - '9300'
@@ -97,5 +104,5 @@ services:
       - RABBITMQ_ERLANG_COOKIE='d53f319cd7376f8f840aaf9889f315ab'
 
 volumes:
-  esdata:
+  esdata2:
     driver: local

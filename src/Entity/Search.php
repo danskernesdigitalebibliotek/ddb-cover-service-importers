@@ -79,6 +79,11 @@ class Search
     private bool $collection = false;
 
     /**
+     * @ORM\Column(type="boolean")
+     */
+    private bool $genericCover = false;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Source", inversedBy="searches")
      */
     private ?Source $source = null;
@@ -180,6 +185,18 @@ class Search
     public function setSource(?Source $source): self
     {
         $this->source = $source;
+
+        return $this;
+    }
+
+    public function isGenericCover(): bool
+    {
+        return $this->genericCover;
+    }
+
+    public function setGenericCover(bool $genericCover): self
+    {
+        $this->genericCover = $genericCover;
 
         return $this;
     }

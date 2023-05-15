@@ -13,6 +13,7 @@ class VendorImageItem implements \Stringable
 {
     private bool $found = false;
     private bool $updated = false;
+    private bool $genericCover = false;
     private Vendor $vendor;
     private string $originalFile;
     private \DateTime $originalLastModified;
@@ -67,6 +68,18 @@ class VendorImageItem implements \Stringable
     public function setUpdated(bool $updated): self
     {
         $this->updated = $updated;
+
+        return $this;
+    }
+
+    public function isGenericCover(): bool
+    {
+        return $this->genericCover;
+    }
+
+    public function setGenericCover(bool $genericCover): self
+    {
+        $this->genericCover = $genericCover;
 
         return $this;
     }

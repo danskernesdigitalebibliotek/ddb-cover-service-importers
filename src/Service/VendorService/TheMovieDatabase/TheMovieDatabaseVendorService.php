@@ -43,10 +43,10 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implem
     /**
      * {@inheritDoc}
      */
-    public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
+    public function getUnverifiedVendorImageItems(string $identifier, string $type): \Generator
     {
-        if (!$this->supportsIdentifierType($type)) {
-            throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
+        if (!$this->supportsIdentifier($identifier, $type)) {
+            throw new UnsupportedIdentifierTypeException(\sprintf('Unsupported single identifier: %s (%s)', $identifier, $type));
         }
 
         $datawellQuery = 'rec.id='.$identifier;
@@ -62,16 +62,14 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implem
             $item->setIdentifier($identifier);
             $item->setIdentifierType($type);
 
-            return $item;
+            yield $item;
         }
-
-        return null;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function supportsIdentifierType(string $type): bool
+    public function supportsIdentifier(string $identifier, string $type): bool
     {
         return IdentifierType::PID === $type;
     }

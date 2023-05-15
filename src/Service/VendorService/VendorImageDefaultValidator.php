@@ -32,15 +32,16 @@ class VendorImageDefaultValidator
      * Validate that remote image exists by sending an HTTP HEAD request.
      *
      * @param VendorImageItem $item
+     * @param array $requestOptions
      *
      * @return ResponseInterface
      *
      * @throws ValidateRemoteImageException
      */
-    public function validateRemoteImage(VendorImageItem $item): ResponseInterface
+    public function validateRemoteImage(VendorImageItem $item, array $requestOptions = []): ResponseInterface
     {
         try {
-            $response = $this->httpClient->request(Request::METHOD_HEAD, $item->getOriginalFile());
+            $response = $this->httpClient->request(Request::METHOD_HEAD, $item->getOriginalFile(), $requestOptions);
 
             // Last Modified
             self::setLastModified($item, $response);

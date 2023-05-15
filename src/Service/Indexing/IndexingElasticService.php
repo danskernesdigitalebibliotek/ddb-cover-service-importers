@@ -25,6 +25,30 @@ class IndexingElasticService implements IndexingServiceInterface
      */
     public function index(IndexItem $item): void
     {
+        try {
+            // Check if index exists.
+            $this->getCurrentActiveIndexName();
+        } catch (SearchIndexException $e) {
+            // Index "not found" so let's create it with the right mappings and add alias for it.
+            if (404 === $e->getCode()) {
+                $this->newIndexName = $this->indexAliasName.'_'.date('Y-m-d-His');
+                $this->createIndex($this->newIndexName);
+                $this->refreshIndex($this->newIndexName);
+                $this->client->indices()->updateAliases([
+                    'body' => [
+                        'actions' => [
+                            [
+                                'add' => [
+                                    'index' => $this->newIndexName,
+                                    'alias' => $this->indexAliasName,
+                                ],
+                            ],
+                        ],
+                    ],
+                ]);
+            }
+        }
+
         /** @var IndexItem $item */
         $params = [
             'index' => $this->indexAliasName,
@@ -211,6 +235,9 @@ class IndexingElasticService implements IndexingServiceInterface
                             ],
                             'height' => [
                                 'type' => 'integer',
+                            ],
+                            'generic' => [
+                                'type' => 'boolean',
                             ],
                         ],
                     ],
