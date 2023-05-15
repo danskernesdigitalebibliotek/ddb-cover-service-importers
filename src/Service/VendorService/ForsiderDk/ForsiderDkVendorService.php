@@ -22,26 +22,17 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
     private const COVER_URL_FORMAT = 'https://data.forsider.dk/%s/covers/%s/%s.jpg';
 
     /**
-     * @var array|string[]
-     */
-    private array $subFolder = [
-        'business',
-        'business2',
-        'culture',
-        'economics',
-        'hospitality',
-        'industries',
-        'law',
-        'literature2',
-        'medicine',
-        'politics',
-        'technology',
-    ];
-
-    /**
      * Forsider.dk only supplies covers for materials from the EBSCO master file.
      */
     private const PID_PREFIX = '150010-master';
+
+    /**
+     * @param array|string[] $subFolders
+     */
+    public function __construct(
+        private readonly array $subFolders = []
+    ) {
+    }
 
     /**
      * {@inheritDoc}
@@ -54,7 +45,7 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
 
         $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
 
-        foreach ($this->subFolder as $folder) {
+        foreach ($this->subFolders as $folder) {
             $item = new UnverifiedVendorImageItem($this->getVendorImageUrl($identifier, $folder), $vendor);
             $item->setIdentifier($identifier);
             $item->setIdentifierType($type);

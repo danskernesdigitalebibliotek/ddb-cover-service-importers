@@ -97,6 +97,10 @@ services:
 
     App\Service\Indexing\IndexingServiceInterface: '@App\Service\Indexing\IndexingElasticService'
 
+    App\Service\VendorService\ForsiderDk\ForsiderDkVendorService:
+        arguments:
+            $subFolders: '%env(json:FORSIDERDK_SUBFOLDERS)%'
+
     App\Service\VendorService\ForsiderDk\ImageValidator:
         arguments:
             $username: '%env(string:FORSIDERDK_USER)%'
