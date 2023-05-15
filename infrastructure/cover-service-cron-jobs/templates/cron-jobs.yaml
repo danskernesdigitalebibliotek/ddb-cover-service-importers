@@ -98,6 +98,11 @@ spec:
                     secretKeyRef:
                       name: {{ .Release.Name }}-secret
                       key: APP_FORSIDERDK_PASSWORD
+                - name: APP_FORSIDERDK_SUBFOLDERS
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Release.Name }}-secret
+                      key: APP_FORSIDERDK_SUBFOLDERS
                 - name: APP_AMQP_USERNAME
                   valueFrom:
                     secretKeyRef:
