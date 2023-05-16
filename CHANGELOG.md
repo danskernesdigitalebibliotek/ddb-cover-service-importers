@@ -20,11 +20,14 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 - Allow for custom validators by vendor. This ensures non-standard behavior is scope to the relevant Vendor
 - Change `SingleIdentifier` vendors supports function to consider both type and identifier
 - Changed `VendorServiceSingleIdentifierInterface` to yield `UnverifiedVendorImageItem` items back  
+- Optimized ElasticSearch index to not index and analyze fields when not needed.
+- Renamed search and index commands for consistency
 
 ### Added
 - Added ETag to check for "image updated"
 - Added support for generic covers
 - Added forsider.dk generic cover vendor
+- Added event subscriber to verify ElasticSearch index exists on application startup
 
 ## [3.5.5] - 2023-02-13
 
