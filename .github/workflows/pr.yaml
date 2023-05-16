@@ -36,8 +36,8 @@ jobs:
           set -a && source .env && set +a
           APP_ENV=github_actions composer install --no-dev -o
 
-  validate-doctrine-schema:
-    runs-on: ubuntu-latest
+  validate-doctrine-shema:
+    runs-on: ubuntu-20.04
     env:
       DATABASE_URL: mysql://db:db@127.0.0.1:3306/db?serverVersion=mariadb-10.6.7
     strategy:
@@ -216,6 +216,7 @@ jobs:
       - name: Install Dependencies
         run: |
           APP_ENV=github_actions composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
+          bin/console cache:clear
 
       - name: Psalm
         run: ./vendor/bin/psalm
