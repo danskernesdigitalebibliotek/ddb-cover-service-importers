@@ -7,3 +7,8 @@ framework:
     cache:
         system: cache.adapter.system
         app: cache.adapter.filesystem
+
+        pools:
+            # Creates a "no.hits.single.cover.cache" service
+            no.hits.single.cover.cache:
+                adapter: cache.adapter.filesystem
