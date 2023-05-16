@@ -5,7 +5,7 @@
  * Reindex data in the search table base on vendor.
  */
 
-namespace App\Command\Search;
+namespace App\Command\Source;
 
 use App\Entity\Source;
 use App\Message\SearchMessage;
@@ -21,8 +21,11 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-#[AsCommand(name: 'app:search:reindex')]
-class SearchReindexCommand extends Command
+#[AsCommand(
+    name: 'app:source:reindex',
+    description: 'Reindex source table'
+)]
+class SourceReindexCommand extends Command
 {
     use ProgressBarTrait;
 
@@ -44,8 +47,7 @@ class SearchReindexCommand extends Command
      */
     protected function configure(): void
     {
-        $this->setDescription('Reindex search table')
-            ->addOption('vendor-id', null, InputOption::VALUE_OPTIONAL, 'Limit the re-index to vendor with this id number')
+        $this->addOption('vendor-id', null, InputOption::VALUE_OPTIONAL, 'Limit the re-index to vendor with this id number')
             ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'If set only this identifier will be re-index (requires that you set vendor id)')
             ->addOption('clean-up', null, InputOption::VALUE_NONE, 'Remove all rows from the search table related to a given source before insert')
             ->addOption('without-search-cache', null, InputOption::VALUE_NONE, 'If set do not use search cache during re-index')
