@@ -4,7 +4,7 @@ jobs:
   test-composer-install:
     runs-on: ubuntu-latest
     env:
-      APP_ENV: github_actions
+      APP_ENV: prod
       REDIS_CACHE_DSN: redis://127.0.0.1:6379/11
     strategy:
       fail-fast: false
