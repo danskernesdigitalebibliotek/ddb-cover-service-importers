@@ -43,6 +43,7 @@ jobs:
     env:
       APP_ENV: github_actions
       DATABASE_URL: mysql://db:db@127.0.0.1:3306/db?serverVersion=mariadb-10.6.7
+      REDIS_CACHE_DSN: redis://127.0.0.1:6379/11
     strategy:
       fail-fast: false
       matrix:
@@ -59,6 +60,11 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      redis:
+        image: redis
+        ports:
+          - 6379/tcp
+        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - name: Checkout
         uses: actions/checkout@v3
