@@ -34,12 +34,30 @@ interface IndexingServiceInterface
      *
      * @throws SearchIndexException
      */
-    public function bulk(array $items);
+    public function bulk(array $items): void;
 
     /**
      * Switch new index with old.
      *
      * @throws SearchIndexException
      */
-    public function switchIndex();
+    public function switchIndex(): void;
+
+    /**
+     * Create index.
+     *
+     * @return void
+     *
+     * @throws SearchIndexException
+     */
+    public function createIndex(): void;
+
+    /**
+     * Verify that index exists.
+     *
+     * @return bool
+     *
+     * @throws SearchIndexException
+     */
+    public function indexExists(): bool;
 }

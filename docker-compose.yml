@@ -75,6 +75,7 @@ services:
     environment:
       - node.name=es02
       - discovery.type=single-node
+      - action.auto_create_index=false
       - ELASTIC_PASSWORD="password"
       - xpack.license.self_generated.type=trial
       - xpack.security.enabled=false
