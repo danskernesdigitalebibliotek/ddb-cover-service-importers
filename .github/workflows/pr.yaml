@@ -40,10 +40,6 @@ jobs:
 
   validate-doctrine-schema:
     runs-on: ubuntu-latest
-    env:
-      APP_ENV: github_actions
-      DATABASE_URL: mysql://db:db@127.0.0.1:${{ job.services.mariadb.ports['3306'] }}/db?serverVersion=mariadb-10.6.7
-      REDIS_CACHE_DSN: redis://127.0.0.1:${{ job.services.redis.ports['6379'] }}/11
     strategy:
       fail-fast: false
       matrix:
@@ -91,9 +87,17 @@ jobs:
           composer install --no-dev -o --no-scripts --no-suggest --no-progress --prefer-dist
       - name: Run Doctrine Migrations
         run: php bin/console doctrine:migrations:migrate --no-interaction
+        env:
+          APP_ENV: github_actions
+          DATABASE_URL: mysql://db:db@127.0.0.1:${{ job.services.mariadb.ports['3306'] }}/db?serverVersion=mariadb-10.6.7
+          REDIS_CACHE_DSN: redis://127.0.0.1:${{ job.services.redis.ports['6379'] }}/11
 
       - name: Validate Doctrine schema
         run: php bin/console doctrine:schema:validate
+        env:
+          APP_ENV: github_actions
+          DATABASE_URL: mysql://db:db@127.0.0.1:${{ job.services.mariadb.ports['3306'] }}/db?serverVersion=mariadb-10.6.7
+          REDIS_CACHE_DSN: redis://127.0.0.1:${{ job.services.redis.ports['6379'] }}/11
 
   unit-tests:
     name: Unit tests (${{ matrix.php }})
