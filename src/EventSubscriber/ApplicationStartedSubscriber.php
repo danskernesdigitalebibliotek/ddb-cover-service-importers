@@ -22,7 +22,7 @@ class ApplicationStartedSubscriber implements EventSubscriberInterface
      */
     public function onWorkerStartedEvent(WorkerStartedEvent $event): void
     {
-        $this->verifyIndexExists();
+//        $this->verifyIndexExists();
     }
 
     /**
@@ -32,7 +32,7 @@ class ApplicationStartedSubscriber implements EventSubscriberInterface
      */
     public function onConsoleCommandEvent(ConsoleCommandEvent $event): void
     {
-        $this->verifyIndexExists();
+//        $this->verifyIndexExists();
     }
 
     /**
