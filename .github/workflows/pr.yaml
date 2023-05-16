@@ -42,8 +42,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       APP_ENV: github_actions
-      DATABASE_URL: mysql://db:db@127.0.0.1:3306/db?serverVersion=mariadb-10.6.7
-      REDIS_CACHE_DSN: redis://127.0.0.1:6379/11
+      DATABASE_URL: mysql://db:db@127.0.0.1:${{ job.services.mariadb.ports['3306'] }}/db?serverVersion=mariadb-10.6.7
+      REDIS_CACHE_DSN: redis://127.0.0.1:${{ job.services.redis.ports['6379'] }}/11
     strategy:
       fail-fast: false
       matrix:
