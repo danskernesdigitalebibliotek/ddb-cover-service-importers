@@ -3,3 +3,8 @@ framework:
         # Use Redis caching in prod to share cache between pods
         system: cache.adapter.redis
         app: cache.adapter.redis
+
+        pools:
+            # Creates a "no.hits.single.cover.cache" service
+            no.hits.single.cover.cache:
+                adapter: cache.adapter.redis
