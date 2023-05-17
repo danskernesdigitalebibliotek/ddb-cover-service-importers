@@ -244,7 +244,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: azure/setup-helm@v1
+      - uses: azure/setup-helm@v3
         name: Install helm
         with:
           version: v3.1.2
