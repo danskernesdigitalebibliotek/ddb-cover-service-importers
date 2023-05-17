@@ -27,7 +27,7 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 - Added ETag to check for "image updated"
 - Added support for generic covers
 - Added forsider.dk generic cover vendor
-- Added event subscriber to verify ElasticSearch index exists on application startup
+- Added command to create ElasticSearch index
 
 ## [3.5.5] - 2023-02-13
 
