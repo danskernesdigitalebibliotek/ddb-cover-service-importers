@@ -3,9 +3,6 @@ name: Review
 jobs:
   test-composer-install:
     runs-on: ubuntu-latest
-    env:
-      APP_ENV: prod
-      REDIS_CACHE_DSN: redis://127.0.0.1:6379/11
     strategy:
       fail-fast: false
       matrix:
@@ -34,12 +31,15 @@ jobs:
       - name: Validate composer files
         run: composer validate composer.json --strict
 
-      - name: Composer install
+      - name: Composer install with exported .env variables
         run: |
-          composer install --no-dev -o --no-scripts --no-suggest --no-progress --prefer-dist
+          set -a && source .env && set +a
+          APP_ENV=prod composer install --no-dev -o
 
-  validate-doctrine-schema:
-    runs-on: ubuntu-latest
+  validate-doctrine-shema:
+    runs-on: ubuntu-20.04
+    env:
+      DATABASE_URL: mysql://db:db@127.0.0.1:3306/db?serverVersion=mariadb-10.6.7
     strategy:
       fail-fast: false
       matrix:
@@ -56,11 +56,6 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-      redis:
-        image: redis
-        ports:
-          - 6379:6379
-        options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -84,20 +79,13 @@ jobs:
 
       - name: 'Composer install with exported .env variables'
         run: |
-          composer install --no-dev -o --no-scripts --no-suggest --no-progress --prefer-dist
+          set -a && source .env && set +a
+          APP_ENV=prod composer install --no-dev -o
       - name: Run Doctrine Migrations
-        run: php bin/console doctrine:migrations:migrate --no-interaction
-        env:
-          APP_ENV: github_actions
-          DATABASE_URL: mysql://db:db@127.0.0.1/db?serverVersion=mariadb-10.6.7
-          REDIS_CACHE_DSN: redis://127.0.0.1:6379/11
+        run: APP_ENV=prod php bin/console doctrine:migrations:migrate --no-interaction
 
       - name: Validate Doctrine schema
-        run: php bin/console doctrine:schema:validate
-        env:
-          APP_ENV: github_actions
-          DATABASE_URL: mysql://db:db@127.0.0.1:${{ job.services.mariadb.ports['3306'] }}/db?serverVersion=mariadb-10.6.7
-          REDIS_CACHE_DSN: redis://127.0.0.1:${{ job.services.redis.ports['6379'] }}/11
+        run: APP_ENV=prod php bin/console doctrine:schema:validate
 
   unit-tests:
     name: Unit tests (${{ matrix.php }})
@@ -228,6 +216,7 @@ jobs:
       - name: Install Dependencies
         run: |
           composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
+          bin/console cache:clear
 
       - name: Psalm
         run: ./vendor/bin/psalm
