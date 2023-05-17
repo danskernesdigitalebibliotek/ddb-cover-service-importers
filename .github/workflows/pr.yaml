@@ -19,14 +19,14 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}-${{ matrix.dependency-version }}-
-          restore-keys: ${{ runner.os }}-composer-${{ matrix.dependency-version }}-
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Validate composer files
         run: composer validate composer.json --strict
@@ -36,7 +36,7 @@ jobs:
           set -a && source .env && set +a
           APP_ENV=prod composer install --no-dev -o
 
-  validate-doctrine-shema:
+  validate-doctrine-schema:
     runs-on: ubuntu-20.04
     env:
       DATABASE_URL: mysql://db:db@127.0.0.1:3306/db?serverVersion=mariadb-10.6.7
@@ -68,14 +68,14 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
-      - name: Cache composer dependencies
+      - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ matrix.php }}-composer-
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: 'Composer install with exported .env variables'
         run: |
@@ -105,14 +105,14 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}-${{ matrix.dependency-version }}-
-          restore-keys: ${{ runner.os }}-composer-${{ matrix.dependency-version }}-
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
@@ -170,14 +170,14 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}-${{ matrix.dependency-version }}-
-          restore-keys: ${{ runner.os }}-composer-${{ matrix.dependency-version }}-
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist
@@ -204,14 +204,14 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}-${{ matrix.dependency-version }}-
-          restore-keys: ${{ runner.os }}-composer-${{ matrix.dependency-version }}-
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
 
       - name: Install Dependencies
         run: |
@@ -221,30 +221,22 @@ jobs:
       - name: Psalm
         run: ./vendor/bin/psalm
 
-  markdownlint:
+  markdown-lint:
     name: Markdown Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - name: Cache yarn packages
-        uses: actions/cache@v3
-        id: yarn-cache
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
+
       - name: Yarn install
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - run: yarn install
-      - name: markdownlint
-        run: yarn markdownlint README.md CHANGELOG.md
+          cache: 'yarn'
+        run: yarn install
+
+      - name: markdown-lint
+        run: yarn markdown-lint README.md CHANGELOG.md
 
   helm:
     name: Helm
