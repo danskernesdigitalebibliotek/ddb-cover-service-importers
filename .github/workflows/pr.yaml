@@ -235,8 +235,8 @@ jobs:
           cache: 'yarn'
       - run: yarn install
 
-      - name: markdown-lint
-        run: yarn markdown-lint README.md CHANGELOG.md
+      - name: markdownlint
+        run: yarn markdownlint README.md CHANGELOG.md
 
   helm:
     name: Helm
