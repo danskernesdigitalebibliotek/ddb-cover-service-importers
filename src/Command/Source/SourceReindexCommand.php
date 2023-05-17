@@ -72,20 +72,26 @@ class SourceReindexCommand extends Command
             if (0 > $vendorId) {
                 $output->writeln('<error>Missing vendor id required in combination with identifier</error>');
 
-                return 1;
+                return Command::FAILURE;
             }
+        }
+
+        if (!is_null($lastIndexedDate) && 0 === $limit) {
+            $output->writeln('<error>"last-indexed-date" can not be given without "limit"</error>');
+
+            return Command::FAILURE;
         }
 
         if (0 < $limit) {
             if (is_null($lastIndexedDate)) {
                 $output->writeln('<error>Batch size can not be given without last-indexed-date</error>');
 
-                return -1;
+                return Command::FAILURE;
             }
 
             $format = 'd-m-Y';
             $inputDate = \DateTimeImmutable::createFromFormat('!'.$format, $lastIndexedDate);
-            if (!($inputDate && $inputDate->format($format) == $lastIndexedDate)) {
+            if (false === $inputDate || $inputDate->format($format) !== $lastIndexedDate) {
                 $output->writeln('<error>Lasted indexed date should have the format "m-d-Y"</error>');
 
                 return Command::FAILURE;
@@ -93,8 +99,7 @@ class SourceReindexCommand extends Command
         }
 
         // Progress bar setup.
-        $section = $output->section('Sheet');
-        $progressBarSheet = new ProgressBar($section);
+        $progressBarSheet = new ProgressBar($output);
         $progressBarSheet->setFormat('[%bar%] %elapsed% (%memory%) - %message%');
         $this->setProgressBar($progressBarSheet);
         $this->progressStart('Loading database source');
@@ -129,6 +134,7 @@ class SourceReindexCommand extends Command
         }
 
         $this->progressFinish();
+        $output->writeln('');
 
         return Command::SUCCESS;
     }
