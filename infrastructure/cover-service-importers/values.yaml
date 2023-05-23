@@ -34,7 +34,9 @@ app:
       - async_priority_low
       - async_no_hit
   vendor:
-    forsiderdk_subfolders: '["business", "business2", "culture", "economics", "hospitality", "industries", "law", "literature2", "medicine", "politics", "technology"]'
+    forsiderdk:
+      enabled: false
+      subfolders: '["business", "business2", "culture", "economics", "hospitality", "industries", "law", "literature2", "medicine", "politics", "technology"]'
   php:
     memory_limit: "512M"
   db:
