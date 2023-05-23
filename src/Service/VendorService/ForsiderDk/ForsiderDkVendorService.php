@@ -30,7 +30,8 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
      * @param array|string[] $subFolders
      */
     public function __construct(
-        private readonly array $subFolders = []
+        private readonly array $subFolders = [],
+        private readonly bool $enabled = false,
     ) {
     }
 
@@ -39,19 +40,21 @@ class ForsiderDkVendorService implements VendorServiceSingleIdentifierInterface
      */
     public function getUnverifiedVendorImageItems(string $identifier, string $type): \Generator
     {
-        if (!$this->supportsIdentifier($identifier, $type)) {
-            throw new UnsupportedIdentifierTypeException(\sprintf('Unsupported single identifier: %s (%s)', $identifier, $type));
-        }
+        if ($this->enabled) {
+            if (!$this->supportsIdentifier($identifier, $type)) {
+                throw new UnsupportedIdentifierTypeException(\sprintf('Unsupported single identifier: %s (%s)', $identifier, $type));
+            }
 
-        $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
+            $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
 
-        foreach ($this->subFolders as $folder) {
-            $item = new UnverifiedVendorImageItem($this->getVendorImageUrl($identifier, $folder), $vendor);
-            $item->setIdentifier($identifier);
-            $item->setIdentifierType($type);
-            $item->setGenericCover(true);
+            foreach ($this->subFolders as $folder) {
+                $item = new UnverifiedVendorImageItem($this->getVendorImageUrl($identifier, $folder), $vendor);
+                $item->setIdentifier($identifier);
+                $item->setIdentifierType($type);
+                $item->setGenericCover(true);
 
-            yield $item;
+                yield $item;
+            }
         }
     }
 
