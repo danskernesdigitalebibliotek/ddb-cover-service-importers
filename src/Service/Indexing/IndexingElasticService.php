@@ -311,6 +311,10 @@ class IndexingElasticService implements IndexingServiceInterface
                                 'type' => 'integer',
                                 'doc_values' => false,
                             ],
+                            'generic' => [
+                                'type' => 'boolean',
+                                'doc_values' => false,
+                            ],
                         ],
                     ],
                 ],
