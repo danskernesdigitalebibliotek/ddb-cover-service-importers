@@ -31,7 +31,6 @@ data:
   APP_SUPERVISOR_QUEUES: {{ join " " .Values.app.supervisor.queues | quote }}
   APP_NO_HITS_TTL: {{ mul .Values.app.no_hits_ttl 1000 | quote }}
   APP_NO_HITS_CACHE_SINGLE_COVER_TTL: {{ mul .Values.app.no_hits_single_cover_ttl 1000 | quote }}
-  APP_FORSIDERDK_SUBFOLDERS: {{ .Values.app.vendor.forsiderdk_subfolders | quote }}
   PHP_MEMORY_LIMIT: {{ .Values.app.php.memory_limit | quote }}
 
 ---

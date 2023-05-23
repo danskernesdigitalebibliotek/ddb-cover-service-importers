@@ -29,7 +29,7 @@ class OverDriveBooksVendorService implements VendorServiceImporterInterface
     use ProgressBarTrait;
     use VendorServiceTrait;
 
-    public const VENDOR_ID = 14;
+    protected const VENDOR_ID = 14;
 
     // Pattern for matching URLs for "Upcomming Release" generic cover. E.g.
     // https://img1.od-cdn.com/ImageType-100/8174-1/{00000000-0000-0000-0000-000000000229}Img100.jpg

@@ -25,7 +25,7 @@ class SaxoVendorService implements VendorServiceImporterInterface
     use ProgressBarTrait;
     use VendorServiceTrait;
 
-    public const VENDOR_ID = 3;
+    protected const VENDOR_ID = 3;
 
     private const VENDOR_ARCHIVE_DIR = 'Saxo';
     private const VENDOR_ARCHIVE_NAME = 'Danske bogforsider.xlsx';
@@ -66,7 +66,7 @@ class SaxoVendorService implements VendorServiceImporterInterface
                     $isbn = $cellsArray[0]->getValue();
 
                     if (!empty($isbn) && is_string($isbn)) {
-                        $isbnArray[$isbn] = $this->getVendorImageUrl($isbn);
+                        $isbnArray[$isbn] = $this->getVendorsImageUrl($isbn);
                     }
 
                     ++$totalRows;
@@ -105,7 +105,7 @@ class SaxoVendorService implements VendorServiceImporterInterface
      *
      * @throws UnknownVendorServiceException
      */
-    private function getVendorImageUrl(string $isbn): string
+    private function getVendorsImageUrl(string $isbn): string
     {
         $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
 

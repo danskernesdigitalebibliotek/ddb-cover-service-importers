@@ -5,7 +5,7 @@
  * Reindex data in the search table base on vendor.
  */
 
-namespace App\Command\Source;
+namespace App\Command\Search;
 
 use App\Entity\Source;
 use App\Message\SearchMessage;
@@ -21,11 +21,8 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-#[AsCommand(
-    name: 'app:source:process',
-    description: 'Process source table'
-)]
-class SourceProcessCommand extends Command
+#[AsCommand(name: 'app:search:reindex')]
+class SearchReindexCommand extends Command
 {
     use ProgressBarTrait;
 
@@ -47,7 +44,8 @@ class SourceProcessCommand extends Command
      */
     protected function configure(): void
     {
-        $this->addOption('vendor-id', null, InputOption::VALUE_OPTIONAL, 'Limit the re-index to vendor with this id number')
+        $this->setDescription('Reindex search table')
+            ->addOption('vendor-id', null, InputOption::VALUE_OPTIONAL, 'Limit the re-index to vendor with this id number')
             ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'If set only this identifier will be re-index (requires that you set vendor id)')
             ->addOption('clean-up', null, InputOption::VALUE_NONE, 'Remove all rows from the search table related to a given source before insert')
             ->addOption('without-search-cache', null, InputOption::VALUE_NONE, 'If set do not use search cache during re-index')
@@ -67,35 +65,34 @@ class SourceProcessCommand extends Command
         $lastIndexedDate = $input->getOption('last-indexed-date');
         $limit = (int) $input->getOption('limit');
 
+        $inputDate = null;
         if (!is_null($identifier)) {
             if (0 > $vendorId) {
                 $output->writeln('<error>Missing vendor id required in combination with identifier</error>');
 
-                return Command::FAILURE;
+                return 1;
             }
         }
 
-        $inputDate = null;
-        if (!is_null($lastIndexedDate)) {
+        if (0 < $limit) {
+            if (is_null($lastIndexedDate)) {
+                $output->writeln('<error>Batch size can not be given without last-indexed-date</error>');
+
+                return -1;
+            }
+
             $format = 'd-m-Y';
             $inputDate = \DateTimeImmutable::createFromFormat('!'.$format, $lastIndexedDate);
-            if (false === $inputDate || $inputDate->format($format) !== $lastIndexedDate) {
+            if (!($inputDate && $inputDate->format($format) == $lastIndexedDate)) {
                 $output->writeln('<error>Lasted indexed date should have the format "m-d-Y"</error>');
 
                 return Command::FAILURE;
             }
         }
 
-        if (0 < $limit) {
-            if (is_null($inputDate)) {
-                $output->writeln('<error>Limit can not be given without last-indexed-date</error>');
-
-                return Command::FAILURE;
-            }
-        }
-
         // Progress bar setup.
-        $progressBarSheet = new ProgressBar($output);
+        $section = $output->section('Sheet');
+        $progressBarSheet = new ProgressBar($section);
         $progressBarSheet->setFormat('[%bar%] %elapsed% (%memory%) - %message%');
         $this->setProgressBar($progressBarSheet);
         $this->progressStart('Loading database source');
@@ -130,7 +127,6 @@ class SourceProcessCommand extends Command
         }
 
         $this->progressFinish();
-        $output->writeln('');
 
         return Command::SUCCESS;
     }

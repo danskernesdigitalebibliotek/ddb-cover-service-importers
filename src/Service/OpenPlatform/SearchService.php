@@ -107,7 +107,7 @@ class SearchService
 
         try {
             // Build cache key base on function parameters with fallback to configuration (default values).
-            $key = md5(str_replace(':', '', $identifier).$agencyId.$profile.$type);
+            $key = md5(str_replace(':', '', $identifier).$agencyId.$profile);
 
             // Try getting item from cache.
             $item = $this->cache->getItem('openplatform.search_query'.$key);

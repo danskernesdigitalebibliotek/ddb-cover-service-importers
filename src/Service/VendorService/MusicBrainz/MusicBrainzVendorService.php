@@ -13,7 +13,7 @@ use App\Service\VendorService\AbstractTsvVendorService;
  */
 class MusicBrainzVendorService extends AbstractTsvVendorService
 {
-    public const VENDOR_ID = 9;
+    protected const VENDOR_ID = 9;
 
     protected string $vendorArchiveDir = 'MusicBrainz';
     protected string $vendorArchiveName = 'mb.covers.tsv';

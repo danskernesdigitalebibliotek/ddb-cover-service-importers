@@ -20,7 +20,7 @@ use PrinsFrank\Standards\Language\ISO639_2_Alpha_3_Common;
  */
 class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implements VendorServiceSingleIdentifierInterface
 {
-    public const VENDOR_ID = 6;
+    protected const VENDOR_ID = 6;
 
     protected array $datawellQueries = [
         'phrase.type="blu-ray" and facet.typeCategory="film"',
@@ -43,10 +43,10 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implem
     /**
      * {@inheritDoc}
      */
-    public function getUnverifiedVendorImageItems(string $identifier, string $type): \Generator
+    public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
     {
-        if (!$this->supportsIdentifier($identifier, $type)) {
-            throw new UnsupportedIdentifierTypeException(\sprintf('Unsupported single identifier: %s (%s)', $identifier, $type));
+        if (!$this->supportsIdentifierType($type)) {
+            throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
         }
 
         $datawellQuery = 'rec.id='.$identifier;
@@ -58,18 +58,22 @@ class TheMovieDatabaseVendorService extends AbstractDataWellVendorService implem
         if (array_key_exists($identifier, $pidArray) && null !== $pidArray[$identifier]) {
             $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
 
-            $item = new UnverifiedVendorImageItem($pidArray[$identifier], $vendor);
+            $item = new UnverifiedVendorImageItem();
             $item->setIdentifier($identifier);
             $item->setIdentifierType($type);
+            $item->setVendor($vendor);
+            $item->setOriginalFile($pidArray[$identifier]);
 
-            yield $item;
+            return $item;
         }
+
+        return null;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function supportsIdentifier(string $identifier, string $type): bool
+    public function supportsIdentifierType(string $type): bool
     {
         return IdentifierType::PID === $type;
     }

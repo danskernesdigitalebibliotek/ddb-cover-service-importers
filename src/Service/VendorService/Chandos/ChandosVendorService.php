@@ -13,7 +13,7 @@ use App\Service\VendorService\AbstractTsvVendorService;
  */
 class ChandosVendorService extends AbstractTsvVendorService
 {
-    public const VENDOR_ID = 10;
+    protected const VENDOR_ID = 10;
 
     protected string $vendorArchiveDir = 'Chandos';
     protected string $vendorArchiveName = 'chandos.load.tsv';

@@ -19,14 +19,14 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}-${{ matrix.dependency-version }}-
+          restore-keys: ${{ runner.os }}-composer-${{ matrix.dependency-version }}-
 
       - name: Validate composer files
         run: composer validate composer.json --strict
@@ -36,7 +36,7 @@ jobs:
           set -a && source .env && set +a
           APP_ENV=prod composer install --no-dev -o --ignore-platform-reqs
 
-  validate-doctrine-schema:
+  validate-doctrine-shema:
     runs-on: ubuntu-20.04
     env:
       DATABASE_URL: mysql://db:db@127.0.0.1:3306/db?serverVersion=mariadb-10.6.7
@@ -68,14 +68,14 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
-      - name: Cache dependencies
+      - name: Cache composer dependencies
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+          key: ${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ matrix.php }}-composer-
 
       - name: 'Composer install with exported .env variables'
         run: |
@@ -105,14 +105,14 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}-${{ matrix.dependency-version }}-
+          restore-keys: ${{ runner.os }}-composer-${{ matrix.dependency-version }}-
 
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist --ignore-platform-reqs
@@ -129,7 +129,7 @@ jobs:
       - name: Runs Elasticsearch
         uses: elastic/elastic-github-actions/elasticsearch@master
         with:
-          stack-version: 8.5.2
+          stack-version: 8.2.2
           security-enabled: false
 
       - name: Wait for ES to be ready
@@ -170,14 +170,14 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}-${{ matrix.dependency-version }}-
+          restore-keys: ${{ runner.os }}-composer-${{ matrix.dependency-version }}-
 
       - name: Install Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-suggest --no-progress --prefer-dist --ignore-platform-reqs
@@ -204,14 +204,14 @@ jobs:
 
       - name: Get composer cache directory
         id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
 
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}-${{ matrix.dependency-version }}-
+          restore-keys: ${{ runner.os }}-composer-${{ matrix.dependency-version }}-
 
       - name: Install Dependencies
         run: |

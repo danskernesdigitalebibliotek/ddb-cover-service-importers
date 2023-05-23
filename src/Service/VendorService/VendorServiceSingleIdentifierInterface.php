@@ -4,6 +4,7 @@ namespace App\Service\VendorService;
 
 use App\Exception\UnknownVendorServiceException;
 use App\Exception\UnsupportedIdentifierTypeException;
+use App\Utils\CoverVendor\UnverifiedVendorImageItem;
 
 /**
  * Interface VendorServiceSingleIdentifierInterface.
@@ -20,23 +21,21 @@ interface VendorServiceSingleIdentifierInterface extends VendorServiceInterface
      * @param string $type
      *   The identifier type
      *
-     * @return \Generator
+     * @return UnverifiedVendorImageItem|null
      *
      * @throws UnsupportedIdentifierTypeException
      * @throws UnknownVendorServiceException
      */
-    public function getUnverifiedVendorImageItems(string $identifier, string $type): \Generator;
+    public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem;
 
     /**
      * Does the vendor support this identifier type.
      *
-     * @param string $identifier
-     *   The identifier
      * @param string $type
      *   The identifier type
      *
      * @return bool
      *   Is the identifier type supported
      */
-    public function supportsIdentifier(string $identifier, string $type): bool;
+    public function supportsIdentifierType(string $type): bool;
 }

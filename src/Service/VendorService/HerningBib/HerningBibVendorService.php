@@ -18,7 +18,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class HerningBibVendorService extends AbstractTsvVendorService
 {
-    public const VENDOR_ID = 17;
+    protected const VENDOR_ID = 17;
     private const TSV_URL = 'https://cdn.herningbib.dk/coverscan/index.tsv';
 
     protected string $vendorArchiveDir = 'HerningBib';

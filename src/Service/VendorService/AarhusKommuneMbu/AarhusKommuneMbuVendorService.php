@@ -26,7 +26,7 @@ class AarhusKommuneMbuVendorService extends AbstractTsvVendorService
     use ProgressBarTrait;
     use VendorServiceTrait;
 
-    public const VENDOR_ID = 18;
+    protected const VENDOR_ID = 18;
     private const TSV_URL = 'https://drive.google.com/uc?id=1zmXcKSWOvIy5-2-3PODP6gy4lIzZ9k3I';
 
     protected string $vendorArchiveDir = 'AarhusKommuneMbu';

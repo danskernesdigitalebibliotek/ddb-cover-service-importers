@@ -23,7 +23,7 @@ class PublizonVendorService implements VendorServiceImporterInterface
     use ProgressBarTrait;
     use VendorServiceTrait;
 
-    public const VENDOR_ID = 5;
+    protected const VENDOR_ID = 5;
 
     private string $apiEndpoint;
     private string $apiServiceKey;

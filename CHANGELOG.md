@@ -11,24 +11,6 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
-### Fixed
-- Fixed image validation for OpenLibrary vendor
-- Renamed OpenLibraryVendor -> OpenLibraryVendorService for consistency
-
-### Changed
-- Simplify default validation to be based only on HTTP response code.
-- Allow for custom validators by vendor. This ensures non-standard behavior is scope to the relevant Vendor
-- Change `SingleIdentifier` vendors supports function to consider both type and identifier
-- Changed `VendorServiceSingleIdentifierInterface` to yield `UnverifiedVendorImageItem` items back  
-- Optimized ElasticSearch index to not index and analyze fields when not needed.
-- Renamed search and index commands for consistency
-
-### Added
-- Added ETag to check for "image updated"
-- Added support for generic covers
-- Added forsider.dk generic cover vendor
-- Added command to create ElasticSearch index
-
 ## [3.5.5] - 2023-02-13
 
 ### Changed

@@ -20,5 +20,5 @@ class RbDigitalMagazinesVendorService implements VendorServiceInterface
     use ProgressBarTrait;
     use VendorServiceTrait;
 
-    public const VENDOR_ID = 8;
+    protected const VENDOR_ID = 8;
 }

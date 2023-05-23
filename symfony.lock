@@ -231,6 +231,9 @@
     "ocramius/proxy-manager": {
         "version": "2.2.2"
     },
+    "openlss/lib-array2xml": {
+        "version": "1.0.0"
+    },
     "pear/file_marc": {
         "version": "1.4.1"
     },
@@ -666,6 +669,9 @@
     },
     "webmozart/assert": {
         "version": "1.10.0"
+    },
+    "webmozart/path-util": {
+        "version": "2.3.0"
     },
     "weirdan/doctrine-psalm-plugin": {
         "version": "v2.0.1"

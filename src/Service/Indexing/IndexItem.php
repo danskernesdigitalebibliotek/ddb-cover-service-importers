@@ -11,7 +11,6 @@ class IndexItem
     private string $imageFormat;
     private int $width;
     private int $height;
-    private bool $genericCover = false;
 
     public function getId(): int
     {
@@ -97,18 +96,6 @@ class IndexItem
         return $this;
     }
 
-    public function isGenericCover(): bool
-    {
-        return $this->genericCover;
-    }
-
-    public function setGenericCover(bool $genericCover): self
-    {
-        $this->genericCover = $genericCover;
-
-        return $this;
-    }
-
     public function toArray(): array
     {
         return [
@@ -118,7 +105,6 @@ class IndexItem
             'imageFormat' => $this->getImageFormat(),
             'width' => $this->getWidth(),
             'height' => $this->getHeight(),
-            'generic' => $this->isGenericCover(),
         ];
     }
 }

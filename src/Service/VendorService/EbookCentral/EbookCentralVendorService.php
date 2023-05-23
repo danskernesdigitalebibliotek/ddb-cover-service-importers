@@ -19,7 +19,7 @@ use Nicebooks\Isbn\IsbnTools;
  */
 class EbookCentralVendorService extends AbstractDataWellVendorService implements VendorServiceSingleIdentifierInterface
 {
-    public const VENDOR_ID = 2;
+    protected const VENDOR_ID = 2;
     private const URL_PATTERN = 'https://syndetics.com/index.php?client=primo&isbn=%s/lc.jpg';
 
     protected array $datawellQueries = ['facet.acSource="ebook central', 'facet.acSource="ebook central plus'];
@@ -38,10 +38,10 @@ class EbookCentralVendorService extends AbstractDataWellVendorService implements
     /**
      * {@inheritDoc}
      */
-    public function getUnverifiedVendorImageItems(string $identifier, string $type): \Generator
+    public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
     {
-        if (!$this->supportsIdentifier($identifier, $type)) {
-            throw new UnsupportedIdentifierTypeException(\sprintf('Unsupported single identifier: %s (%s)', $identifier, $type));
+        if (!$this->supportsIdentifierType($type)) {
+            throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
         }
 
         if (!$this->tools->isValidIsbn13($identifier)) {
@@ -51,17 +51,19 @@ class EbookCentralVendorService extends AbstractDataWellVendorService implements
             return null;
         }
 
-        $item = new UnverifiedVendorImageItem($this->getVendorImageUrl($identifier), $this->getVendor());
+        $item = new UnverifiedVendorImageItem();
         $item->setIdentifier($identifier);
         $item->setIdentifierType($type);
+        $item->setVendor($this->getVendor());
+        $item->setOriginalFile($this->getVendorImageUrl($identifier));
 
-        yield $item;
+        return $item;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function supportsIdentifier(string $identifier, string $type): bool
+    public function supportsIdentifierType(string $type): bool
     {
         return IdentifierType::ISBN === $type;
     }

@@ -11,6 +11,7 @@
 namespace App\Service\OpenPlatform;
 
 use App\Exception\OpenPlatformAuthException;
+use JsonException;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
@@ -73,7 +74,7 @@ class AuthenticationService
      *
      * @throws ClientExceptionInterface
      * @throws InvalidArgumentException
-     * @throws \JsonException
+     * @throws JsonException
      * @throws OpenPlatformAuthException
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
@@ -96,7 +97,7 @@ class AuthenticationService
      *
      * @throws OpenPlatformAuthException
      * @throws TransportExceptionInterface
-     * @throws \JsonException
+     * @throws JsonException
      * @throws InvalidArgumentException
      * @throws ClientExceptionInterface
      * @throws RedirectionExceptionInterface

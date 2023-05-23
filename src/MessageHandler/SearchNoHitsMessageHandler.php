@@ -7,11 +7,11 @@
 
 namespace App\MessageHandler;
 
+use App\Entity\Search;
 use App\Entity\Source;
 use App\Exception\MaterialConversionException;
 use App\Exception\UnknownVendorServiceException;
 use App\Exception\UnsupportedIdentifierTypeException;
-use App\Exception\ValidateRemoteImageException;
 use App\Message\SearchMessage;
 use App\Message\SearchNoHitsMessage;
 use App\Message\VendorImageMessage;
@@ -29,14 +29,13 @@ use ItkDev\MetricsBundle\Service\MetricsService;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
  * Class SearchNoHitsMessageHandler.
  */
-#[AsMessageHandler]
-class SearchNoHitsMessageHandler
+class SearchNoHitsMessageHandler implements MessageHandlerInterface
 {
     final public const VENDOR = 'Unknown';
 
@@ -147,8 +146,9 @@ class SearchNoHitsMessageHandler
         foreach ($material->getIdentifiers() as $identifier) {
             /** @var VendorServiceSingleIdentifierInterface $vendor */
             foreach ($this->singleIdentifierVendors as $vendor) {
-                if ($vendor->supportsIdentifier($identifier->getId(), $identifier->getType())) {
-                    foreach ($vendor->getUnverifiedVendorImageItems($identifier->getId(), $identifier->getType()) as $item) {
+                if ($vendor->supportsIdentifierType($identifier->getType())) {
+                    $item = $vendor->getUnverifiedVendorImageItem($identifier->getId(), $identifier->getType());
+                    if (null !== $item) {
                         $items[] = $item;
                     }
                 }
@@ -165,7 +165,7 @@ class SearchNoHitsMessageHandler
      *
      * @return bool
      *
-     * @throws DBALException|ValidateRemoteImageException
+     * @throws DBALException
      */
     private function processUnverifiedImageItems(array $unverifiedImageItems): bool
     {
@@ -207,8 +207,7 @@ class SearchNoHitsMessageHandler
         $message->setOperation($operation)
             ->setIdentifier($source->getMatchId())
             ->setVendorId($source->getVendor()->getId())
-            ->setIdentifierType($source->getMatchType())
-            ->setGenericCover($source->isGenericCover());
+            ->setIdentifierType($source->getMatchType());
         $this->bus->dispatch($message);
     }
 
@@ -248,7 +247,6 @@ class SearchNoHitsMessageHandler
                 $source->setMatchId($item->getIdentifier());
                 $source->setMatchType($item->getIdentifierType());
                 $source->setDate(new \DateTime());
-                $source->setGenericCover($item->isGenericCover());
 
                 $this->em->persist($source);
             }
@@ -276,8 +274,6 @@ class SearchNoHitsMessageHandler
      * @param string $profile
      *
      * @return bool
-     *
-     * @throws ValidateRemoteImageException
      */
     private function mapDatawellSearch(Material $material, string $agency, string $profile): bool
     {
@@ -315,7 +311,8 @@ class SearchNoHitsMessageHandler
                 elseif (is_null($source->getImage()) && !is_null($source->getOriginalFile())) {
                     $this->metricsService->counter('no_hit_without_image', 'No-hit source found without image', 1, ['type' => 'nohit']);
 
-                    $item = new VendorImageItem($source->getOriginalFile(), $source->getVendor());
+                    $item = new VendorImageItem();
+                    $item->setOriginalFile($source->getOriginalFile());
                     $this->validatorService->validateRemoteImage($item);
 
                     if ($item->isFound()) {

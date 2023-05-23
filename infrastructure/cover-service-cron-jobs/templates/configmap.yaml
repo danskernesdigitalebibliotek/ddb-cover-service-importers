@@ -25,5 +25,4 @@ data:
   APP_HAS_COVER_SERVICE_URL: {{ .Values.app.has_cover.url | quote }}
   APP_AMQP_SERVER: {{ .Values.app.amqp.server | quote }}
   APP_AMQP_PORT: {{ .Values.app.amqp.port | quote }}
-  APP_FORSIDERDK_SUBFOLDERS: {{ .Values.app.vendor.forsiderdk_subfolders | quote }}
   PHP_MEMORY_LIMIT: {{ .Values.app.php.memory_limit | quote }}

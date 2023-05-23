@@ -13,22 +13,10 @@ class VendorImageItem implements \Stringable
 {
     private bool $found = false;
     private bool $updated = false;
-    private bool $genericCover = false;
     private Vendor $vendor;
     private string $originalFile;
     private \DateTime $originalLastModified;
-    private int $originalContentLength = 0;
-    private string $eTag;
-
-    /**
-     * @param Vendor $vendor
-     * @param string $originalFile
-     */
-    public function __construct(string $originalFile, Vendor $vendor)
-    {
-        $this->originalFile = $originalFile;
-        $this->vendor = $vendor;
-    }
+    private int $originalContentLength;
 
     public function __toString(): string
     {
@@ -68,18 +56,6 @@ class VendorImageItem implements \Stringable
     public function setUpdated(bool $updated): self
     {
         $this->updated = $updated;
-
-        return $this;
-    }
-
-    public function isGenericCover(): bool
-    {
-        return $this->genericCover;
-    }
-
-    public function setGenericCover(bool $genericCover): self
-    {
-        $this->genericCover = $genericCover;
 
         return $this;
     }
@@ -140,9 +116,9 @@ class VendorImageItem implements \Stringable
     }
 
     /**
-     * @return int
+     * @return mixed
      */
-    public function getOriginalContentLength(): int
+    public function getOriginalContentLength(): ?int
     {
         return $this->originalContentLength;
     }
@@ -154,27 +130,7 @@ class VendorImageItem implements \Stringable
      */
     public function setOriginalContentLength(?int $originalContentLength): self
     {
-        if (null !== $originalContentLength) {
-            $this->originalContentLength = $originalContentLength;
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getETag(): ?string
-    {
-        return $this->eTag;
-    }
-
-    /**
-     * @return static
-     */
-    public function setETag(string $eTag): self
-    {
-        $this->eTag = $eTag;
+        $this->originalContentLength = $originalContentLength;
 
         return $this;
     }

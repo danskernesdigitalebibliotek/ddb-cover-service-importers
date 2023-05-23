@@ -18,5 +18,5 @@ class RbDigitalBooksVendorService implements VendorServiceInterface
 {
     use VendorServiceTrait;
 
-    public const VENDOR_ID = 7;
+    protected const VENDOR_ID = 7;
 }

@@ -8,11 +8,11 @@ use App\Service\VendorService\VendorServiceTrait;
 use App\Utils\CoverVendor\UnverifiedVendorImageItem;
 use App\Utils\Types\IdentifierType;
 
-class OpenLibraryVendorService implements VendorServiceSingleIdentifierInterface
+class OpenLibraryVendor implements VendorServiceSingleIdentifierInterface
 {
     use VendorServiceTrait;
 
-    public const VENDOR_ID = 20;
+    private const VENDOR_ID = 20;
 
     /**
      * Example: https://covers.openlibrary.org/b/isbn/9780385472579-L.jpg.
@@ -24,25 +24,27 @@ class OpenLibraryVendorService implements VendorServiceSingleIdentifierInterface
     /**
      * {@inheritDoc}
      */
-    public function getUnverifiedVendorImageItems(string $identifier, string $type): \Generator
+    public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
     {
-        if (!$this->supportsIdentifier($identifier, $type)) {
-            throw new UnsupportedIdentifierTypeException(\sprintf('Unsupported single identifier: %s (%s)', $identifier, $type));
+        if (!$this->supportsIdentifierType($type)) {
+            throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
         }
 
         $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
 
-        $item = new UnverifiedVendorImageItem($this->getVendorImageUrl($identifier), $vendor);
+        $item = new UnverifiedVendorImageItem();
         $item->setIdentifier($identifier);
         $item->setIdentifierType($type);
+        $item->setVendor($vendor);
+        $item->setOriginalFile($this->getVendorsImageUrl($identifier));
 
-        yield $item;
+        return $item;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function supportsIdentifier(string $identifier, string $type): bool
+    public function supportsIdentifierType(string $type): bool
     {
         return IdentifierType::ISBN === $type;
     }
@@ -50,7 +52,7 @@ class OpenLibraryVendorService implements VendorServiceSingleIdentifierInterface
     /**
      * Get Vendors image URL from ISBN.
      */
-    private function getVendorImageUrl(string $isbn): string
+    private function getVendorsImageUrl(string $isbn): string
     {
         return \sprintf(self::COVER_URL_FORMAT, $isbn);
     }

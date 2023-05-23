@@ -39,5 +39,3 @@ app:
     port: "3306"
     database: "cover-service"
     version: "mariadb-10.6.7"
-  vendor:
-    forsiderdk_subfolders: '["business", "business2", "culture", "economics", "hospitality", "industries", "law", "literature2", "medicine", "politics", "technology"]'

@@ -15,7 +15,6 @@ class HasCoverService
 {
     /**
      * @param HttpClientInterface $client
-     * @param bool $enabled
      * @param string $hasCoverServiceUrl
      * @param MetricsService $metricsService
      * @param AuthenticationService $authenticationService
@@ -42,7 +41,7 @@ class HasCoverService
      */
     public function post(string $pid, bool $coverExists): void
     {
-        // Do not send request if service is not enabled.
+        // Do not send request if service is enabled.
         if (!$this->enabled) {
             return;
         }

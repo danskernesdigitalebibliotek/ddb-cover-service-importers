@@ -193,9 +193,9 @@ class Material implements \Stringable
      * @param string $id
      *   The identifier
      *
-     * @return $this
-     *
      * @throws MaterialTypeException
+     *
+     * @return $this
      */
     public function addIdentifier(string $type, string $id): self
     {

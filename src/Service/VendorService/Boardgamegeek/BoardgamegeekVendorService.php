@@ -13,7 +13,7 @@ use App\Service\VendorService\AbstractTsvVendorService;
  */
 class BoardgamegeekVendorService extends AbstractTsvVendorService
 {
-    public const VENDOR_ID = 11;
+    protected const VENDOR_ID = 11;
 
     protected string $vendorArchiveDir = 'BoardGameGeek';
     protected string $vendorArchiveName = 'boardgamegeek.load.tsv';

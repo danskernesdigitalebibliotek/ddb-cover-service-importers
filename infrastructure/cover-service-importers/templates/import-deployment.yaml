@@ -90,16 +90,6 @@ spec:
               secretKeyRef:
                 name: {{ .Release.Name }}-secret
                 key: APP_SECRET
-          - name: APP_FORSIDERDK_USER
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Release.Name }}-secret
-                key: APP_FORSIDERDK_USER
-          - name: APP_FORSIDERDK_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Release.Name }}-secret
-                key: APP_FORSIDERDK_PASSWORD
           - name: APP_AMQP_USERNAME
             valueFrom:
               secretKeyRef:

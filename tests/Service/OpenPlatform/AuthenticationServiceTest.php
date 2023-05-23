@@ -9,6 +9,7 @@ namespace Tests\Service\OpenPlatform;
 
 use App\Exception\OpenPlatformAuthException;
 use App\Service\OpenPlatform\AuthenticationService;
+use JsonException;
 use PHPUnit\Framework\TestCase;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
@@ -26,7 +27,7 @@ class AuthenticationServiceTest extends TestCase
      * Test that token is returned.
      *
      * @throws InvalidArgumentException
-     * @throws \JsonException
+     * @throws JsonException
      * @throws OpenPlatformAuthException
      */
     public function testGetAccessToken()
@@ -50,7 +51,7 @@ class AuthenticationServiceTest extends TestCase
      * Test that a token is return if cache is enabled.
      *
      * @throws InvalidArgumentException
-     * @throws \JsonException
+     * @throws JsonException
      * @throws OpenPlatformAuthException
      */
     public function testGetAccessTokenCache()
@@ -66,7 +67,7 @@ class AuthenticationServiceTest extends TestCase
     /**
      * Test that PlatformAuthException is throw on client error.
      *
-     * @throws OpenPlatformAuthException|InvalidArgumentException|\JsonException
+     * @throws OpenPlatformAuthException|InvalidArgumentException|JsonException
      */
     public function testErrorHandling()
     {
