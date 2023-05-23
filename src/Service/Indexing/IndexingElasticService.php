@@ -25,30 +25,6 @@ class IndexingElasticService implements IndexingServiceInterface
      */
     public function index(IndexItem $item): void
     {
-        try {
-            // Check if index exists.
-            $this->getCurrentActiveIndexName();
-        } catch (SearchIndexException $e) {
-            // Index "not found" so let's create it with the right mappings and add alias for it.
-            if (404 === $e->getCode()) {
-                $this->newIndexName = $this->indexAliasName.'_'.date('Y-m-d-His');
-                $this->createIndex($this->newIndexName);
-                $this->refreshIndex($this->newIndexName);
-                $this->client->indices()->updateAliases([
-                    'body' => [
-                        'actions' => [
-                            [
-                                'add' => [
-                                    'index' => $this->newIndexName,
-                                    'alias' => $this->indexAliasName,
-                                ],
-                            ],
-                        ],
-                    ],
-                ]);
-            }
-        }
-
         /** @var IndexItem $item */
         $params = [
             'index' => $this->indexAliasName,
@@ -98,7 +74,7 @@ class IndexingElasticService implements IndexingServiceInterface
         try {
             if (null === $this->newIndexName) {
                 $this->newIndexName = $this->indexAliasName.'_'.date('Y-m-d-His');
-                $this->createIndex($this->newIndexName);
+                $this->createEsIndex($this->newIndexName);
             }
 
             $params = [];
@@ -116,6 +92,56 @@ class IndexingElasticService implements IndexingServiceInterface
 
             $this->client->bulk($params);
         } catch (ClientResponseException|ServerResponseException $e) {
+            throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createIndex(): void
+    {
+        if ($this->indexExists()) {
+            throw new SearchIndexException('Index already exists');
+        }
+
+        $newIndexName = $this->indexAliasName.'_'.date('Y-m-d-His');
+        $this->createEsIndex($newIndexName);
+        $this->refreshIndex($newIndexName);
+
+        try {
+            $this->client->indices()->updateAliases([
+                'body' => [
+                    'actions' => [
+                        [
+                            'add' => [
+                                'index' => $newIndexName,
+                                'alias' => $this->indexAliasName,
+                            ],
+                        ],
+                    ],
+                ],
+            ]);
+        } catch (ClientResponseException|ServerResponseException $e) {
+            throw new SearchIndexException($e->getMessage(), $e->getCode(), $e);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function indexExists(): bool
+    {
+        try {
+            /** @var Elasticsearch $response */
+            $response = $this->client->indices()->getAlias(['name' => $this->indexAliasName]);
+
+            return Response::HTTP_OK === $response->getStatusCode();
+        } catch (ClientResponseException|ServerResponseException $e) {
+            if (Response::HTTP_NOT_FOUND === $e->getCode()) {
+                return false;
+            }
+
             throw new SearchIndexException($e->getMessage(), (int) $e->getCode(), $e);
         }
     }
@@ -200,12 +226,44 @@ class IndexingElasticService implements IndexingServiceInterface
     /**
      * Create new index.
      *
+     * Index optimizations
+     *
+     * @see https://www.inventaconsulting.net/post/a-guide-to-optimizing-elasticsearch-mappings
+     *
+     * 'dynamic' => 'strict'
+     *
+     * If new fields are detected, an exception is thrown and the document is rejected.
+     * New fields must be explicitly added to the mapping.
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic.html#dynamic-parameters
+     *
+     * 'index_options' => 'docs'
+     *
+     * The index_options parameter controls what information is added to the
+     * inverted index for search and highlighting purposes.
+     * 'docs': Only the doc number is indexed. Can answer the question
+     * Does this term exist in this field?
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/8.5/index-options.html
+     *
+     * 'doc_values' => false
+     *
+     * If you are sure that you don’t need to sort or aggregate on a field, or access the
+     * field value from a script, you can disable doc values in order to save disk space
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/8.5/doc-values.html#_disabling_doc_values
+     *
+     * 'norms' => false
+     *
+     * Although useful for scoring, norms also require quite a lot of disk (typically in the
+     * order of one byte per document per field in your index, even for documents that don’t
+     * have this specific field). As a consequence, if you don’t need scoring on a specific
+     * field, you should disable norms on that field.
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/8.5/norms.html
+     *
      * @param string $indexName
      *   Name of the index to create
      *
      * @throws SearchIndexException
      */
-    private function createIndex(string $indexName): void
+    private function createEsIndex(string $indexName): void
     {
         try {
             /** @var Elasticsearch $response */
@@ -217,27 +275,41 @@ class IndexingElasticService implements IndexingServiceInterface
                         'number_of_replicas' => 0,
                     ],
                     'mappings' => [
+                        'dynamic' => 'strict',
                         'properties' => [
+                            'isType' => [
+                                'type' => 'keyword',
+                                'index_options' => 'docs',
+                                'doc_values' => false,
+                                'norms' => false,
+                            ],
                             'isIdentifier' => [
                                 'type' => 'keyword',
+                                'index_options' => 'docs',
+                                // API responses are sorted by identifier
+                                'doc_values' => true,
+                                'norms' => false,
                             ],
                             'imageFormat' => [
                                 'type' => 'keyword',
+                                'index_options' => 'docs',
+                                'index' => false,
+                                'doc_values' => false,
+                                'norms' => false,
                             ],
                             'imageUrl' => [
                                 'type' => 'text',
+                                'index' => false,
+                                'norms' => false,
                             ],
                             'width' => [
                                 'type' => 'integer',
-                            ],
-                            'isType' => [
-                                'type' => 'keyword',
+                                'index' => false,
+                                'doc_values' => false,
                             ],
                             'height' => [
                                 'type' => 'integer',
-                            ],
-                            'generic' => [
-                                'type' => 'boolean',
+                                'doc_values' => false,
                             ],
                         ],
                     ],
