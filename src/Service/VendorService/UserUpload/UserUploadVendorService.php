@@ -16,5 +16,5 @@ class UserUploadVendorService implements VendorServiceInterface
 {
     use VendorServiceTrait;
 
-    protected const VENDOR_ID = 15;
+    public const VENDOR_ID = 15;
 }

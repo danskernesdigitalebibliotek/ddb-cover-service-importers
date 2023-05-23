@@ -10,21 +10,26 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Table(name="source",
  *    uniqueConstraints={
+ *
  *        @ORM\UniqueConstraint(name="vendor_unique",
  *            columns={"vendor_id", "match_id"})
  *    },
  *    indexes={
+ *
  *        @ORM\Index(name="is_type_vendor_idx", columns={"match_id", "match_type", "vendor_id"}),
  *        @ORM\Index(name="is_vendor_idx", columns={"match_id", "vendor_id"})
  *    }
  * )
+ *
  * @ORM\Entity(repositoryClass="App\Repository\SourceRepository")
  */
 class Source
 {
     /**
      * @ORM\Id()
+     *
      * @ORM\GeneratedValue()
+     *
      * @ORM\Column(type="integer")
      */
     private int $id;
@@ -36,6 +41,7 @@ class Source
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Vendor", inversedBy="sources")
+     *
      * @ORM\JoinColumn(nullable=false)
      */
     private ?Vendor $vendor;
@@ -56,6 +62,11 @@ class Source
     private ?string $originalFile;
 
     /**
+     * @ORM\Column(type="boolean")
+     */
+    private bool $genericCover = false;
+
+    /**
      * @ORM\Column(type="datetime", nullable=true)
      */
     private ?\DateTime $originalLastModified;
@@ -64,6 +75,11 @@ class Source
      * @ORM\Column(type="integer", nullable=true)
      */
     private ?int $originalContentLength;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private ?string $eTag = null;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Image", inversedBy="source", cascade={"persist", "remove"})
@@ -147,6 +163,18 @@ class Source
         return $this;
     }
 
+    public function isGenericCover(): bool
+    {
+        return $this->genericCover;
+    }
+
+    public function setGenericCover(bool $genericCover): self
+    {
+        $this->genericCover = $genericCover;
+
+        return $this;
+    }
+
     public function getImage(): ?Image
     {
         return $this->image;
@@ -195,6 +223,20 @@ class Source
     public function setOriginalContentLength(?int $originalContentLength): self
     {
         $this->originalContentLength = $originalContentLength;
+
+        return $this;
+    }
+
+    public function getETag(): ?string
+    {
+        return $this->eTag;
+    }
+
+    public function setETag(?string $eTag): self
+    {
+        if (null !== $eTag && strlen($eTag) <= 255) {
+            $this->eTag = $eTag;
+        }
 
         return $this;
     }

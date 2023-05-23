@@ -15,7 +15,7 @@ use App\Service\VendorService\ComicsPlus\DataConverter\AmazonPublicUrlConverter;
  */
 class ComicsPlusVendorService extends AbstractDataWellVendorService
 {
-    protected const VENDOR_ID = 22;
+    public const VENDOR_ID = 22;
     protected const DATAWELL_URL_RELATION = 'dbcaddi:hasCover';
 
     protected array $datawellQueries = ['term.acSource="comics plus"'];

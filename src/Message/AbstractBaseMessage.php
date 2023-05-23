@@ -14,6 +14,7 @@ abstract class AbstractBaseMessage
     private string $operation;
     private string $identifierType;
     private string $identifier;
+    private bool $genericCover = false;
     private int $vendorId;
     private ?int $imageId = null;
     private bool $useSearchCache = true;
@@ -62,6 +63,18 @@ abstract class AbstractBaseMessage
     public function setIdentifier(string $identifier): self
     {
         $this->identifier = $identifier;
+
+        return $this;
+    }
+
+    public function isGenericCover(): bool
+    {
+        return $this->genericCover;
+    }
+
+    public function setGenericCover(bool $genericCover): self
+    {
+        $this->genericCover = $genericCover;
 
         return $this;
     }

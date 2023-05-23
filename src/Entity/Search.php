@@ -8,10 +8,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * @ORM\Table(name="search",
  *    uniqueConstraints={
+ *
  *        @ORM\UniqueConstraint(name="record_unique",
  *            columns={"is_type", "is_identifier"})
  *    },
  *     indexes={
+ *
  *        @ORM\Index(name="is_identifier_type_idx", columns={"is_identifier", "is_type"}),
  *    }
  * )
@@ -22,7 +24,9 @@ class Search
 {
     /**
      * @ORM\Id()
+     *
      * @ORM\GeneratedValue()
+     *
      * @ORM\Column(type="integer")
      */
     private int $id;
@@ -73,6 +77,11 @@ class Search
      * @ORM\Column(type="boolean", options={"default" : false})
      */
     private bool $collection = false;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private bool $genericCover = false;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Source", inversedBy="searches")
@@ -176,6 +185,18 @@ class Search
     public function setSource(?Source $source): self
     {
         $this->source = $source;
+
+        return $this;
+    }
+
+    public function isGenericCover(): bool
+    {
+        return $this->genericCover;
+    }
+
+    public function setGenericCover(bool $genericCover): self
+    {
+        $this->genericCover = $genericCover;
 
         return $this;
     }

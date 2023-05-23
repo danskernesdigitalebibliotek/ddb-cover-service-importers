@@ -16,7 +16,7 @@ use App\Service\VendorService\VendorImageValidatorService;
  */
 class PressReaderVendorService extends AbstractDataWellVendorService
 {
-    protected const VENDOR_ID = 19;
+    public const VENDOR_ID = 19;
     private const URL_PATTERN = 'https://i.prcdn.co/img?cid=%s&page=1&width=1200';
     private const MIN_IMAGE_SIZE = 40000;
 
@@ -44,24 +44,7 @@ class PressReaderVendorService extends AbstractDataWellVendorService
         $pidArray = $this->datawell->extractData($jsonContent);
         $this->transformUrls($pidArray);
 
-        // The press reader CDN insert at special image saying that the content is not updated for newest news
-        // cover. See https://i.prcdn.co/img?cid=9L09&page=1&width=1200, but the size will be under 40Kb, so we have
-        // this extra test.
-        return array_filter($pidArray, function ($url) {
-            $headers = $this->imageValidatorService->remoteImageHeader('content-length', $url);
-            if (!empty($headers)) {
-                $header = reset($headers);
-                if ($header < $this::MIN_IMAGE_SIZE) {
-                    // Size to little set it to null.
-                    return false;
-                }
-            } else {
-                // Size header not found.
-                return false;
-            }
-
-            return true;
-        });
+        return $pidArray;
     }
 
     /**

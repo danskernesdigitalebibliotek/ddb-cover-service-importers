@@ -7,6 +7,8 @@
 
 namespace App\Logger;
 
+use Monolog\LogRecord;
+
 /**
  * Class TraceIdProcessor.
  */
@@ -25,15 +27,15 @@ class TraceIdProcessor
     /**
      * Magic invoke function.
      *
-     * @param array $record
-     *   Log record
+     * @param LogRecord $record
+     *   LogRecord
      *
-     * @return array
+     * @return LogRecord
      *   The record added require id in extras
      */
-    public function __invoke(array $record): array
+    public function __invoke(LogRecord $record): LogRecord
     {
-        $record['extra']['traceId'] = $this->traceId;
+        $record->extra['traceId'] = $this->traceId;
 
         return $record;
     }

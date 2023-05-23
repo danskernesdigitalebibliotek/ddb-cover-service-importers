@@ -27,7 +27,7 @@ class BogPortalenVendorService implements VendorServiceImporterInterface, Vendor
     use ProgressBarTrait;
     use VendorServiceTrait;
 
-    private const VENDOR_ID = 1;
+    public const VENDOR_ID = 1;
     private const VENDOR_ARCHIVE_NAMES = ['BOP-ProductAll.zip', 'BOP-ProductAll-EXT.zip', 'BOP-Actual.zip', 'BOP-Actual-EXT.zip'];
     private const VENDOR_ARCHIVE_DIR = 'BogPortalen';
     private const VENDOR_ROOT_DIR = 'Public';
@@ -120,27 +120,25 @@ class BogPortalenVendorService implements VendorServiceImporterInterface, Vendor
     /**
      * {@inheritDoc}
      */
-    public function getUnverifiedVendorImageItem(string $identifier, string $type): ?UnverifiedVendorImageItem
+    public function getUnverifiedVendorImageItems(string $identifier, string $type): \Generator
     {
-        if (!$this->supportsIdentifierType($type)) {
-            throw new UnsupportedIdentifierTypeException('Unsupported single identifier type: '.$type);
+        if (!$this->supportsIdentifier($identifier, $type)) {
+            throw new UnsupportedIdentifierTypeException(\sprintf('Unsupported single identifier: %s (%s)', $identifier, $type));
         }
 
         $vendor = $this->vendorCoreService->getVendor(self::VENDOR_ID);
 
-        $item = new UnverifiedVendorImageItem();
+        $item = new UnverifiedVendorImageItem($this->getVendorImageUrl($identifier), $vendor);
         $item->setIdentifier($identifier);
         $item->setIdentifierType($type);
-        $item->setVendor($vendor);
-        $item->setOriginalFile($this->getVendorsImageUrl($identifier));
 
-        return $item;
+        yield $item;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function supportsIdentifierType(string $type): bool
+    public function supportsIdentifier(string $identifier, string $type): bool
     {
         return IdentifierType::ISBN === $type;
     }
@@ -173,13 +171,14 @@ class BogPortalenVendorService implements VendorServiceImporterInterface, Vendor
      * @return string[]
      *
      * @throws UnknownVendorServiceException
+     *
      * @psalm-return array<string, string>
      */
     private function buildIsbnImageUrlArray(array &$isbnList): array
     {
         $isbnArray = [];
         foreach ($isbnList as $isbn) {
-            $isbnArray[$isbn] = $this->getVendorsImageUrl($isbn);
+            $isbnArray[$isbn] = $this->getVendorImageUrl($isbn);
         }
 
         return $isbnArray;
@@ -190,7 +189,7 @@ class BogPortalenVendorService implements VendorServiceImporterInterface, Vendor
      *
      * @throws UnknownVendorServiceException
      */
-    private function getVendorsImageUrl(string $isbn): string
+    private function getVendorImageUrl(string $isbn): string
     {
         $vendor = $this->vendorCoreService->getVendor($this->getVendorId());
 
@@ -229,6 +228,7 @@ class BogPortalenVendorService implements VendorServiceImporterInterface, Vendor
      * Get valid and unique ISBNs from list of paths.
      *
      * @return string[]
+     *
      * @psalm-return array<int, string>
      */
     private function getIsbnNumbers(array &$filePaths): array

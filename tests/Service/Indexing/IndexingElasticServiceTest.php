@@ -16,7 +16,8 @@ class IndexingElasticServiceTest extends KernelTestCase
 {
     private IndexingElasticService $indexingElasticService;
     private Client $client;
-    private string $indexAlias;
+    private string $indexName;
+    private string $indexAliasName;
 
     protected function setUp(): void
     {
@@ -26,10 +27,28 @@ class IndexingElasticServiceTest extends KernelTestCase
         $container = static::getContainer();
 
         $this->indexingElasticService = $container->get(IndexingElasticService::class);
+        /* @var Client $client */
         $this->client = $container->get(Client::class);
-        $this->indexAlias = $_ENV['INDEXING_ALIAS'];
+        $this->indexAliasName = $_ENV['INDEXING_ALIAS'];
+        $this->indexName = $this->indexAliasName.'_'.date('Y-m-d-His');
 
-        $this->client->indices()->create(['index' => $this->indexAlias]);
+        $class = new \ReflectionClass(IndexingElasticService::class);
+        $method = $class->getMethod('createIndex');
+        $method->setAccessible(true);
+
+        $method->invokeArgs($this->indexingElasticService, [$this->indexName]);
+        $this->client->indices()->updateAliases([
+            'body' => [
+                'actions' => [
+                    [
+                        'add' => [
+                            'index' => $this->indexName,
+                            'alias' => $this->indexAliasName,
+                        ],
+                    ],
+                ],
+            ],
+        ]);
     }
 
     public function tearDown(): void
@@ -37,17 +56,12 @@ class IndexingElasticServiceTest extends KernelTestCase
         parent::tearDown();
 
         try {
-            if ($this->client->indices()->exists(['index' => $this->indexAlias])) {
-                $this->client->indices()->delete(['index' => $this->indexAlias]);
+            if ($this->client->indices()->exists(['index' => $this->indexName])) {
+                $this->client->indices()->delete(['index' => $this->indexName]);
             }
         } catch (ClientResponseException|MissingParameterException|ServerResponseException $e) {
             $this->fail('Unexpected exception: '.\get_class($e).', '.$e->getMessage());
         }
-    }
-
-    public function testServiceSetUp(): void
-    {
-        $this->assertInstanceOf(Client::class, $this->client);
     }
 
     public function testIndex(): void
@@ -82,10 +96,10 @@ class IndexingElasticServiceTest extends KernelTestCase
 
             // Verify delete
             $this->expectException(ClientResponseException::class);
-            $this->expectExceptionMessage('404 Not Found: {"_index":"'.$this->indexAlias.'","_id":"1","found":false}');
+            $this->expectExceptionMessage('404 Not Found: {"_index":"'.$this->indexName.'","_id":"1","found":false}');
 
             $response = $this->client->get([
-                'index' => $this->indexAlias,
+                'index' => $this->indexAliasName,
                 'id' => $item->getId(),
             ]);
         } catch (SearchIndexException $e) {
@@ -103,10 +117,10 @@ class IndexingElasticServiceTest extends KernelTestCase
     private function assertItemIndexed(IndexItem $item): void
     {
         try {
-            $this->client->indices()->refresh(['index' => $this->indexAlias]);
+            $this->client->indices()->refresh(['index' => $this->indexAliasName]);
 
             $response = $this->client->get([
-                'index' => $this->indexAlias,
+                'index' => $this->indexAliasName,
                 'id' => $item->getId(),
             ]);
 
@@ -179,6 +193,7 @@ class IndexingElasticServiceTest extends KernelTestCase
         $item->setImageUrl('https://test.com/test1.jpg');
         $item->setIsIdentifier('12345678');
         $item->setIsType('faust');
+        $item->setGenericCover('false');
 
         return $item;
     }

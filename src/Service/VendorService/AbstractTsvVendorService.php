@@ -113,9 +113,9 @@ abstract class AbstractTsvVendorService implements VendorServiceImporterInterfac
     /**
      * Get a tsv file Iterator reference for the import source.
      *
-     * @return Iterator
+     * @return \Iterator
      */
-    protected function getSheetIterator(): Iterator
+    protected function getSheetIterator(): \Iterator
     {
         $resourceDirectories = [$this->resourcesDir.'/'.$this->vendorArchiveDir];
 

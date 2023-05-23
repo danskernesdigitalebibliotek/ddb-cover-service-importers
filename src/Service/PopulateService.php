@@ -21,7 +21,7 @@ use Symfony\Component\Lock\LockInterface;
  */
 class PopulateService
 {
-    final public const BATCH_SIZE = 1000;
+    final public const BATCH_SIZE = 10000;
     private LockInterface $lock;
 
     /**
@@ -30,6 +30,7 @@ class PopulateService
      * @param EntityManagerInterface $entityManager
      * @param SearchRepository $searchRepository
      * @param LockFactory $lockFactory
+     * @param IndexingServiceInterface $indexingService
      */
     public function __construct(
         private readonly EntityManagerInterface $entityManager,

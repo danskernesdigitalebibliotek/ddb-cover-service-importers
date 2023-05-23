@@ -13,6 +13,7 @@ use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -144,6 +145,7 @@ class VendorLoadCommand extends Command
      */
     private function askForVendor(InputInterface $input, OutputInterface $output)
     {
+        /** @var QuestionHelper $helper */
         $helper = $this->getHelper('question');
 
         $names = $this->vendorFactory->getVendorImporterNames();
@@ -185,6 +187,7 @@ class VendorLoadCommand extends Command
      *
      * @return string
      *   The emoji base on success parameter
+     *
      * @psalm-return '✅'|'❌'
      */
     private function getSuccessString(bool $success): string
