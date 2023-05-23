@@ -22,10 +22,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 #[AsCommand(
-    name: 'app:source:reindex',
-    description: 'Reindex source table'
+    name: 'app:source:process',
+    description: 'Process source table'
 )]
-class SourceReindexCommand extends Command
+class SourceProcessCommand extends Command
 {
     use ProgressBarTrait;
 
@@ -67,7 +67,6 @@ class SourceReindexCommand extends Command
         $lastIndexedDate = $input->getOption('last-indexed-date');
         $limit = (int) $input->getOption('limit');
 
-        $inputDate = null;
         if (!is_null($identifier)) {
             if (0 > $vendorId) {
                 $output->writeln('<error>Missing vendor id required in combination with identifier</error>');
@@ -76,23 +75,20 @@ class SourceReindexCommand extends Command
             }
         }
 
-        if (!is_null($lastIndexedDate) && 0 === $limit) {
-            $output->writeln('<error>"last-indexed-date" can not be given without "limit"</error>');
-
-            return Command::FAILURE;
-        }
-
-        if (0 < $limit) {
-            if (is_null($lastIndexedDate)) {
-                $output->writeln('<error>Batch size can not be given without last-indexed-date</error>');
-
-                return Command::FAILURE;
-            }
-
+        $inputDate = null;
+        if (!is_null($lastIndexedDate)) {
             $format = 'd-m-Y';
             $inputDate = \DateTimeImmutable::createFromFormat('!'.$format, $lastIndexedDate);
             if (false === $inputDate || $inputDate->format($format) !== $lastIndexedDate) {
                 $output->writeln('<error>Lasted indexed date should have the format "m-d-Y"</error>');
+
+                return Command::FAILURE;
+            }
+        }
+
+        if (0 < $limit) {
+            if (is_null($inputDate)) {
+                $output->writeln('<error>Limit can not be given without last-indexed-date</error>');
 
                 return Command::FAILURE;
             }
