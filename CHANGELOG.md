@@ -11,6 +11,8 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+## [3.6.0] - 2023-05-24
+
 ### Fixed
 - Fixed image validation for OpenLibrary vendor
 - Renamed OpenLibraryVendor -> OpenLibraryVendorService for consistency
