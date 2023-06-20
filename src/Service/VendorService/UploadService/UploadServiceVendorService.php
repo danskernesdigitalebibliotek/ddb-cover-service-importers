@@ -144,7 +144,7 @@ class UploadServiceVendorService implements VendorServiceImporterInterface
                 $this->vendorCoreService->getMetricsService()->counter('coverstore_error_total', 'Cover store error', 1, $labels);
                 continue;
             } catch (CoverStoreNotFoundException $exception) {
-                // Log that the image did not exists.
+                // Log that the image did not exist.
                 $this->logger->error('Cover store error - not found', [
                     'service' => self::class,
                     'message' => $exception->getMessage(),

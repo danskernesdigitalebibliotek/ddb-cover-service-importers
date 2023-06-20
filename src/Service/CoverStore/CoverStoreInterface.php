@@ -69,11 +69,13 @@ interface CoverStoreInterface
      *   The folder (vendor) to search in
      * @param string|null $rawQuery
      *   Raw search query. If not defined wildcard search is preformed
+     * @param bool $useRecursiveSearch
+     *   Search with off-set from last search (next cursor).
      *
      * @return CoverStoreItem[]
      *   Array with the found items or empty if non found
      */
-    public function search(string $folder, string $rawQuery = null): array;
+    public function search(string $folder, string $rawQuery = null, bool $useRecursiveSearch = false): array;
 
     /**
      * Mover item in the cover store.

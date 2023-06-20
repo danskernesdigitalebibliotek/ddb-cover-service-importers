@@ -15,6 +15,7 @@ use App\Exception\CoverStoreNotFoundException;
 use App\Exception\CoverStoreTooLargeFileException;
 use App\Exception\CoverStoreUnexpectedException;
 use App\Utils\CoverStore\CoverStoreItem;
+use bar\foo\baz\ClassConstBowOutTest;
 use Cloudinary\Api\Exception\ApiError;
 use Cloudinary\Api\Search\SearchApi;
 use Cloudinary\Api\Upload\UploadApi;
@@ -25,6 +26,20 @@ use Cloudinary\Configuration\Configuration;
  */
 class CloudinaryCoverStoreService implements CoverStoreInterface
 {
+    /**
+     * Use to make paginated search (off-set in cloudinary).
+     *
+     * This is an array to ensure the next cursor used is for the requested search. So they are indexed by search query.
+     *
+     * @var array $nextCursor
+     */
+    private array $nextCursor = [];
+
+    /**
+     * Used to terminate store search when no more content is found.
+     */
+    private const LAST_ELEMENT_REACHED = -1;
+
     /**
      * CloudinaryCoverStoreService constructor.
      *
@@ -125,12 +140,22 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
      *
      * @throws \Cloudinary\Api\Exception\GeneralError
      */
-    public function search(string $folder, string $rawQuery = null): array
+    public function search(string $folder, string $rawQuery = null, bool $useRecursiveSearch = false): array
     {
         $search = new SearchApi();
         $search->expression('folder='.$folder)
             ->sortBy('public_id', 'desc')
             ->maxResults(100);
+
+        $nextCursorIndex = sha1($folder . $rawQuery ?? '');
+        if (isset($this->nextCursor[$nextCursorIndex])) {
+            if (self::LAST_ELEMENT_REACHED === $this->nextCursor[$nextCursorIndex]) {
+                // No more results.
+                return  [];
+            }
+
+            $search->nextCursor($this->nextCursor[$nextCursorIndex]);
+        }
 
         if (!is_null($rawQuery)) {
             $search->expression($rawQuery);
@@ -150,6 +175,11 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
             $items[] = $item;
         }
 
+        if ($useRecursiveSearch) {
+            // Store next cursor to continue this search on next request.
+            $this->nextCursor[$nextCursorIndex] = $result['next_cursor'] ?? self::LAST_ELEMENT_REACHED;
+        }
+
         return $items;
     }
 
@@ -163,7 +193,7 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
             // false in the request.
             $uploadApi = new UploadApi();
             if (true === $overwrite) {
-                $response = $uploadApi->rename($source, $destination, ['invalidate' => true, 'overwrite' => $overwrite]);
+                $response = $uploadApi->rename($source, $destination, ['invalidate' => true, 'overwrite' => true]);
             } else {
                 $response = $uploadApi->rename($source, $destination, ['invalidate' => true]);
             }

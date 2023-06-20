@@ -11,6 +11,10 @@ See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information abo
 
 ## [Unreleased]
 
+* Minor null reference error in CoverStoreMessageHandler
+* Added support recursive search in cover store
+* Added new command to search bulk uploaded cover for missing source entities.
+
 ### Fixed
 - Fixed image validation for OpenLibrary vendor
 - Renamed OpenLibraryVendor -> OpenLibraryVendorService for consistency

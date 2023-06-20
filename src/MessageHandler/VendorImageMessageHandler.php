@@ -126,7 +126,9 @@ class VendorImageMessageHandler implements MessageHandlerInterface
     }
 
     /**
-     * Handle image updates. Send update to cover store processor only if vendor image is updated.
+     * Handle image updates.
+     *
+     * Send update to cover store processor only if vendor image is updated.
      */
     private function processUpdate(VendorImageMessage $message, Source $source): void
     {
