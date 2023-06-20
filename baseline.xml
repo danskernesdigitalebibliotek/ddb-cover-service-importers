@@ -10,7 +10,7 @@
       <code>section</code>
     </UndefinedInterfaceMethod>
   </file>
-  <file src="src/Command/Vendors/VendorUploadServiceReindex.php">
+  <file src="src/Command/Vendors/VendorUploadServiceReindexCommand.php">
     <PropertyTypeCoercion occurrences="1">
       <code>$this-&gt;vendorRepository-&gt;findOneBy(['id' =&gt; self::VENDOR_ID])</code>
     </PropertyTypeCoercion>

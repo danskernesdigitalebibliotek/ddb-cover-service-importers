@@ -28,10 +28,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
- * Class VendorUploadServiceReindex.
+ * Class VendorUploadServiceReindexCommand.
  */
 #[AsCommand(name: 'app:vendor:upload-service-reindex')]
-class VendorUploadServiceReindex extends Command
+class VendorUploadServiceReindexCommand extends Command
 {
     use ProgressBarTrait;
 
