@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<files psalm-version="4.26.0@6998fabb2bf528b65777bf9941920888d23c03ac">
+<files psalm-version="4.30.0@d0bc6e25d89f649e4f36a534f330f8bb4643dd69">
   <file src="src/Command/HasCoverCommand.php">
-    <UndefinedInterfaceMethod occurrences="1">
-      <code>section</code>
-    </UndefinedInterfaceMethod>
-  </file>
-  <file src="src/Command/Search/SearchReindexCommand.php">
-    <PossiblyFalseArgument occurrences="1">
-      <code>$inputDate</code>
-    </PossiblyFalseArgument>
     <UndefinedInterfaceMethod occurrences="1">
       <code>section</code>
     </UndefinedInterfaceMethod>
@@ -17,6 +9,11 @@
     <UndefinedInterfaceMethod occurrences="1">
       <code>section</code>
     </UndefinedInterfaceMethod>
+  </file>
+  <file src="src/Command/Vendors/VendorUploadServiceReindex.php">
+    <PropertyTypeCoercion occurrences="1">
+      <code>$this-&gt;vendorRepository-&gt;findOneBy(['id' =&gt; self::VENDOR_ID])</code>
+    </PropertyTypeCoercion>
   </file>
   <file src="src/DataFixtures/AppFixtures.php">
     <InvalidArgument occurrences="1">
@@ -71,40 +68,10 @@
       <code>getId</code>
     </PossiblyNullReference>
   </file>
-  <file src="src/Repository/SourceRepository.php">
-    <QueryBuilderSetParameter occurrences="2">
-      <code>$vendor</code>
-      <code>$vendor</code>
-    </QueryBuilderSetParameter>
-  </file>
   <file src="src/Service/CoverStore/CloudinaryCoverStoreService.php">
     <InvalidScalarArgument occurrences="1">
       <code>$error-&gt;getCode()</code>
     </InvalidScalarArgument>
-  </file>
-  <file src="src/Service/Indexing/IndexingElasticService.php">
-    <PossiblyUndefinedMethod occurrences="9">
-      <code>asArray</code>
-      <code>getStatusCode</code>
-      <code>getStatusCode</code>
-      <code>getStatusCode</code>
-      <code>getStatusCode</code>
-      <code>getStatusCode</code>
-      <code>getStatusCode</code>
-      <code>getStatusCode</code>
-      <code>getStatusCode</code>
-    </PossiblyUndefinedMethod>
-    <RedundantPropertyInitializationCheck occurrences="2">
-      <code>isset($this-&gt;newIndexName)</code>
-      <code>isset($this-&gt;newIndexName)</code>
-    </RedundantPropertyInitializationCheck>
-  </file>
-  <file src="src/Service/VendorService/OverDrive/OverDriveBooksVendorService.php">
-    <PossiblyNullArgument occurrences="3">
-      <code>$clientId</code>
-      <code>$clientSecret</code>
-      <code>$libraryAccountEndpoint</code>
-    </PossiblyNullArgument>
   </file>
   <file src="src/Service/VendorService/VendorServiceTrait.php">
     <UndefinedConstant occurrences="1">

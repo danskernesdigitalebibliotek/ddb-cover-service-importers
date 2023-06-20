@@ -70,7 +70,7 @@ interface CoverStoreInterface
      * @param string|null $rawQuery
      *   Raw search query. If not defined wildcard search is preformed
      * @param bool $useRecursiveSearch
-     *   Search with off-set from last search (next cursor).
+     *   Search with off-set from last search (next cursor)
      *
      * @return CoverStoreItem[]
      *   Array with the found items or empty if non found

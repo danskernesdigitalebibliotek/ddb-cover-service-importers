@@ -15,7 +15,6 @@ use App\Exception\CoverStoreNotFoundException;
 use App\Exception\CoverStoreTooLargeFileException;
 use App\Exception\CoverStoreUnexpectedException;
 use App\Utils\CoverStore\CoverStoreItem;
-use bar\foo\baz\ClassConstBowOutTest;
 use Cloudinary\Api\Exception\ApiError;
 use Cloudinary\Api\Search\SearchApi;
 use Cloudinary\Api\Upload\UploadApi;
@@ -31,7 +30,7 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
      *
      * This is an array to ensure the next cursor used is for the requested search. So they are indexed by search query.
      *
-     * @var array $nextCursor
+     * @var array
      */
     private array $nextCursor = [];
 
@@ -147,11 +146,11 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
             ->sortBy('public_id', 'desc')
             ->maxResults(100);
 
-        $nextCursorIndex = sha1($folder . $rawQuery ?? '');
+        $nextCursorIndex = sha1($folder.$rawQuery ?? '');
         if (isset($this->nextCursor[$nextCursorIndex])) {
             if (self::LAST_ELEMENT_REACHED === $this->nextCursor[$nextCursorIndex]) {
                 // No more results.
-                return  [];
+                return [];
             }
 
             $search->nextCursor($this->nextCursor[$nextCursorIndex]);

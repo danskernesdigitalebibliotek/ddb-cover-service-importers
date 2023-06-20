@@ -7,12 +7,10 @@
 
 namespace App\Command\Vendors;
 
-
 use App\Entity\Image;
 use App\Entity\Source;
 use App\Entity\Vendor;
 use App\Message\SearchMessage;
-use App\Message\VendorImageMessage;
 use App\Repository\SourceRepository;
 use App\Repository\VendorRepository;
 use App\Service\CoverStore\CoverStoreInterface;
