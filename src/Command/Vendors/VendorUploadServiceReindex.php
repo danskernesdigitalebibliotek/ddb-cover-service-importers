@@ -14,11 +14,13 @@ use App\Message\SearchMessage;
 use App\Repository\SourceRepository;
 use App\Repository\VendorRepository;
 use App\Service\CoverStore\CoverStoreInterface;
+use App\Service\VendorService\ProgressBarTrait;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -30,6 +32,8 @@ use Symfony\Component\Messenger\MessageBusInterface;
 #[AsCommand(name: 'app:vendor:upload-service-reindex')]
 class VendorUploadServiceReindex extends Command
 {
+    use ProgressBarTrait;
+
     private const SOURCE_FOLDER = 'UploadService';
     private const VENDOR_ID = 12;
     private Vendor $vendor;
@@ -72,7 +76,14 @@ class VendorUploadServiceReindex extends Command
             $searchQuery = 'public_id:'.self::SOURCE_FOLDER.'/'.addcslashes($identifier, ':');
         }
 
+        $progressBar = new ProgressBar($output);
+        $progressBar->setFormat('[%bar%] %elapsed% (%memory%) - %message%');
+        $this->setProgressBar($progressBar);
+        $this->progressStart('Start search cover store');
+
         // Search the cover store.
+        $found = 0;
+        $totalItems = 0;
         $items = $this->coverStore->search(self::SOURCE_FOLDER, $searchQuery, true);
         while ($items) {
             foreach ($items as $item) {
@@ -121,11 +132,19 @@ class VendorUploadServiceReindex extends Command
                         ->setImageId($image->getId())
                         ->setVendorId($this->vendor->getId());
                     $this->bus->dispatch($searchMessage);
+
+                    ++$found;
                 }
+                ++$totalItems;
+
+                $this->progressMessage(sprintf('Found missing source %d of %d', number_format($found, 0, ',', '.'), number_format($totalItems, 0, ',', '.')));
+                $this->progressAdvance();
             }
 
             $items = $this->coverStore->search(self::SOURCE_FOLDER, $searchQuery, true);
         }
+
+        $this->progressFinish();
 
         return Command::SUCCESS;
     }
