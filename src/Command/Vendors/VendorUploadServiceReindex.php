@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Helper command to send single vendor import job into the queue system.
+ * Helper to search cover store bulk upload images for missing source entities.
  */
 
 namespace App\Command\Vendors;
@@ -15,6 +15,7 @@ use App\Repository\SourceRepository;
 use App\Repository\VendorRepository;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\VendorService\ProgressBarTrait;
+use App\Service\VendorService\UploadService\UploadServiceVendorService;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
@@ -27,7 +28,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 /**
- * Class VendorJobCommand.
+ * Class VendorUploadServiceReindex.
  */
 #[AsCommand(name: 'app:vendor:upload-service-reindex')]
 class VendorUploadServiceReindex extends Command
@@ -35,7 +36,7 @@ class VendorUploadServiceReindex extends Command
     use ProgressBarTrait;
 
     private const SOURCE_FOLDER = 'UploadService';
-    private const VENDOR_ID = 12;
+    private const VENDOR_ID = UploadServiceVendorService::VENDOR_ID;
     private Vendor $vendor;
 
     /**

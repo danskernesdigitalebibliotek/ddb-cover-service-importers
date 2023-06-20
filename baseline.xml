@@ -15,6 +15,15 @@
       <code>$this-&gt;vendorRepository-&gt;findOneBy(['id' =&gt; self::VENDOR_ID])</code>
     </PropertyTypeCoercion>
   </file>
+  <file src="src/Command/Vendors/VendorValidateImageUrlCommand.php">
+    <ArgumentTypeCoercion occurrences="1">
+      <code>$vendor</code>
+    </ArgumentTypeCoercion>
+    <PossiblyNullArgument occurrences="2">
+      <code>$url</code>
+      <code>$vendor</code>
+    </PossiblyNullArgument>
+  </file>
   <file src="src/DataFixtures/AppFixtures.php">
     <InvalidArgument occurrences="1">
       <code>$faker-&gt;date</code>
