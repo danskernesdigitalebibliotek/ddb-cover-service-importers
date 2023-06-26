@@ -92,7 +92,7 @@ class VendorUploadServiceReindexCommand extends Command
         } else {
             $items = $this->coverStore->search($searchQuery, self::SOURCE_FOLDER);
         }
-        
+
         /** @var CoverStoreItem $item */
         foreach ($items as $item) {
             $parts = explode(self::SOURCE_FOLDER.'/', $item->getId(), 2);
@@ -154,7 +154,6 @@ class VendorUploadServiceReindexCommand extends Command
             );
             $this->progressAdvance();
         }
-
 
         $this->progressFinish();
 

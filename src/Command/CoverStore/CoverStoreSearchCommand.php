@@ -49,7 +49,7 @@ class CoverStoreSearchCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $query = $input->getOption('query');
-        if (false === $query || null === $query) {
+        if (empty($query)) {
             $output->writeln('<error>Please provide a query to execute</error>');
 
             return Command::FAILURE;
