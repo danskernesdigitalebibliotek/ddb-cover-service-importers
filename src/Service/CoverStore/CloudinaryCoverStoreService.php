@@ -205,6 +205,7 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
 
         $results = 0;
         do {
+            // Ensure we don't fetch more results than requested by $maxResults
             if (null !== $maxResults && $pageSize > $maxResults - $results) {
                 $search->maxResults($maxResults - $results);
             }

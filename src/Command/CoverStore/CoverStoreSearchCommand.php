@@ -39,7 +39,7 @@ class CoverStoreSearchCommand extends Command
     {
         $this->setDescription('Search a folder in the cover store')
             ->addOption('query', null, InputOption::VALUE_REQUIRED, 'Query to execute in the folder')
-            ->addOption('folder', null, InputOption::VALUE_REQUIRED, 'Name of the vendor that owns the image (folder in the store)')
+            ->addOption('folder', null, InputOption::VALUE_REQUIRED, 'Name of the vendor that owns the image (folder in the store)', null)
             ->addOption('limit', null, InputOption::VALUE_REQUIRED, 'Limit number of results', 10);
     }
 
@@ -49,20 +49,17 @@ class CoverStoreSearchCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $query = $input->getOption('query');
-        if (null === $query) {
+        if (false === $query || null === $query) {
             $output->writeln('<error>Please provide a query to execute</error>');
 
             return Command::FAILURE;
         }
 
-        $limit = $input->getOption('limit');
-        if (null !== $limit) {
-            $limit = intval($limit);
-            if ($limit <= 0) {
-                $output->writeln('<error>Limit must an integer</error>');
+        $limit = intval($input->getOption('limit'));
+        if ($limit <= 0) {
+            $output->writeln('<error>Limit must a positive integer</error>');
 
-                return Command::FAILURE;
-            }
+            return Command::FAILURE;
         }
 
         $folder = $input->getOption('folder');

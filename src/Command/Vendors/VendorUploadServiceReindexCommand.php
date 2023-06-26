@@ -16,6 +16,7 @@ use App\Repository\VendorRepository;
 use App\Service\CoverStore\CoverStoreInterface;
 use App\Service\VendorService\ProgressBarTrait;
 use App\Service\VendorService\UploadService\UploadServiceVendorService;
+use App\Utils\CoverStore\CoverStoreItem;
 use App\Utils\Types\IdentifierType;
 use App\Utils\Types\VendorState;
 use Doctrine\ORM\EntityManagerInterface;
@@ -85,65 +86,75 @@ class VendorUploadServiceReindexCommand extends Command
         // Search the cover store.
         $found = 0;
         $totalItems = 0;
-        $items = $this->coverStore->search($searchQuery, self::SOURCE_FOLDER);
-        while ($items) {
-            foreach ($items as $item) {
-                $parts = explode(self::SOURCE_FOLDER.'/', $item->getId(), 2);
-                $identifier = end($parts);
-                $source = $this->sourceRepository->findOneBy(['matchId' => $identifier, 'vendor' => self::VENDOR_ID]);
-                if (is_null($source)) {
-                    // The type is either ISBN or PID (as they are the only once processed by upload service).
-                    $type = IdentifierType::ISBN;
-                    if (str_contains($identifier, ':')) {
-                        $type = IdentifierType::PID;
-                    }
 
-                    // Found image in store that is not in the search table.
-                    // Create new entity.
-                    $image = new Image();
-                    $source = new Source();
-
-                    // Set image information.
-                    $image->setImageFormat($item->getImageFormat())
-                        ->setSize($item->getSize())
-                        ->setWidth($item->getWidth())
-                        ->setHeight($item->getHeight())
-                        ->setCoverStoreURL($item->getUrl());
-                    $this->em->persist($image);
-
-                    // Set source entity information.
-                    $source->setMatchType($type)
-                        ->setMatchId($identifier)
-                        ->setVendor($this->vendor)
-                        ->setDate(new \DateTime())
-                        ->setOriginalFile($item->getUrl())
-                        ->setOriginalContentLength($item->getSize())
-                        ->setOriginalLastModified(new \DateTime())
-                        ->setImage($image);
-                    $this->em->persist($source);
-
-                    // Make it stick.
-                    $this->em->flush();
-
-                    // Create queue message to get this source indexed.
-                    $searchMessage = new SearchMessage();
-                    $searchMessage->setIdentifier($identifier)
-                        ->setIdentifierType($type)
-                        ->setOperation(VendorState::INSERT)
-                        ->setImageId($image->getId())
-                        ->setVendorId($this->vendor->getId());
-                    $this->bus->dispatch($searchMessage);
-
-                    ++$found;
-                }
-                ++$totalItems;
-
-                $this->progressMessage(sprintf('Found missing source %d of %d', number_format($found, 0, ',', '.'), number_format($totalItems, 0, ',', '.')));
-                $this->progressAdvance();
-            }
-
+        if (null === $searchQuery) {
+            $items = $this->coverStore->getFolder(self::SOURCE_FOLDER);
+        } else {
             $items = $this->coverStore->search($searchQuery, self::SOURCE_FOLDER);
         }
+        
+        /** @var CoverStoreItem $item */
+        foreach ($items as $item) {
+            $parts = explode(self::SOURCE_FOLDER.'/', $item->getId(), 2);
+            $identifier = end($parts);
+            $source = $this->sourceRepository->findOneBy(['matchId' => $identifier, 'vendor' => self::VENDOR_ID]);
+            if (is_null($source)) {
+                // The type is either ISBN or PID (as they are the only once processed by upload service).
+                $type = IdentifierType::ISBN;
+                if (str_contains($identifier, ':')) {
+                    $type = IdentifierType::PID;
+                }
+
+                // Found image in store that is not in the search table.
+                // Create new entity.
+                $image = new Image();
+                $source = new Source();
+
+                // Set image information.
+                $image->setImageFormat($item->getImageFormat())
+                    ->setSize($item->getSize())
+                    ->setWidth($item->getWidth())
+                    ->setHeight($item->getHeight())
+                    ->setCoverStoreURL($item->getUrl());
+                $this->em->persist($image);
+
+                // Set source entity information.
+                $source->setMatchType($type)
+                    ->setMatchId($identifier)
+                    ->setVendor($this->vendor)
+                    ->setDate(new \DateTime())
+                    ->setOriginalFile($item->getUrl())
+                    ->setOriginalContentLength($item->getSize())
+                    ->setOriginalLastModified(new \DateTime())
+                    ->setImage($image);
+                $this->em->persist($source);
+
+                // Make it stick.
+                $this->em->flush();
+
+                // Create queue message to get this source indexed.
+                $searchMessage = new SearchMessage();
+                $searchMessage->setIdentifier($identifier)
+                    ->setIdentifierType($type)
+                    ->setOperation(VendorState::INSERT)
+                    ->setImageId($image->getId())
+                    ->setVendorId($this->vendor->getId());
+                $this->bus->dispatch($searchMessage);
+
+                ++$found;
+            }
+            ++$totalItems;
+
+            $this->progressMessage(
+                sprintf(
+                    'Found missing source %d of %d',
+                    number_format($found, 0, ',', '.'),
+                    number_format($totalItems, 0, ',', '.')
+                )
+            );
+            $this->progressAdvance();
+        }
+
 
         $this->progressFinish();
 

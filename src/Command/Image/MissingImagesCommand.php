@@ -11,6 +11,7 @@ use App\Entity\Image;
 use App\Entity\Source;
 use App\Entity\Vendor;
 use App\Service\CoverStore\CoverStoreInterface;
+use App\Utils\CoverStore\CoverStoreItem;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -59,46 +60,55 @@ class MissingImagesCommand extends Command
         $identifier = $input->getOption('identifier');
 
         $vendorRepos = $this->em->getRepository(Vendor::class);
-        $vendor = $vendorRepos->findById($vendorId);
-        if (is_null($vendor)) {
-            throw new \RuntimeException('Vendor not found');
-        }
-        $vendor = reset($vendor);
 
-        $query = 'SELECT s FROM App\Entity\Source s WHERE s.image IS NULL';
-        if (!is_null($identifier)) {
+        try {
+            $vendor = $vendorRepos->findById($vendorId);
+            if (is_null($vendor)) {
+                throw new \RuntimeException('Vendor not found');
+            }
+            $vendor = reset($vendor);
+
+            $query = 'SELECT s FROM App\Entity\Source s WHERE s.image IS NULL';
+            if (!is_null($identifier)) {
+                if (!is_null($vendorId)) {
+                    $query .= ' AND s.matchId = \''.$identifier.'\'';
+                } else {
+                    $output->writeln('<error>Missing vendor id required in combination with identifier</error>');
+
+                    return Command::FAILURE;
+                }
+            }
             if (!is_null($vendorId)) {
-                $query .= ' AND s.matchId = \''.$identifier.'\'';
-            } else {
-                $output->writeln('<error>Missing vendor id required in combination with identifier</error>');
-
-                return Command::FAILURE;
+                $query .= ' AND s.vendor = '.$vendorId;
             }
-        }
-        if (!is_null($vendorId)) {
-            $query .= ' AND s.vendor = '.$vendorId;
-        }
 
-        $query = $this->em->createQuery($query);
+            $query = $this->em->createQuery($query);
 
-        /* @var Source $source */
-        foreach ($query->toIterable() as $source) {
-            $searchQuery = 'public_id:'.$vendor->getName().'/'.addcslashes($source->getMatchId(), ':');
-            $items = $this->store->search($searchQuery, $vendor->getName());
-            if (!empty($items)) {
-                $item = reset($items);
-                $image = new Image();
-                $image->setImageFormat($item->getImageFormat())
-                    ->setSize($item->getSize())
-                    ->setWidth($item->getWidth())
-                    ->setHeight($item->getHeight())
-                    ->setCoverStoreURL($item->getUrl());
-                $this->em->persist($image);
-                $source->setImage($image);
-                $this->em->flush();
+            /* @var Source $source */
+            foreach ($query->toIterable() as $source) {
+                $searchQuery = 'public_id:'.$vendor->getName().'/'.addcslashes($source->getMatchId(), ':');
+
+                $items = $this->store->search($searchQuery, $vendor->getName());
+
+                /** @var CoverStoreItem $item */
+                foreach ($items as $item) {
+                    $image = new Image();
+                    $image->setImageFormat($item->getImageFormat())
+                        ->setSize($item->getSize())
+                        ->setWidth($item->getWidth())
+                        ->setHeight($item->getHeight())
+                        ->setCoverStoreURL($item->getUrl());
+                    $this->em->persist($image);
+                    $source->setImage($image);
+                    $this->em->flush();
+                }
             }
-        }
 
-        return Command::SUCCESS;
+            return Command::SUCCESS;
+        } catch (\Exception $e) {
+            $output->writeln('<error>'.$e->getMessage().'</error>');
+
+            return Command::FAILURE;
+        }
     }
 }
