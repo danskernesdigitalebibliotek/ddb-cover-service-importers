@@ -205,6 +205,10 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
 
         $results = 0;
         do {
+            if (null !== $maxResults && $pageSize > $maxResults - $results) {
+                $search->maxResults($maxResults - $results);
+            }
+
             try {
                 $result = $search->execute()->getArrayCopy();
             } catch (GeneralError $e) {
@@ -234,7 +238,7 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
             if (array_key_exists('next_cursor', $result)) {
                 $search->nextCursor($result['next_cursor']);
             }
-        } while (array_key_exists('next_cursor', $result) && $results < $maxResults);
+        } while (array_key_exists('next_cursor', $result));
     }
 
     /**
