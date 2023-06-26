@@ -85,7 +85,7 @@ class VendorUploadServiceReindexCommand extends Command
         // Search the cover store.
         $found = 0;
         $totalItems = 0;
-        $items = $this->coverStore->search(self::SOURCE_FOLDER, $searchQuery, true);
+        $items = $this->coverStore->search($searchQuery, self::SOURCE_FOLDER);
         while ($items) {
             foreach ($items as $item) {
                 $parts = explode(self::SOURCE_FOLDER.'/', $item->getId(), 2);
@@ -142,7 +142,7 @@ class VendorUploadServiceReindexCommand extends Command
                 $this->progressAdvance();
             }
 
-            $items = $this->coverStore->search(self::SOURCE_FOLDER, $searchQuery, true);
+            $items = $this->coverStore->search($searchQuery, self::SOURCE_FOLDER);
         }
 
         $this->progressFinish();

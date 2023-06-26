@@ -16,6 +16,7 @@ use App\Exception\CoverStoreTooLargeFileException;
 use App\Exception\CoverStoreUnexpectedException;
 use App\Utils\CoverStore\CoverStoreItem;
 use Cloudinary\Api\Exception\ApiError;
+use Cloudinary\Api\Exception\GeneralError;
 use Cloudinary\Api\Search\SearchApi;
 use Cloudinary\Api\Upload\UploadApi;
 use Cloudinary\Configuration\Configuration;
@@ -26,18 +27,9 @@ use Cloudinary\Configuration\Configuration;
 class CloudinaryCoverStoreService implements CoverStoreInterface
 {
     /**
-     * Use to make paginated search (off-set in cloudinary).
-     *
-     * This is an array to ensure the next cursor used is for the requested search. So they are indexed by search query.
-     *
-     * @var array
+     * Set Max results pr. api call high to limit API calls (Cloudinary: default 50. Maximum 500.).
      */
-    private array $nextCursor = [];
-
-    /**
-     * Used to terminate store search when no more content is found.
-     */
-    private const LAST_ELEMENT_REACHED = -1;
+    private const PAGE_SIZE = 500;
 
     /**
      * CloudinaryCoverStoreService constructor.
@@ -136,50 +128,24 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
 
     /**
      * {@inheritdoc}
-     *
-     * @throws \Cloudinary\Api\Exception\GeneralError
      */
-    public function search(string $folder, string $rawQuery = null, bool $useRecursiveSearch = false): array
+    public function search(string $query, string $folder = null, int $maxResults = null): iterable
     {
-        $search = new SearchApi();
-        $search->expression('folder='.$folder)
-            ->sortBy('public_id', 'desc')
-            ->maxResults(100);
+        $q = is_null($folder) ? $query : 'folder='.$folder.' AND '.$query;
 
-        $nextCursorIndex = sha1($folder.$rawQuery ?? '');
-        if (isset($this->nextCursor[$nextCursorIndex])) {
-            if (self::LAST_ELEMENT_REACHED === $this->nextCursor[$nextCursorIndex]) {
-                // No more results.
-                return [];
-            }
-
-            $search->nextCursor($this->nextCursor[$nextCursorIndex]);
+        foreach ($this->rawSearch($q, $maxResults) as $item) {
+            yield $item;
         }
+    }
 
-        if (!is_null($rawQuery)) {
-            $search->expression($rawQuery);
+    /**
+     * {@inheritdoc}
+     */
+    public function getFolder(string $folder, int $maxResults = null): iterable
+    {
+        foreach ($this->rawSearch('folder='.$folder, $maxResults) as $item) {
+            yield $item;
         }
-        $result = $search->execute()->getArrayCopy();
-
-        $items = [];
-        foreach ($result['resources'] as $resources) {
-            $item = new CoverStoreItem();
-            $item->setId($resources['public_id'])
-                ->setUrl($resources['secure_url'])
-                ->setVendor($folder)
-                ->setSize($resources['bytes'])
-                ->setWidth((int) $resources['width'])
-                ->setHeight((int) $resources['height'])
-                ->setImageFormat($resources['format']);
-            $items[] = $item;
-        }
-
-        if ($useRecursiveSearch) {
-            // Store next cursor to continue this search on next request.
-            $this->nextCursor[$nextCursorIndex] = $result['next_cursor'] ?? self::LAST_ELEMENT_REACHED;
-        }
-
-        return $items;
     }
 
     /**
@@ -213,6 +179,62 @@ class CloudinaryCoverStoreService implements CoverStoreInterface
             ->setCrc($response['signature']);
 
         return $item;
+    }
+
+    /**
+     * Perform a raw search against the Cover Store.
+     *
+     * @param string $rawQuery
+     *   The search query to execute
+     * @param int|null $maxResults
+     *   The maximum number of results to return. Omit to get all results.
+     *
+     * @return iterable
+     *   Iterable with the found items or empty if non found
+     *
+     * @throws CoverStoreException
+     */
+    private function rawSearch(string $rawQuery, int $maxResults = null): iterable
+    {
+        $pageSize = is_null($maxResults) ? self::PAGE_SIZE : min($maxResults, self::PAGE_SIZE);
+
+        $search = new SearchApi();
+        $search->expression($rawQuery)
+            ->sortBy('public_id', 'desc')
+            ->maxResults($pageSize);
+
+        $results = 0;
+        do {
+            try {
+                $result = $search->execute()->getArrayCopy();
+            } catch (GeneralError $e) {
+                throw new CoverStoreException($e->getMessage(), $e->getCode(), $e);
+            }
+
+            foreach ($result['resources'] as $resource) {
+                // Exclude results not scoped in a vendor folder
+                if ('' !== $resource['folder']) {
+                    $item = new CoverStoreItem();
+                    $item->setId($resource['public_id'])
+                        ->setUrl($resource['secure_url'])
+                        ->setVendor($resource['folder'])
+                        ->setSize($resource['bytes'])
+                        ->setWidth((int) $resource['width'])
+                        ->setHeight((int) $resource['height'])
+                        ->setImageFormat($resource['format'])
+                        ->setOriginalFile($resource['secure_url'])
+                        ->setCrc('');
+
+                    yield $item;
+
+                    ++$results;
+                }
+            }
+
+            if (array_key_exists('next_cursor', $result)) {
+                $search->nextCursor($result['next_cursor']);
+            }
+        } while (array_key_exists('next_cursor', $result) && $results < $maxResults);
     }
 
     /**

@@ -69,13 +69,14 @@ class UploadServiceVendorService implements VendorServiceImporterInterface
      * {@inheritdoc}
      *
      * @throws \App\Exception\UnknownVendorServiceException
+     * @throws CoverStoreException
      */
     public function load(): VendorImportResultMessage
     {
         $status = new VendorStatus();
         $this->progressStart('Searching CoverStore BulkUpload folder for new images');
 
-        $items = $this->store->search(self::SOURCE_FOLDER);
+        $items = $this->store->getFolder(self::SOURCE_FOLDER);
 
         // Labels for metrics services.
         $labels = [

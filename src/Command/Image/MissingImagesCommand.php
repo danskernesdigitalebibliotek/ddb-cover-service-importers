@@ -43,11 +43,11 @@ class MissingImagesCommand extends Command
      *
      * @return void
      */
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Find images in CoverStore that is not in the image table')
-            ->addOption('vendor-id', null, InputOption::VALUE_OPTIONAL, 'Limit the re-index to vendor with this id number')
-            ->addOption('identifier', null, InputOption::VALUE_OPTIONAL, 'If set only this identifier will be re-index (requires that you set vendor id)');
+            ->addOption('vendor-id', null, InputOption::VALUE_REQUIRED, 'Limit the re-index to vendor with this id number')
+            ->addOption('identifier', null, InputOption::VALUE_REQUIRED, 'If set only this identifier will be re-index (requires that you set vendor id)');
     }
 
     /**
@@ -84,7 +84,7 @@ class MissingImagesCommand extends Command
         /* @var Source $source */
         foreach ($query->toIterable() as $source) {
             $searchQuery = 'public_id:'.$vendor->getName().'/'.addcslashes($source->getMatchId(), ':');
-            $items = $this->store->search($vendor->getName(), $searchQuery);
+            $items = $this->store->search($searchQuery, $vendor->getName());
             if (!empty($items)) {
                 $item = reset($items);
                 $image = new Image();
