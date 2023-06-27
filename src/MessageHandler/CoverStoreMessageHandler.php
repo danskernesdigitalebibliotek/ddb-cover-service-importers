@@ -71,9 +71,11 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
             throw new UnrecoverableMessageHandlingException('Source was not defined');
         }
 
+        $originalFile = 'Unknown';
         try {
             $identifier = $message->getIdentifier();
-            $item = $this->coverStore->upload($source->getOriginalFile(), $vendor->getName(), $identifier, [$identifier]);
+            $originalFile = $source->getOriginalFile();
+            $item = $this->coverStore->upload($originalFile, $vendor->getName(), $identifier, [$identifier]);
         } catch (CoverStoreCredentialException $exception) {
             // Access issues.
             $this->logger->error('Access denied to cover store', [
@@ -90,12 +92,12 @@ class CoverStoreMessageHandler implements MessageHandlerInterface
             $source->setOriginalContentLength(null);
             $this->em->flush();
 
-            // Log that the image did not exists.
+            // Log that the image did not exist.
             $this->logger->error('Cover store error - not found', [
                 'service' => 'CoverStoreProcessor',
                 'message' => $exception->getMessage(),
                 'identifier' => $message->getIdentifier(),
-                'url' => $source->getOriginalFile(),
+                'url' => $originalFile,
             ]);
 
             throw new UnrecoverableMessageHandlingException('Cover store error - not found');

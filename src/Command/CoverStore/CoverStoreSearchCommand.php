@@ -7,6 +7,7 @@
 
 namespace App\Command\CoverStore;
 
+use App\Exception\CoverStoreException;
 use App\Service\CoverStore\CoverStoreInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -37,8 +38,9 @@ class CoverStoreSearchCommand extends Command
     protected function configure(): void
     {
         $this->setDescription('Search a folder in the cover store')
-            ->addOption('folder', null, InputOption::VALUE_REQUIRED, 'Name of the vendor that owns the image (folder in the store)')
-            ->addOption('query', null, InputOption::VALUE_OPTIONAL, 'Query to execute in the folder');
+            ->addOption('query', null, InputOption::VALUE_REQUIRED, 'Query to execute in the folder')
+            ->addOption('folder', null, InputOption::VALUE_REQUIRED, 'Name of the vendor that owns the image (folder in the store)', null)
+            ->addOption('limit', null, InputOption::VALUE_REQUIRED, 'Limit number of results', 10);
     }
 
     /**
@@ -46,15 +48,34 @@ class CoverStoreSearchCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $items = $this->store->search(
-            (string) $input->getOption('folder'),
-            $input->getOption('query')
-        );
+        $query = $input->getOption('query');
+        if (empty($query)) {
+            $output->writeln('<error>Please provide a query to execute</error>');
 
-        foreach ($items as $item) {
-            $output->writeln((string) $item);
+            return Command::FAILURE;
         }
 
-        return Command::SUCCESS;
+        $limit = intval($input->getOption('limit'));
+        if ($limit <= 0) {
+            $output->writeln('<error>Limit must a positive integer</error>');
+
+            return Command::FAILURE;
+        }
+
+        $folder = $input->getOption('folder');
+
+        try {
+            $items = $this->store->search($query, $folder, $limit);
+
+            foreach ($items as $item) {
+                $output->writeln((string) $item);
+            }
+
+            return Command::SUCCESS;
+        } catch (CoverStoreException $e) {
+            $output->writeln('<error>'.$e->getMessage().'</error>');
+
+            return Command::FAILURE;
+        }
     }
 }

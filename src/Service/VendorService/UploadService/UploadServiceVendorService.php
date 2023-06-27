@@ -69,13 +69,14 @@ class UploadServiceVendorService implements VendorServiceImporterInterface
      * {@inheritdoc}
      *
      * @throws \App\Exception\UnknownVendorServiceException
+     * @throws CoverStoreException
      */
     public function load(): VendorImportResultMessage
     {
         $status = new VendorStatus();
         $this->progressStart('Searching CoverStore BulkUpload folder for new images');
 
-        $items = $this->store->search(self::SOURCE_FOLDER);
+        $items = $this->store->getFolder(self::SOURCE_FOLDER);
 
         // Labels for metrics services.
         $labels = [
@@ -144,7 +145,7 @@ class UploadServiceVendorService implements VendorServiceImporterInterface
                 $this->vendorCoreService->getMetricsService()->counter('coverstore_error_total', 'Cover store error', 1, $labels);
                 continue;
             } catch (CoverStoreNotFoundException $exception) {
-                // Log that the image did not exists.
+                // Log that the image did not exist.
                 $this->logger->error('Cover store error - not found', [
                     'service' => self::class,
                     'message' => $exception->getMessage(),
