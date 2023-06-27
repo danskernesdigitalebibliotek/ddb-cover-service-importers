@@ -65,15 +65,34 @@ interface CoverStoreInterface
     /**
      * Search in the cover store.
      *
-     * @param string $folder
-     *   The folder (vendor) to search in
-     * @param string|null $rawQuery
-     *   Raw search query. If not defined wildcard search is preformed
+     * @param string $query
+     *   The search query to execute
+     * @param string|null $folder
+     *   The folder (vendor) to search in or null to search the full cover store
+     * @param int|null $maxResults
+     *   The maximum number of results to return. Omit to get all results.
      *
-     * @return CoverStoreItem[]
-     *   Array with the found items or empty if non found
+     * @return iterable<CoverStoreItem>
+     *   Iterable with the found items or empty if non found
+     *
+     * @throws CoverStoreException
      */
-    public function search(string $folder, string $rawQuery = null): array;
+    public function search(string $query, string $folder = null, int $maxResults = null): iterable;
+
+    /**
+     * Search in the cover store.
+     *
+     * @param string $folder
+     *   The folder to get items from
+     * @param int|null $maxResults
+     *   The maximum number of results to return. Omit to get all results.
+     *
+     * @return iterable<CoverStoreItem>
+     *   Iterable with the found items or empty if non found
+     *
+     * @throws CoverStoreException
+     */
+    public function getFolder(string $folder, int $maxResults = null): iterable;
 
     /**
      * Mover item in the cover store.

@@ -17,7 +17,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 
 #[AsCommand(
     name: 'app:vendor:remove-by-url-pattern',
-    description: 'Add a short description for your command',
+    description: 'Remove source entities base original file url pattern',
 )]
 class VendorRemoveByUrlPatternCommand extends Command
 {
@@ -35,7 +35,7 @@ class VendorRemoveByUrlPatternCommand extends Command
         $this->setDefinition(
             new InputDefinition([
                 new InputOption('vendor-id', null, InputOption::VALUE_REQUIRED, 'Vendor id found in the database', 0),
-                new InputOption('pattern', null, InputOption::VALUE_REQUIRED, 'Original image file pattern', '%{00000000-0000-0000-0000-000%'),
+                new InputOption('pattern', null, InputOption::VALUE_REQUIRED, 'Original image file pattern', '%00000000-0000-0000-0000-000%'),
             ])
         );
     }
