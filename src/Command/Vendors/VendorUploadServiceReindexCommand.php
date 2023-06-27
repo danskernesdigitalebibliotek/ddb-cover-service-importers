@@ -145,13 +145,7 @@ class VendorUploadServiceReindexCommand extends Command
             }
             ++$totalItems;
 
-            $this->progressMessage(
-                sprintf(
-                    'Found missing source %d of %d',
-                    number_format($found, 0, ',', '.'),
-                    number_format($totalItems, 0, ',', '.')
-                )
-            );
+            $this->progressMessage(sprintf('Found missing source %d of %d', $found, $totalItems));
             $this->progressAdvance();
         }
 
