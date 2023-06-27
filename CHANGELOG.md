@@ -10,11 +10,17 @@ All notable changes to this project will be documented in this file.
 See [keep a changelog](https://keepachangelog.com/en/1.0.0/) for information about writing changes to this log.
 
 ## [Unreleased]
+
+## [3.6.1] - 2023-06-27
+
+### Fixed 
 - Minor null reference error in CoverStoreMessageHandler
-- Added support recursive search in cover store
-- Added new command to search bulk uploaded cover for missing source entities.
-- Added new command `app:vendor:image-validation` to help debug image validators
-- Added new image validator to ebook central vendor
+ 
+# Added
+- Support recursive search in cover store
+- New command to search bulk uploaded cover for missing source entities.
+- New command `app:vendor:image-validation` to help debug image validators
+- New image validator to ebook central vendor
 
 ## [3.6.0] - 2023-05-24
 
