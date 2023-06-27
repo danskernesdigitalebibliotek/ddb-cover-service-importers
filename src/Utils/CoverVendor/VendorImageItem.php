@@ -37,6 +37,10 @@ class VendorImageItem implements \Stringable
         $output[] = str_repeat('-', 42);
         $output[] = 'Vendor: '.$this->getVendor()->getName();
         $output[] = 'Original file: '.$this->getOriginalFile();
+        $output[] = 'Content length: '.$this->getOriginalContentLength();
+        $output[] = 'Last modified: '.$this->getOriginalLastModified()->format('r');
+        $output[] = 'Is found: '.($this->isFound() ? 'yes' : 'no');
+
         $output[] = str_repeat('-', 42);
 
         return implode("\n", $output);
